@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*.pyc
+.env
+*.db
+*.sqlite3
+data/*.db
+logs/
+*.log
+distill_drops/
+distill_poller_state.json
+static/img_cache/
+archive/
