@@ -1,0 +1,1934 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" version="XHTML+RDFa 1.0" dir="ltr"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:dc="http://purl.org/dc/terms/"
+  xmlns:foaf="http://xmlns.com/foaf/0.1/"
+  xmlns:og="http://ogp.me/ns#"
+  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xmlns:sioc="http://rdfs.org/sioc/ns#"
+  xmlns:sioct="http://rdfs.org/sioc/types#"
+  xmlns:skos="http://www.w3.org/2004/02/skos/core#"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema#">
+  
+<head profile="http://www.w3.org/1999/xhtml/vocab">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+		    	
+    	
+	<link rel="dns-prefetch" href="https://google-analytics.com">
+	<link rel="dns-prefetch" href="https://fonts.googleapis.com">
+	<link rel="dns-prefetch" href="https://mediaassets.pca.org">
+	<meta name="facebook-domain-verification" content="52kxubxhoy3qixz9gg2343oe3tww0y" />
+	
+	
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta content="yes" name="apple-touch-fullscreen" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+
+	<title>The Porsche Club of America</title>
+
+<link rel="shortcut icon" href="https://pca.org/images/pcaFavicon_10.png" type="image/png" />
+
+
+	<meta name="robots" CONTENT="index, follow" />
+
+
+	<meta name="revisit-after" content="7 days" />
+	<meta name="language" content="en-us" />
+
+	 
+	<meta property="og:title" content="Porsche Club of America"/>
+	
+		<meta property="og:url" content="https://pca.org//"/>
+	
+	<meta property="fb:app_id" content=""/>
+
+	
+
+
+	<meta name="og:property" content="Porsche Club of America"/>
+	<meta property="og:description" content="Own a Porsche? Join the largest single marque car club in the world. Over 150,000 of your fellow Porsche owners already have. Join PCA Today! "/>
+	<meta property="og:keywords" content="Porsche, Porsche News, 911, 996, Boxster, Club, Targa, 911 Darkar, carrera, spyder, cayenne, macan, club coupe, club blau, PCA "/>
+
+
+
+	<meta property="og:image" content="https://mediaassets.pca.org/images/fb_logo.jpg"/>
+	
+	
+	<meta property="og:image:width" content="600">
+	<meta property="og:image:height" content="315"> 
+	
+	<meta name="og:phone_number" content="410-381-0911"/>
+	<meta name="og:street-address" content="9689 Gerwig Lane"/>
+	<meta name="og:locality" content="Columbia"/>
+	<meta name="og:region" content="Maryland"/>
+	<meta name="og:postal-code" content="21046"/>
+	<meta name="og:country-name" content="USA"/>
+	
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:site" content="@pcanational" />
+	<meta name="twitter:creator" content="@pcanational" />
+	
+		<meta name="twitter:url" content="https://pca.org//" />
+	
+	<meta name="twitter:title" content="Porsche Club of America" />
+	
+	<meta name="twitter:description" content="Own a Porsche? Join the largest single marque car club in the world. Over 150,000 of your fellow Porsche owners already have. Join PCA Today! " />
+
+	<meta name="twitter:image" content="https://mediaassets.pca.org/images/fb_logo.jpg"/>
+	
+	
+
+<meta name="description" content="Own a Porsche? Join the largest single marque car club in the world. Over 150,000 of your fellow Porsche owners already have. Join PCA Today!  - Porsche AG">
+<meta name="keywords" content="Porsche AG Porsche, Porsche News, 911, 996, Boxster, Club, Targa, 911 Darkar, carrera, spyder, cayenne, macan, club coupe, club blau, PCA ">
+	
+
+<meta property="og:type" content="website">
+
+
+<script type="text/javascript">
+var todayDate = new Date();
+var dd = String(todayDate.getDate()).padStart(2, '0');
+var mm = String(todayDate.getMonth() + 1).padStart(2, '0'); //January is 0!
+var yyyy = todayDate.getFullYear();
+
+todayDate = mm + '-' + dd + '-' + yyyy;
+
+function getCookieValue(a) {
+    var b = document.cookie.match('(^|;)\\s*' + a + '\\s*=\\s*([^;]+)');
+    return b ? decodeURI(b.pop()).replace("^",",") : '';
+}
+
+function parseDate(str) {
+    var mdy = str.split('-');
+    return new Date(mdy[2], mdy[0]-1, mdy[1]);
+}
+
+function datediff(first, second) {
+    // Take the difference between the dates and divide by milliseconds per day.
+    // Round to nearest whole number to deal with DST.
+    return Math.round((second-first)/(1000*60*60*24));
+}
+	
+
+</script>
+
+
+<!-- CSS Style -->
+<link rel="stylesheet" type="text/css" href="https://pca.org/stylesheet/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="https://pca.org/stylesheet/font-awesome.css" media="all">
+<link rel="stylesheet" type="text/css" href="https://pca.org/stylesheet/revslider.css" >
+<link rel="stylesheet" type="text/css" href="https://pca.org/stylesheet/owl.carousel.css">
+<link rel="stylesheet" type="text/css" href="https://pca.org/stylesheet/owl.theme.css">
+<link rel="stylesheet" type="text/css" href="https://pca.org/stylesheet/jquery.bxslider.css">
+<link rel="stylesheet" type="text/css" href="https://pca.org/stylesheet/jquery.mobile-menu.css">
+<link rel="stylesheet" type="text/css" href="https://pca.org/stylesheet/style.css" media="all">
+<link rel="stylesheet" type="text/css" href="https://pca.org/stylesheet/responsive.css" media="all">
+<link href='//fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,700italic,400,600,700,800' rel='stylesheet' type='text/css'>
+<link href="//fonts.googleapis.com/css?family=Teko:300,400,500,600,700" rel="stylesheet">
+<link href="//fonts.googleapis.com/css?family=Saira+Condensed:300,400,500,600,700,800" rel="stylesheet">
+<script src="//cdnjs.cloudflare.com/ajax/libs/postscribe/2.0.8/postscribe.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://pca.org/stylesheet/pca.css" media="all">
+<link rel="stylesheet" type="text/css" href="https://pca.org/stylesheet/cookiealert.css">
+<link rel="stylesheet" type="text/css" href="https://pca.org/stylesheet/bootstrap-select.css">
+
+<script src="https://use.fontawesome.com/dac44fd78b.js"></script>
+
+<script type="text/javascript" src="https://pca.org/js/jquery.min.js"></script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://pca.org/js/ilko-app.js"></script>
+<script type="text/javascript" src="https://pca.org/js/bootstrap.min.js"></script> 
+
+
+
+<script language="JavaScript">
+if(/Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
+  var isMobile=1;
+}else{
+  var isMobile=0;
+}
+</script>
+
+
+
+
+
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EHNNQK932C"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EHNNQK932C');
+</script>
+
+
+ 
+
+	
+
+		<script>
+		document.onkeydown = function(e) {
+		        if (e.ctrlKey && 
+		            (e.keyCode === 67 || 
+		             e.keyCode === 86 || 
+		             e.keyCode === 85 || 
+		             e.keyCode === 117)) {
+		            return false;
+		        } else {
+		            return true;
+		        }
+		};
+		$(document).keypress("u",function(e) {
+		  if(e.ctrlKey)
+		  {
+		return false;
+		}
+		else
+		{
+		return true;
+		}
+		});
+		</script>
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WRVXXE59Z2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-WRVXXE59Z2');
+</script>
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-P8YE4CZ0V2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-P8YE4CZ0V2');
+</script>
+
+
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KGG6WM');</script>
+<!-- End Google Tag Manager -->
+
+<style>.ie-panel{display: none;background: #212121;padding: 10px 0;box-shadow: 3px 3px 5px 0 rgba(0,0,0,.3);clear: both;text-align:center;position: relative;z-index: 1;} html.ie-10 .ie-panel, html.lt-ie-10 .ie-panel {display: block;}</style>
+</head>
+
+<body>
+    <div class="ie-panel"><a href="https://windows.microsoft.com/en-US/internet-explorer/"><img src="https://pca.org/images/warning_bar_0000_us.jpg" height="42" width="820" alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today."></a></div><div id="page">
+  <header>
+  <div class="header-banner">
+  
+  
+
+
+
+  	
+  <div class="container">
+  <div class="row">
+
+	<div class="col-lg-5 col-xs-12 col-sm-5 col-md-5">
+		<img src="https://www.pca.org/images/sporttex.jpg" style="height:40px; width:auto; float:left; margin-left:-4px;">
+		<div class="assetBlock">
+		  <div style="height: 20px; overflow: hidden; padding-left:15px; text-align:left;" id="topSlideshow">
+		  
+			<p style="display: block; color:#fff !important; font-weight:normal;">
+				<span style="color:white;  text-shadow:2px 2px #000;  ">The March 2026 Issue of Panorama is online.</span> &nbsp; <b><a href="https://www.pca.org/panorama" style="color:#ffd800;" title="">CLICK HERE TO READ</a></b>
+			</p> 
+			
+			<p style="display: block; color:#fff !important; font-weight:normal;">
+				<span style="color:white;  text-shadow:2px 2px #000;  ">Parade registration opened January 28th</span> &nbsp; <b><a href="https://pca.org/pca-login/parade-registration" style="color:#ffd800;" title="">REGISTER HERE</a></b>
+			</p>
+			
+		  </div>
+		</div>
+	  </div>
+  	
+  				
+                
+                <div class="social col-lg-3 col-xs-12 col-sm-3 col-md-3" align="center" id="socialtop">
+              <ul>
+                <li class="youtube"><a target="_blank" href="https://www.youtube.com/user/PCAHQ"></a></li>
+                <li class="fb1"><a target="_blank" href="https://www.facebook.com/porscheclubofamerica"></a></li>
+                <li class="instagram"><a target="_blank" href="https://www.instagram.com/porscheclubofamerica/"></a></li>
+                
+              </ul>
+            </div>
+
+                <div class="col-lg-4 col-lg-4 col-xs-12 col-sm-4 col-md-4 call-us" style="padding-top:0px; padding-bottom:0px;">
+                 
+                 <script>
+                 	if (getCookieValue('MEMNAME') == ''){
+	                 document.write('<div style="padding-top:10px;"><a href="'+window.location.protocol + '//' + location.hostname + '/join-porsche-club-america" class="pca-white">JOIN PCA TODAY!</a> &nbsp; <a href="'+window.location.protocol + '//' +location.hostname+'/login" class="pca-gold">MEMBER LOGIN</a></div>');
+                 	};
+
+                 	if (getCookieValue('MEMNAME') != ''){
+	                document.write('<span class="normalltext">WELCOME </span><span class="memname pca-gold bold"><a href="'+window.location.protocol + '//' + location.hostname + '/members" class="pca-gold bold">');
+	                document.write(getCookieValue('MEMNAME'));
+	                document.write('&nbsp; &nbsp; </a></span>');
+	                };
+	                
+                 	if (getCookieValue('MEMAVATAR') != ''){
+                 	document.write('<img src="/images/avatars/'+getCookieValue('MEMAVATAR')+'" style="height:35px; width:auto; padding:0px; position:relative;">'); 
+                 	}
+
+                 	if (getCookieValue('MEMRENEWAL') != ''){
+						if (datediff(parseDate(todayDate),parseDate(getCookieValue('MEMRENEWAL'))) < 63){
+		                 document.write('&nbsp; &nbsp;<span  style="background-color:red; padding:4px;"><a href="https://www.pca.org/renew"><span class="memname pca-white bold">RENEW MEMBERSHIP</span></a></span>');	                 
+						} else {
+		                 document.write('&nbsp; &nbsp;<span class="normalltext">Renew: </span><span class="memname pca-gold bold">'+getCookieValue('MEMRENEWAL')+'</span>');	                 
+						};
+					}
+               	</script>
+                </div>
+              </div>
+              </div>
+              </div>
+    <div class="container">
+      <div class="row">
+	  
+        <div id="header">
+          <div class="header-container">
+            <div class="header-logo" style="background-color:White;"> <a href="https://pca.org/" title="PCA Home Page" class="logo">
+              <div><img src="https://pca.org/images/pca_headerlogo.png" alt="Porsche Club of America" style="max-width:350px; height:auto;; width:100%; vertical-align: baseline;"></div>
+              </a> </div>
+            <div class="header__nav">
+              
+              <div class="fl-header-right">
+                <div class="fl-links">
+                  <div class="no-js"> <a title="" class="clicker"></a>
+                    <div class="fl-nav-links">
+                      <h3>My <img src="https://pca.org/images/favicon.png" style="width:30px; height:auto;"></h3>
+                      <ul class="links">
+                        <li><a href="https://pca.org/login" title="My Account">Login</a></li>
+                        <li><a href="https://pca.org/join-pca" title="Join PCA">Join PCA</a></li> <li><a href="https://pca.org/logout" title="Logout from PCA">Logout</a></li> </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <!--mini-cart-->
+                <div class="collapse navbar-collapse">
+                  <form id="topsearch" name="search" class="navbar-form" role="search" action="https://pca.org/search" method="GET">
+                    <div class="input-group">
+                      <input type="text" class="form-control" name="p" id="q" placeholder="Search PCA" maxlength="30">
+                      <input type="hidden" name="docs" value="on">
+                      <input type="hidden" name="news" value="on">
+                      <input type="hidden" name="rpts" value="on">
+                      <span class="input-group-btn">
+                      <button type="submit" class="search-btn"> <span class="glyphicon glyphicon-search"> <span class="sr-only">Search PCA</span> </span> </button>
+                      </span> </div>
+                  </form>
+                </div>
+                <!--links--> 
+              </div>
+              
+              <div class="fl-nav-menu" style="background-color:White;">
+                <nav>
+                  <div class="mm-toggle-wrap">
+                    <div class="mm-toggle"><i class="fa fa-bars"></i><span class="mm-label">Menu and Search</span> </div>
+                  </div>
+                  <div class="nav-inner"> 
+                    <!-- BEGIN NAV -->
+                    <ul id="nav" class="hidden-xs">
+                      
+		                      			<li class="level0 parent drop-menu"> <a  class="level-top" href="https://pca.org/pca-membership-join-club-join-fun"><span>Membership</span></a>
+		                      			
+		                      				<ul class="level1">
+		                      					<li class="level1 first"><a  href="https://pca.org/pca-membership-join-club-join-fun" style="padding:10px 10px; line-height:20px;"><span>Join</span></a></li> <li class="level1 nav-10-2"><a  href="https://pca.org/renew" style="padding:10px 10px; line-height:20px;"><span>Renew</span></a></li> 
+								                          		<li class="level1 nav-10-3"><a  href="https://www.pca.org/refer-a-friend" style="padding:10px 10px; line-height:20px;"><span>Refer a Friend</span></a></li>
+								                          	<li class="level1 nav-10-4"><a  href="https://pca.org/pca-test-drive" style="padding:10px 10px; line-height:20px;"><span>Test Drive</span></a></li> 
+								                          		<li class="level1 nav-10-5"><a target="_blank" href="https://www.pcawebstore.org" style="padding:10px 10px; line-height:20px;"><span>Shop PCA</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-6"><a  href="https://pca.org/pca-juniors" style="padding:10px 10px; line-height:20px;"><span>PCA Juniors</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-7"><a  href="https://pca.org/membership-benefits" style="padding:10px 10px; line-height:20px;"><span>Benefits</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-8"><a  href="https://pca.org/digitalofferings" style="padding:10px 10px; line-height:20px;"><span>Digital Offerings</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-9"><a  href="https://pca.org/activities" style="padding:10px 10px; line-height:20px;"><span>Activities</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-9"><a  href="https://pca.org/porsche-values" style="padding:10px 10px; line-height:20px;"><span>Porsche Values</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-9"><a  href="https://pca.org/connect/about-pca" style="padding:10px 10px; line-height:20px;"><span>About PCA</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-9"><a target="_blank" href="https://web.pca.org/giftmemberships" style="padding:10px 10px; line-height:20px;"><span>Gift Memberships</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-9"><a  href="https://www.pca.org/faq" style="padding:10px 10px; line-height:20px;"><span>Frequently Asked Questions</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-9"><a target="_blank" href="https://ww2.pca.org/pca-history" style="padding:10px 10px; line-height:20px;"><span>PCA History</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-9"><a  href="https://pca.org/connect/about-porsche" style="padding:10px 10px; line-height:20px;"><span>About Porsche</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-9"><a  href="https://pca.org/news/pca-diversity-inclusion-its-not-just-the-cars-its-the-people" style="padding:10px 10px; line-height:20px;"><span>PCA Diversity and Inclusion</span></a></li>
+								                          	
+					                        </ul>
+		                      			
+		                      		</li> 
+		                     
+		                      			<li class="level0 parent drop-menu"> <a  class="level-top" href="https://pca.org/events/"><span>Events</span></a>
+		                      			
+		                      				<ul class="level1">
+		                      					
+								                          		<li class="level1 first"><a  href="https://pca.org/events/" style="padding:10px 10px; line-height:20px;"><span>List All Events</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-2"><a target="_blank" href="https://www.porscheparade.org/" style="padding:10px 10px; line-height:20px;"><span>Porsche Parade</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-3"><a target="_blank" href="https://www.werksreunion.com/" style="padding:10px 10px; line-height:20px;"><span>Werks Reunion</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-4"><a target="_blank" href="https://pcaclubracing.org/" style="padding:10px 10px; line-height:20px;"><span>PCA Club Racing</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-5"><a  href="https://pca.org/events/tech-tactics-east-2026" style="padding:10px 10px; line-height:20px;"><span>Tech Tactics</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-6"><a  href="https://www.pca.org/events/%C3%BCnstock" style="padding:10px 10px; line-height:20px;"><span>ÜnStock</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-7"><a target="_blank" href="https://treffen.pca.org/" style="padding:10px 10px; line-height:20px;"><span>Treffen</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-8"><a  href="https://pca.org/events/treffen-at-sea-2026-pacific-wine-country" style="padding:10px 10px; line-height:20px;"><span>Treffen at Sea</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-9"><a target="_blank" href="https://pca.org/events/porsche-club-of-america-national-office-open-house-544495" style="padding:10px 10px; line-height:20px;"><span>PCA Open House</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-9"><a  href="https://pca.org/../drivers-education" style="padding:10px 10px; line-height:20px;"><span>Driver Education</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-9"><a  href="https://pca.org/../autox" style="padding:10px 10px; line-height:20px;"><span>AutoX</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-9"><a target="_blank" href="https://www.pcasimracing.org" style="padding:10px 10px; line-height:20px;"><span>PCA Sim Racing</span></a></li>
+								                          	
+					                        </ul>
+		                      			
+		                      		</li> 
+		                     
+		                      			<li class="level0 parent drop-menu"> <a  class="level-top" href="https://web.pca.org/news/"><span>News</span></a>
+		                      			
+		                      				<ul class="level1">
+		                      					
+								                          		<li class="level1 first"><a  href="https://pca.org/news/photo-gallery" style="padding:10px 10px; line-height:20px;"><span>Photo Gallery</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-2"><a  href="https://pca.org/members-making-a-difference" style="padding:10px 10px; line-height:20px;"><span>Members Making a Difference</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-3"><a  href="https://pca.org/photos-of-the-month" style="padding:10px 10px; line-height:20px;"><span>Photos of The Month</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-4"><a  href="https://www.pca.org/project964" style="padding:10px 10px; line-height:20px;"><span>Projekt 964</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-5"><a target="_blank" href="https://podcast.pca.org/" style="padding:10px 10px; line-height:20px;"><span>PCA Insiders Podcast</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-6"><a  href="https://ww2.pca.org/newsletter-archives" style="padding:10px 10px; line-height:20px;"><span>Newsletter Archives</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-7"><a  href="https://www.pca.org/newsletter-signup" style="padding:10px 10px; line-height:20px;"><span>Newsletters Signup</span></a></li>
+								                          	
+					                        </ul>
+		                      			
+		                      		</li> 
+		                     
+		                      			<li class="level0 parent drop-menu"> <a  class="level-top" href="https://pca.org/panorama/"><span>Magazine</span></a>
+		                      			
+		                      				<ul class="level1">
+		                      					
+								                          		<li class="level1 first"><a  href="https://pca.org/advertiser-index" style="padding:10px 10px; line-height:20px;"><span>Our Advertisers</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-2"><a  href="https://pca.org/connect/panorama-staff" style="padding:10px 10px; line-height:20px;"><span>Contact Panorama Staff</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-3"><a  href="https://pca.org/advertise-in-porsche-panorama-e-brake-news-pcaorg" style="padding:10px 10px; line-height:20px;"><span>Advertise with PCA</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-4"><a  href="https://pca.org/panorama" style="padding:10px 10px; line-height:20px;"><span>Porsche Panorama</span></a></li>
+								                          	
+					                        </ul>
+		                      			
+		                      		</li> 
+		                     
+		                      			<li class="level0 parent drop-menu hidden-sm"> <a  class="level-top" href="https://mart.pca.org/"><span>Classifieds</span></a>
+		                      			
+		                      				<ul class="level1">
+		                      					
+								                          		<li class="level1 first"><a target="_blank" href="https://mart.pca.org" style="padding:10px 10px; line-height:20px;"><span>Browse Classifieds</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-2"><a target="_blank" href="https://mart.pca.org/myAds" style="padding:10px 10px; line-height:20px;"><span>My Mart Ads</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-4"><a target="_blank" href="https://mart.pca.org/news" style="padding:10px 10px; line-height:20px;"><span>Mart News</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-5"><a target="_blank" href="https://mart.pca.org/email-alert" style="padding:10px 10px; line-height:20px;"><span>Mart Email Alerts</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-6"><a target="_blank" href="https://mart.pca.org/rules" style="padding:10px 10px; line-height:20px;"><span>Mart Rules</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-7"><a target="_blank" href="https://mart.pca.org/scams-buyer-safety" style="padding:10px 10px; line-height:20px;"><span>Avoiding Scams/Buyer Safety</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-8"><a target="_blank" href="https://www.pca.org/search?p=fresh%3A&ty=1&news=on" style="padding:10px 10px; line-height:20px;"><span>Mart Fresh</span></a></li>
+								                          	
+					                        </ul>
+		                      			
+		                      		</li> 
+		                     
+		                      			<li class="level0 parent drop-menu hidden-sm"> <a  class="level-top" href="https://pca.org/tech/"><span>Technical</span></a>
+		                      			
+		                      				<ul class="level1">
+		                      					
+								                          		<li class="level1 first"><a  href="https://pca.org/tech" style="padding:10px 10px; line-height:20px;"><span>Tech Q &amp; A</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-2"><a  href="https://pca.org/tech/tech-tactics-live" style="padding:10px 10px; line-height:20px;"><span>Tech Tactics Live</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-3"><a  href="https://www.pca.org/pca-tech-tips" style="padding:10px 10px; line-height:20px;"><span>PCA Tech Tips</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-4"><a  href="https://pca.org/connect/technical-experts" style="padding:10px 10px; line-height:20px;"><span>Experts</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-5"><a target="_blank" href="https://www.rennbow.org" style="padding:10px 10px; line-height:20px;"><span>Rennbow</span></a></li>
+								                          	
+					                        </ul>
+		                      			
+		                      		</li> 
+		                     
+		                      			<li class="level0 parent drop-menu"> <a  class="level-top" href="https://pca.org/contact"><span>Contact</span></a>
+		                      			
+		                      				<ul class="level1">
+		                      					
+								                          		<li class="level1 first"><a  href="https://pca.org/contact" style="padding:10px 10px; line-height:20px;"><span>Contact Us</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-2"><a  href="https://pca.org/connect/national-office" style="padding:10px 10px; line-height:20px;"><span>National Office</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-3"><a  href="https://pca.org/connect/region-directory" style="padding:10px 10px; line-height:20px;"><span>Region Directory</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-4"><a  href="https://pca.org/connect/region-officials" style="padding:10px 10px; line-height:20px;"><span>Region Officials</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-5"><a  href="https://pca.org/connect/zone-officials" style="padding:10px 10px; line-height:20px;"><span>Zone Reps</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-6"><a  href="https://pca.org/connect/national-committee-chairs" style="padding:10px 10px; line-height:20px;"><span>National Committee Chairs</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-7"><a  href="https://pca.org/connect/executive-council" style="padding:10px 10px; line-height:20px;"><span>Executive Council</span></a></li>
+								                          	
+								                          		<li class="level1 nav-10-8"><a  href="https://pca.org/connect/special-interest-groups" style="padding:10px 10px; line-height:20px;"><span>PCA Registries</span></a></li>
+								                          	
+					                        </ul>
+		                      			
+		                      		</li> 
+		                     
+                    </ul>
+                    <!--nav--> 
+                  </div>
+                </nav>
+              </div>
+            </div>
+            
+            <!--row--> 
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <!--container-->
+
+  
+<!-- START Bootstrap-Cookie-Alert -->
+<div class="alert text-center cookiealert" role="alert"  stysle="font-size:10px; padding:10px; line-height:10px;">
+   	<img src="https://pca.org/images/pca-corner.png" style=" position: absolute; bottom: 0px; right: 0px; max-height:160px;"> 
+<b>This website uses cookies</b><br>
+We use cookies to personalize content and ads, to provide social media features and to analyze our traffic. 
+We do not share your personal information. We do share data regarding your use of our site with our social media, advertising and analytics partners who may combine it with other information that you've provided to them or that they've collected from your use of their services.    	
+    	&nbsp; <a href="https://www.pca.org/news/why-does-pca-use-cookies" target="_blank" ><span class="pca-gold">PCA Cookie Policy</span></a>
+<br>
+    <button type="button" class="btn btn-primary btn-sm acceptcookies">
+        I agree and consent
+    </button>
+</div>
+<!-- END Bootstrap-Cookie-Alert -->
+<!--tmp=inc_home_bylaw.cfm-->
+
+
+
+
+
+<style>
+/*
+* Material Design Icons
+*/
+@font-face {
+	font-family: "Material Design Icons";
+	src: url("https://pca.org/fonts/materialdesignicons-webfont.eot?v=1.4.57");
+	src: url("https://pca.org/fonts/materialdesignicons-webfont.eot?#iefix&v=1.4.57") format("embedded-opentype"), url("https://pca.org/fonts/materialdesignicons-webfont.woff2?v=1.4.57") format("woff2"), url("https://pca.org/fonts/materialdesignicons-webfont.woff?v=1.4.57") format("woff"), url("https://pca.org/fonts/materialdesignicons-webfont.ttf?v=1.4.57") format("truetype"), url("https://pca.org/fonts/materialdesignicons-webfont.svg?v=1.4.57#materialdesigniconsregular") format("svg");
+	font-weight: normal;
+	font-style: normal;
+}
+
+.mdi {
+	display: inline-block;
+	font: normal normal normal 24px/1 "Material Design Icons";
+	font-size: inherit;
+	text-rendering: auto;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	transform: translate(0, 0);
+}
+
+
+h1, h2, h3, h4, h5, h6, [class*='heading-'] {
+	margin-top: 0;
+	margin-bottom: 0;
+	font-weight: 500;
+	color: #242424;
+}
+
+h1 a, h2 a, h3 a, h4 a, h5 a, h6 a, [class*='heading-'] a {
+	color: inherit;
+}
+
+h1 a:hover, h2 a:hover, h3 a:hover, h4 a:hover, h5 a:hover, h6 a:hover, [class*='heading-'] a:hover {
+	color: #29AEA6;
+}
+
+h1,
+.heading-1 {
+	font-size: 32px;
+	line-height: 1.5;
+}
+
+@media (min-width: 768px) {
+	h1,
+	.heading-1 {
+		font-size: 40px;
+	}
+}
+
+@media (min-width: 992px) {
+	h1,
+	.heading-1 {
+		font-size: 56px;
+	}
+}
+
+@media (min-width: 1200px) {
+	h1,
+	.heading-1 {
+		font-size: 70px;
+		line-height: 1.08571;
+	}
+}
+
+h2,
+.heading-2 {
+	font-size: 28px;
+	line-height: 1.3;
+	font-weight: 600;
+}
+
+h2 .big,
+.heading-2 .big {
+	font-size: 1.15em;
+	line-height: 1em;
+}
+
+@media (min-width: 768px) {
+	h2,
+	.heading-2 {
+		font-size: 36px;
+	}
+}
+
+@media (min-width: 992px) {
+	h2,
+	.heading-2 {
+		font-size: 40px;
+	}
+}
+
+@media (min-width: 1200px) {
+	h2,
+	.heading-2 {
+		font-size: 40px;
+		line-height: 1.4;
+	}
+}
+
+h3,
+.heading-3 {
+	font-size: 22px;
+	line-height: 1.5;
+}
+
+@media (min-width: 768px) {
+	h3,
+	.heading-3 {
+		font-size: 26px;
+		line-height: 1.33333;
+	}
+}
+
+@media (min-width: 1200px) {
+	h3,
+	.heading-3 {
+		font-size: 30px;
+	}
+}
+
+h4,
+.heading-4 {
+	font-size: 19px;
+	line-height: 1.3;
+}
+
+@media (min-width: 768px) {
+	h4,
+	.heading-4 {
+		font-size: 21px;
+	}
+}
+
+@media (min-width: 1200px) {
+	h4,
+	.heading-4 {
+		font-size: 21px;
+		line-height: 1.28571;
+	}
+}
+
+h5,
+.heading-5 {
+	font-size: 16px;
+	line-height: 1.4;
+}
+
+@media (min-width: 768px) {
+	h5,
+	.heading-5 {
+		font-size: 18px;
+		line-height: 1.44444;
+	}
+}
+
+h6,
+.heading-6 {
+	font-size: 15px;
+	line-height: 1.5;
+}
+
+@media (min-width: 576px) {
+	h6,
+	.heading-6 {
+		font-size: 16px;
+	}
+}
+
+.heading-7 {
+	font-size: 16px;
+	line-height: 1.3;
+	font-weight: 300;
+	text-transform: uppercase;
+	letter-spacing: .25em;
+}
+
+@media (min-width: 768px) {
+	.heading-7 {
+		font-size: 18px;
+		line-height: 1.33333;
+	}
+}
+
+small,
+.small {
+	display: block;
+	font-size: 13px;
+	line-height: 1.38462;
+}
+
+mark,
+.mark {
+	padding: 3px 5px;
+	color: #ffffff;
+	background: #29AEA6;
+}
+
+.big {
+	font-size: 15px;
+	line-height: 1.6;
+}
+
+@media (min-width: 576px) {
+	.big {
+		font-size: 16px;
+	}
+}
+
+.text-shadow-1 {
+	text-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.text-white-90 {
+	color: rgba(255, 255, 255, 0.9);
+	font-size:15px;
+}
+
+.ct-btn-scroll {
+  width: 89px;
+  height: 89px;
+  position: absolute;
+  bottom: 40px;
+  left: 0;
+  right: 0;
+  margin: auto;
+  padding-top: 500px;
+  z-index: 9;
+  border-radius: 50%;
+  -webkit-transition: background-color 0.25s ease-in-out;
+  transition: background-color 0.25s ease-in-out;
+}
+img,figure {  max-width: 100%;}
+
+
+
+#list-builder {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #333;
+    filter: alpha(opacity=80);
+	opacity: 0.8;
+    display: none;
+    z-index: 1000;
+}
+
+#popup-box {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #062f87;
+    color: #FFFFFF;
+    width: 90%;
+    max-width: 600px;
+    padding: 30px;
+    border: 10px solid #FFFFFF;
+    display: none;
+    z-index: 1001;
+}
+
+#popup-close {
+    position: absolute;
+    top: -25px;
+    right: -25px;
+    cursor: pointer;
+    width: 40px;
+}
+
+#popup-box h1 {
+    margin: 0;
+}
+
+#popup-box form {
+    margin-bottom: 0px;
+}
+
+#popup-box input {
+    padding: 10px;
+    border: 1px solid #333;
+    width: 40%;
+}
+
+#popup-box button {
+    padding: 10px;
+    border: 1px solid #333;
+}
+
+
+</style>
+
+
+
+<div id="homebanner" style="z-index:1;" class="section swiper-container swiper-slider swiper-slider-1" data-loop="true" data-autoplay="4500" data-simulate-touch="false" data-direction="horizontal">
+          <div class="swiper-wrapper" style="z-index:1;" >
+         
+            	<div class="swiper-slide context-dark bg-overlay-4" data-slide-bg="https://mediaassets.pca.org/sites/viewports/76501_viewport-cayenn-ev-drive.jpg" style="min-height:400px; width:100%;">
+            
+              <div class="swiper-slide-caption section-xxl">
+                <div class="container">
+                  <div class="row">
+                    <div class="col-md-10 col-lg-7 col-xxl-6">
+                      <div class="inset-6">
+                        <div class="box-decorative" data-caption-animate="fadeInUp" data-caption-delay="100" data-caption-duration="900"><span class="box-decorative-divider"></span>
+                          <h2><span class="tp-caption big pca-white big-text-shadow"><script>if (isMobile) {document.write('<BR><BR>');};</script>Desirable without an engine?</span></h2>
+                        </div>
+                        <p class="text-white-90 text-shadow bold" data-caption-animate="fadeInUp" data-caption-delay="250" data-caption-duration="900" style="max-width: 500px">2026 Porsche Cayenne Electric First Drive.</p>
+                        <br>
+                        <div class="inset-5 mt-26"><a class="button button-primary bold" href="https://www.pca.org/news/cayenne-electric-first-drive" data-caption-animate="fadeInUp" data-caption-delay="450" data-caption-duration="900">Read More</a></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="swiper-slide-lines" data-caption-animate="fadeInLeft" data-caption-delay="100" data-caption-duration="900">
+              	
+
+              </div>
+            </div>
+            
+            	<div class="swiper-slide context-dark bg-overlay-4" data-slide-bg="https://mediaassets.pca.org/sites/viewports/15231_viewport-2026rafflespring-1.jpg" style="min-height:400px; width:100%;">
+            
+              <div class="swiper-slide-caption section-xxl">
+                <div class="container">
+                  <div class="row">
+                    <div class="col-md-10 col-lg-7 col-xxl-6">
+                      <div class="inset-6">
+                        <div class="box-decorative" data-caption-animate="fadeInUp" data-caption-delay="100" data-caption-duration="900"><span class="box-decorative-divider"></span>
+                          <h2><span class="tp-caption big pca-white big-text-shadow"><script>if (isMobile) {document.write('<BR><BR>');};</script>Enter the Spring 2026 Member Only Raffle</span></h2>
+                        </div>
+                        <p class="text-white-90 text-shadow bold" data-caption-animate="fadeInUp" data-caption-delay="250" data-caption-duration="900" style="max-width: 500px">Win a 70th Anniversary Club Coupe!</p>
+                        <br>
+                        <div class="inset-5 mt-26"><a class="button button-primary bold" href="https://www.pca.org/news/spring-2026-raffle" data-caption-animate="fadeInUp" data-caption-delay="450" data-caption-duration="900">Enter Raffle</a></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="swiper-slide-lines" data-caption-animate="fadeInLeft" data-caption-delay="100" data-caption-duration="900">
+              	
+
+              </div>
+            </div>
+            
+            	<div class="swiper-slide context-dark bg-overlay-4" data-slide-bg="https://mediaassets.pca.org/sites/viewports/35013_viewport-458-v-gt3-rs.jpg" style="min-height:400px; width:100%;">
+            
+              <div class="swiper-slide-caption section-xxl">
+                <div class="container">
+                  <div class="row">
+                    <div class="col-md-10 col-lg-7 col-xxl-6">
+                      <div class="inset-6">
+                        <div class="box-decorative" data-caption-animate="fadeInUp" data-caption-delay="100" data-caption-duration="900"><span class="box-decorative-divider"></span>
+                          <h2><span class="tp-caption big pca-white big-text-shadow"><script>if (isMobile) {document.write('<BR><BR>');};</script>Porsche 997.2 GT3 RS vs Ferrari 458</span></h2>
+                        </div>
+                        <p class="text-white-90 text-shadow bold" data-caption-animate="fadeInUp" data-caption-delay="250" data-caption-duration="900" style="max-width: 500px">The 1,000th Video Showdown.</p>
+                        <br>
+                        <div class="inset-5 mt-26"><a class="button button-primary bold" href="https://www.pca.org/news/2010-gt3-rs-vs-458-italia-pca-spotlight" data-caption-animate="fadeInUp" data-caption-delay="450" data-caption-duration="900">Watch Video</a></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="swiper-slide-lines" data-caption-animate="fadeInLeft" data-caption-delay="100" data-caption-duration="900">
+              	
+
+              </div>
+            </div>
+            
+            	<div class="swiper-slide context-dark bg-overlay-4" data-slide-bg="https://mediaassets.pca.org/sites/viewports/81083_viewport-werks-amelia-2026.jpg" style="min-height:400px; width:100%;">
+            
+              <div class="swiper-slide-caption section-xxl">
+                <div class="container">
+                  <div class="row">
+                    <div class="col-md-10 col-lg-7 col-xxl-6">
+                      <div class="inset-6">
+                        <div class="box-decorative" data-caption-animate="fadeInUp" data-caption-delay="100" data-caption-duration="900"><span class="box-decorative-divider"></span>
+                          <h2><span class="tp-caption big pca-white big-text-shadow"><script>if (isMobile) {document.write('<BR><BR>');};</script>Werks Reunion Amelia Island 2026 recap [w/video]</span></h2>
+                        </div>
+                        <p class="text-white-90 text-shadow bold" data-caption-animate="fadeInUp" data-caption-delay="250" data-caption-duration="900" style="max-width: 500px">Celebrating 50 Years of Transaxle Porsches.</p>
+                        <br>
+                        <div class="inset-5 mt-26"><a class="button button-primary bold" href="https://www.pca.org/news/werks-reunion-amelia-island-2026-recap" data-caption-animate="fadeInUp" data-caption-delay="450" data-caption-duration="900">Read More</a></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="swiper-slide-lines" data-caption-animate="fadeInLeft" data-caption-delay="100" data-caption-duration="900">
+              	
+
+              </div>
+            </div>
+            
+            	<div class="swiper-slide context-dark bg-overlay-4" data-slide-bg="https://mediaassets.pca.org/sites/viewports/48579_viewport-state-of-market-2026.jpg" style="min-height:400px; width:100%;">
+            
+              <div class="swiper-slide-caption section-xxl">
+                <div class="container">
+                  <div class="row">
+                    <div class="col-md-10 col-lg-7 col-xxl-6">
+                      <div class="inset-6">
+                        <div class="box-decorative" data-caption-animate="fadeInUp" data-caption-delay="100" data-caption-duration="900"><span class="box-decorative-divider"></span>
+                          <h2><span class="tp-caption big pca-white big-text-shadow"><script>if (isMobile) {document.write('<BR><BR>');};</script>What we learned from recent 2025/2026 auction results</span></h2>
+                        </div>
+                        <p class="text-white-90 text-shadow bold" data-caption-animate="fadeInUp" data-caption-delay="250" data-caption-duration="900" style="max-width: 500px">State of the Porsche Market 2026.</p>
+                        <br>
+                        <div class="inset-5 mt-26"><a class="button button-primary bold" href="https://www.pca.org/news/porsche-market-2025-2026-auction-results-tech-tactics" data-caption-animate="fadeInUp" data-caption-delay="450" data-caption-duration="900">Watch Video</a></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="swiper-slide-lines" data-caption-animate="fadeInLeft" data-caption-delay="100" data-caption-duration="900">
+              	
+
+              </div>
+            </div>
+            
+          </div>
+			<a class="ct-btn-scroll ct-js-btn-scroll" href="#section2"><img alt="Arrow Down Icon" src="https://pca.org/images/scroll_arrow_down.png" style="margin-top:-50px;" id="downarrow"></a>            
+
+          <!--Swiper Pagination-->
+          <div class="swiper-pagination">
+          	
+          </div>
+          <!--Swiper Navigation-->
+          <div class="swiper-button-prev"></div>
+          <div class="swiper-button-next"></div>
+              <div id="tow" class="arrow bounce"> <a class="fa fa-arrow-down fa-4x" href="##"></a></div>
+        </div>
+          	
+      </header>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/js/bootstrap-select.min.js" integrity="sha512-yDlE7vpGDP7o2eftkCiPZ+yuUyEcaBwoJoIhdXv71KZWugFqEphIS3PU60lEkFaz8RxaVsMpSvQxMBaKVwA5xg==" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+	<script src="https://pca.org/js/core.min.js"></script>
+    <script src="https://pca.org/js/script.js"></script>
+     
+
+
+<script language="JavaScript">
+$(document).ready(function(){
+    // Function to set a value in localStorage
+    function setLocalStorage(name, value) {
+        localStorage.setItem(name, value);
+    }
+
+    // Function to get a value from localStorage
+    function getLocalStorage(name) {
+        return localStorage.getItem(name);
+    }
+
+    // Check if the popup should be shown
+    var ebrakePopupShown = getLocalStorage("ebrakePopupShown");
+    if (!ebrakePopupShown) {
+        setTimeout(function() {
+            $("#ebrakepop").show();
+            $("#popup-box").show();
+        }, 5000);
+    }
+
+    // Handle form submission
+    $("button[name='subscribe']").on('click', function() {
+        var email = $("input[name='email']").val();
+        $.ajax({
+            url: 'https://pca.org/cfc/techDOA.cfc?method=ebrakeSubscription', 
+            type: 'POST',
+            data: { email: email, list: 'ebrake' },
+            success: function(response) {
+                $("#popup-box-content").html('<h3 class="pca-white" style="text-align: center;">Thank you for subscribing to PCA\'s FREE e-Brake News newsletter!</h3>');
+                setTimeout(function() {
+                    $("#ebrakepop").hide();
+                }, 5000);
+                setLocalStorage("ebrakePopupShown", "true");
+            },
+            error: function() {
+                alert('There was an error processing your request. Please try again.');
+            }
+        });
+    });
+
+    // Handle popup close
+    $("#popup-close").on('click', function() {
+        $("#ebrakepop").hide();
+        setLocalStorage("ebrakePopupShown", "true");
+    });
+
+    if (isMobile == '1') {
+        var x = document.getElementById("tow");
+        var y = document.getElementById("color1");
+        x.style.display = "none";
+        y.style.display = "none";
+        document.getElementById('homebanner').style.minHeight = '300px';
+    } else {
+        
+    };
+
+    $("a").on('click', function(event) {
+        if (this.hash !== "") {
+            event.preventDefault();
+            var hash = this.hash;
+            $('html, body').animate({
+                scrollTop: $(hash).offset().top
+            }, 800, function(){
+                window.location.hash = hash;
+            });
+        } 
+    });
+
+    $("button[name='subscribe']").on('click', function() {
+        var email = $("input[name='email']").val();
+        $.ajax({
+            url: 'https://pca.org/cfc/techDOA.cfc?method=ebrakeSubscription', 
+            type: 'POST',
+            data: { email: email, 
+                    list: 'ebrake' 
+                  },
+            success: function(response) {
+                $("#popup-box-content").html('<h3 class="pca-white" style="text-align: center;">Thank you for subscribing to PCA\'s FREE e-Brake News newsletter!</h3>');
+                setTimeout(function() {
+                    $("#ebrakepop").hide();
+                }, 5000);
+                setLocalStorage("ebrakePopupShown", "true");
+            },
+            error: function() {
+                alert('There was an error processing your request. Please try again.');
+            }
+        });
+    });
+
+    $("#popup-close").on('click', function() {
+        $("#ebrakepop").hide();
+        setLocalStorage("ebrakePopupShown", "true");
+    });
+
+    setTimeout(function() {
+        if (!getLocalStorage("ebrakePopupShown")) {
+            $("#ebrakepop").show();
+            $("#popup-box").show();
+        }
+    }, 5000);
+});
+</script>
+    
+   
+<section id="section2">
+     <div class="container">
+        <div class="row"><br>
+        	<div class="col-lg-12 col-sm-12 col-md-12" align="center" srlftyle="min-height:125px;">
+					<script>topdivID="#topBanner"; var adcode='main'; var pagecode='home'; var minvalue=0; var poscode='top'; var adwords=''; var adsize='superleader'; getTopAdBanner();</script>
+					<div id="topBanner"></div>
+			</div>    
+		</div>    
+	</div>    
+</section>
+
+
+  	  <!-- Home Latest News Block -->
+
+
+  <div class="latest-blog wow bounceInUp animated animated container"> 
+      
+    <div class="blog-home-inner" style="padding-left:0px; padding-right:0px;">
+		
+		<div style="background-color:white; border-top:4px solid #96D0E5; padding-top:5px;">
+			<div class="new_titles" style="border-bottom:4px solid #96D0E5; padding-bottom:5px;">
+				<div style="background-color:#FF8C2F;">
+					<div id="colorheaderleft">
+						<a href="https://pca.org/news" style="font-size:21px;font-family:'Saira Condensed', sans-serif;"><h4 class="base-font bold" style="text-align:center; color:black; background-color:white; max-width:200px;min-height:30px;"><div style="padding-top:3px;"><b>LATEST PCA NEWS</b></div></span></a></h4>
+								<div style="float:right; margin-right:0px; margin-top:-29px;" id="color1">
+									<a href="https://www.rennbow.org/" target="_blank"><img src="images/rennbow_stripe.png" style="width:270px; height:29px; float:right;"></a>
+								</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+      
+      <div class="row" style="padding-left:10px; padding-right:10px;">
+      	
+		
+    <div class="col-lg-4 col-md-4 col-xs-12 col-sm-4 blog-post">
+      <div class="blog_inner">
+          <div class="blog-img">
+              <h6>
+                  <a href="https://www.pca.org/news/bylaw-revisions">
+                      <span class="entry-date bold pca-clubblau">#BYLAWSREVISION</span>
+                  </a>
+              </h6>
+              <a href="https://www.pca.org/news/bylaw-revisions" target="_blank">
+              <img src="https://mediaassets.pca.org/pages/pca/images/content/BylawsGraphic.jpg"
+                style="max-width:406px; max-height:236px; height:auto; border:1px solid ##999;">
+              </a>
+          </div>
+          <!--blog-img-->
+
+          <div class="blog-info" style="padding-top:7px;">
+              <ul class="post-meta">
+                  <li>Wed 12/10/25</li>
+              </ul>
+
+              <h3>
+                  <a href="https://www.pca.org/news/bylaw-revisions" target="_blank">
+                      In accordance with the National Bylaws, the Executive Council has proposed amendments to the PCA Bylaws. 
+                  </a>
+              </h3>
+              <p>The proposed revisions with the rationale are now available for membership review, question, and comment on pca.org. The review period per the Bylaws will be open through January 27, 2026. </p>
+              <!-- Centered "Click for full details" link styled like the title -->
+              <h3 style="text-align: center; margin-top: 15px;">
+                  <a href="https://www.pca.org/news/bylaw-revisions" target="_blank">Click for full details</a>
+              </h3>
+
+          </div>
+      </div>
+      <!--blog_inner-->
+  </div>
+		
+        <div class="col-lg-4 col-md-4 col-xs-12 col-sm-4 blog-post">
+          <div class="blog_inner">
+            <div class="blog-img"> 
+              <h6><a href="https://pca.org/tag/TechTacticsLive"> <span class="entry-date bold pca-clubblau">#TECHTACTICSLIVE</span></a></h6> 
+            			<a href="https://pca.org/news/protect-your-investment-navigating-diminished-value-claims-tech-tactics-live">
+            		<img src="https://mediaassets.pca.org/pages/pca/images/content/leadttl-diminished-value-2.jpg" alt="Porsche Club of America - Protect Your Investment: Navigating Diminished Value Claims with Super Car Claims | Tech Tactics Live" style="max-width:406px; max-height:236px; height:auto; border:1px solid #999;"> </a> 
+            </div>
+            <!--blog-img-->
+            <div class="blog-info" style="padding-top:7px;">
+              <ul class="post-meta">
+                <li>Tue 03/24/26</li>
+                <li style="float:right;">by <a href="https://pca.org/author/PCA-YouTube">PCA YouTube</a> </li>
+              </ul>
+              <h3> 
+              			<a href="https://pca.org/news/protect-your-investment-navigating-diminished-value-claims-tech-tactics-live">
+              		Protect Your Investment: Navigating Diminished Value Claims with Super Car Claims | Tech Tactics Live</a></h3>
+              <p>Steven Calamusa, PCA member and Super Car Claims founder, will be on Tech Tactics Live Wednesday, March 25, at 8 PM ET to answer all your questions about diminished value claims. This will be a popular episode since it covers not only Porsches but any of your cars that qualify. You’ll hear about real life examples of what happens when things to wrong and how to be reimbursed to the fullest.</p>
+            </div>
+          </div>
+          <!--blog_inner--> 
+        </div>
+        
+        <div class="col-lg-4 col-md-4 col-xs-12 col-sm-4 blog-post">
+          <div class="blog_inner">
+            <div class="blog-img"> 
+              <h6><a href="https://pca.org/tag/MartFresh"> <span class="entry-date bold pca-clubblau">#MARTFRESH</span></a></h6> 
+            			<a href="https://pca.org/news/1977-porsche-924-1999-boxster-2001-911-carrera-cabriolet-or-2018-panamera-turbo-sport-turismo-mart-fresh">
+            		<img src="https://mediaassets.pca.org/pages/pca/images/content/3-24-2026-mart-fresh.jpg" alt="Porsche Club of America - 1977 Porsche 924, 1999 Boxster, 2001 911 Carrera Cabriolet, or 2018 Panamera Turbo Sport Turismo? | Mart Fresh" style="max-width:406px; max-height:236px; height:auto; border:1px solid #999;"> </a> 
+            </div>
+            <!--blog-img-->
+            <div class="blog-info" style="padding-top:7px;">
+              <ul class="post-meta">
+                <li>Tue 03/24/26</li>
+                <li style="float:right;">by <a href="https://pca.org/author/Multiple-Contributors">Multiple Contributors</a> </li>
+              </ul>
+              <h3> 
+              			<a href="https://pca.org/news/1977-porsche-924-1999-boxster-2001-911-carrera-cabriolet-or-2018-panamera-turbo-sport-turismo-mart-fresh">
+              		1977 Porsche 924, 1999 Boxster, 2001 911 Carrera Cabriolet, or 2018 Panamera Turbo Sport Turismo? | Mart Fresh</a></h3>
+              <p>Mart Fresh is a bi-weekly column in which we pick what we think are the "freshest" Porsches currently available, and then attempt to explain our reasoning. Up this week are a 1977 924, 1999 Boxster, 2001 911 Carrera Cabriolet, and 2018 Panamera Turbo Sport Turismo?</p>
+            </div>
+          </div>
+          <!--blog_inner--> 
+        </div>
+        
+        </div>
+      </div>
+    </div>
+
+
+
+
+
+    <!--Category slider Start-->
+    <div class="top-cate" style="max-height:350px;">
+      <div class="featured-pro container" style="padding-left:0px; padding-right:0px;">
+		    <div class="slider-items-products">
+				
+				<div style="background-color:white; border-top:4px solid #66093E; padding-top:7px;">
+					<div class="new_titles" style="border-bottom:4px solid #66093E; padding-bottom:7px;">
+						<div style="background-color:#66093E;">
+							<div id="colorheaderleft">
+								<a href="https://pca.org/"><h4 class="base-font bold" style="text-align:center; color:black; background-color:white; max-width:170px; min-height:30px;"><div style="padding-top:3px;"><b>INSIDE PCA</b></div></span></a></h4>
+								<div style="float:right; margin-right:5px; margin-top:-29px;" id="color1">
+									<a href="https://www.rennbow.org/porsche-colors/Aubergine" target="_blank"><img src="images/color_aubergine.jpg" style="width:270px; height:29px; float:right;"></a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+      
+
+
+        <div>
+
+     <div id="top-categories" class="pad10" >
+
+      <div class="container">
+        <div class="row">
+      	<img src="images/pca-corner.png" style=" position: absolute; bottom: 0px; right: 0px; max-height:160px;"> 
+            <div class="col-lg-6 col-sm-6 col-md-6">
+
+
+                  <a href="https://pca.org/panorama" title="Porsche Club of America - Panorama March 2026"><img src="https://mediaassets.pca.org/pano/Mar-2026/docs/Mar-2026.pdf_1.jpg" style="max-height:250px; float:left; margin-right:10px;" alt="Porsche Club of America - Panorama Magazine"></a>
+						<div style="padding:7px;">
+                  			<h4 class="pca-clubblau bold">Panorama March 2026</h4><br>
+	               			<p>The March 2026 edition is online and ready to be viewed!</p>
+				            <a href="https://pca.org/panorama" class="btn btn-gold bold">Read Edition</a>
+                  		</div>
+
+
+				
+        	</div> 
+
+            <div class="col-lg-3 col-sm-3 col-md-3">
+            	
+            	<ul class="h3 lang bold pca-maroon">
+				
+                    <li style="padding:10px;"><a class="font20" onclick="_gaq.push(['_trackEvent', 'homeLinks', 'Click', 'Inside - PCA WEBSTORE']);" href="https://www.pcawebstore.org" target="_blank"><div class="pro-info  pca-maroon font20">&#187; PCA WEBSTORE</span></div></a></li>
+                
+                    <li style="padding:10px;"><a class="font20" onclick="_gaq.push(['_trackEvent', 'homeLinks', 'Click', 'Inside - THE MART']);" href="https://mart.pca.org" target="_blank"><div class="pro-info  pca-maroon font20">&#187; THE MART</span></div></a></li>
+                
+                    <li style="padding:10px;"><a class="font20" onclick="_gaq.push(['_trackEvent', 'homeLinks', 'Click', 'Inside - EVENTS']);" href="/events" ><div class="pro-info  pca-maroon font20">&#187; EVENTS</span></div></a></li>
+                
+                    <li style="padding:10px;"><a class="font20" onclick="_gaq.push(['_trackEvent', 'homeLinks', 'Click', 'Inside - TECHNICAL']);" href="/tech" ><div class="pro-info  pca-maroon font20">&#187; TECHNICAL</span></div></a></li>
+                
+                    <li style="padding:10px;"><a class="font20" onclick="_gaq.push(['_trackEvent', 'homeLinks', 'Click', 'Inside - CLUB RACING']);" href="https://www.pcaclubracing.org/" target="_blank"><div class="pro-info  pca-maroon font20">&#187; CLUB RACING</span></div></a></li>
+                
+                    <li style="padding:10px;"><a class="font20" onclick="_gaq.push(['_trackEvent', 'homeLinks', 'Click', 'Inside - AUTOX']);" href="/autox" ><div class="pro-info  pca-maroon font20">&#187; AUTOX</span></div></a></li>
+                
+				</ul>
+        	</div> 
+
+            <div class="col-lg-3 col-sm-3 col-md-3" align="center">
+            	<ul class="h3 lang bold pca-maroon">
+				
+                    <li style="padding:10px;"><a class="font20"  onclick="_gaq.push(['_trackEvent', 'homeLinks', 'Click', 'Inside - DRIVERS ED']);" href="/drivers-education" ><div class="pro-info pca-maroon font20">&#187; DRIVERS ED</div></a></li>
+                
+                    <li style="padding:10px;"><a class="font20"  onclick="_gaq.push(['_trackEvent', 'homeLinks', 'Click', 'Inside - PCA SIM RACING']);" href="https://www.pcasimracing.com/" target="_blank"><div class="pro-info pca-maroon font20">&#187; PCA SIM RACING</div></a></li>
+                
+                    <li style="padding:10px;"><a class="font20"  onclick="_gaq.push(['_trackEvent', 'homeLinks', 'Click', 'Inside - PCA INSIDERS PODCAST']);" href="https://podcast.pca.org" target="_blank"><div class="pro-info pca-maroon font20">&#187; PCA INSIDERS PODCAST</div></a></li>
+                
+                    <li style="padding:10px;"><a class="font20"  onclick="_gaq.push(['_trackEvent', 'homeLinks', 'Click', 'Inside - PCA JUNIORS']);" href="/pca-juniors" ><div class="pro-info pca-maroon font20">&#187; PCA JUNIORS</div></a></li>
+                
+                    <li style="padding:10px;"><a class="font20"  onclick="_gaq.push(['_trackEvent', 'homeLinks', 'Click', 'Inside - REGION FOCUS']);" href="https://www.pca.org/members/region-focus" ><div class="pro-info pca-maroon font20">&#187; REGION FOCUS</div></a></li>
+                
+				</ul>
+				<div align="left" style="margin-left:10px;">
+		            <a href="https://pca.org/refer-a-friend" class="btn btn-gold bold">REFER A FRIEND</a>
+				</div>
+				
+        	</div> 
+        </div>
+      </div>
+            	
+      		</div>
+            	
+            	
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--Category silder End-->
+    
+
+
+
+
+
+  <section class=" wow bounceInUp animated">
+    <div class="best-pro slider-items-products container" style="padding-left:0px; padding-right:0px;">
+	   	
+  	<div style="background-color:white; border-top:4px solid #237635; padding-top:5px;">
+      <div class="new_titles" style="border-bottom:4px solid #237635; padding-bottom:5px;">
+      	<div style="background-color:#237635;">
+      		<div id="colorheaderleft">
+        		<h4 class="base-font bold" style="color:black; border-left:10px solid white; background-color:white; max-width:170px; min-height:30px;"><div style="padding-top:3px;">NEW IN <a href="https://mart.pca.org/" target="_blank">THE MART</span></div></a></h4>
+					<div style="float:right; margin-right:80px; margin-top:-29px;" id="color1" class="hidden-sm">
+						<a href="https://www.rennbow.org/porsche-colors/PalmGreen" target="_blank"><img src="images/color_palm_green.jpg" style="width:250px; height:29px; float:right;" class="hidden-sm"></a>
+					</div>
+
+        	</div>
+        </div>
+      </div>
+      </div>
+      
+      <div id="best-seller" class="product-flexslider hidden-buttons">
+        <div class="slider-items slider-width-col4 products-grid">
+          
+          <div class="item">
+            <div class="item-inner">
+              <div class="item-img">
+                	<div class="item-img-info">
+						<div class="mart-container">
+	                	<a href="https://mart.pca.org/ads/71437" target="_blank" class="product-image" title="Porsche Club of America - The Mart - 2019 Macan S">
+                		<img src="https://mart.pca.org/includes/images/martAdImages/71437/71437_C319E8D9416E144B39C06689F8FED010D799D6EE35501C8DD58A08BCD496E8B1.jpg" alt="Porsche Club of America - The Mart - 2019 Macan S" style="max-height:220px; min-height:220px;"></a>
+                  
+                  		</div>
+                </div>
+              </div>
+              <div class="item-info">
+                <div class="info-inner">
+                  <div class="item-title" style="min-height:70px;"><a href="https://mart.pca.org/ads/71437" target="_blank" title="Porsche Club of America - The Mart - 2019 Macan S"><span class="bold">2019 Macan S</span></a> </div>
+                  <div class="item-content">
+                    <div class="item-price">
+                      <div class="price-box"><span class="regular-price"><span class="price" style="font-size:28px;">$28,000.00</span> </span> </div>
+                    </div>
+                    <div class="other-info" style="text-align:left;">
+                      2019 MACAN S - SAPPHIRE BLUE METALLIC.  GORGEOUS COLOR.    CPO WARRANTY UNTIL 6/2025.    HAVE OWNED ...
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+		
+          <div class="item">
+            <div class="item-inner">
+              <div class="item-img">
+                	<div class="item-img-info">
+						<div class="mart-container">
+	                	<a href="https://mart.pca.org/ads/81272" target="_blank" class="product-image" title="Porsche Club of America - The Mart - 2003 Boxster">
+                		<img src="https://mart.pca.org/includes/images/martAdImages/81272/81272_AF5C66AA70685524D0621E5985C3FE7E2B5A0DC53988D4E56214FD9831308CCD.jpg" alt="Porsche Club of America - The Mart - 2003 Boxster" style="max-height:220px; min-height:220px;"></a>
+                  <div class="sale-label sale-top-left">NEW LISTING!</div>
+                  		</div>
+                </div>
+              </div>
+              <div class="item-info">
+                <div class="info-inner">
+                  <div class="item-title" style="min-height:70px;"><a href="https://mart.pca.org/ads/81272" target="_blank" title="Porsche Club of America - The Mart - 2003 Boxster"><span class="bold">2003 Boxster</span></a> </div>
+                  <div class="item-content">
+                    <div class="item-price">
+                      <div class="price-box"><span class="regular-price"><span class="price" style="font-size:28px;">$10,000.00</span> </span> </div>
+                    </div>
+                    <div class="other-info" style="text-align:left;">
+                      SELLING MY 2003 BOXSTER BASE.  61K MILES, ARTIC SILVER EXTERIOR, BLACK LEATHER INTERIOR, 5 SPD MANUA...
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+		
+          <div class="item">
+            <div class="item-inner">
+              <div class="item-img">
+                	<div class="item-img-info">
+						<div class="mart-container">
+	                	<a href="https://mart.pca.org/ads/81270" target="_blank" class="product-image" title="Porsche Club of America - The Mart - 2024 911 Carrera T">
+                		<img src="https://mart.pca.org/includes/images/martAdImages/81270/81270_3F1E1F0D3F05754DC9CC13A1C9C74995867269521EF11AEF6D5181D178FA9370.jpg" alt="Porsche Club of America - The Mart - 2024 911 Carrera T" style="max-height:220px; min-height:220px;"></a>
+                  <div class="sale-label sale-top-left">NEW LISTING!</div>
+                  		</div>
+                </div>
+              </div>
+              <div class="item-info">
+                <div class="info-inner">
+                  <div class="item-title" style="min-height:70px;"><a href="https://mart.pca.org/ads/81270" target="_blank" title="Porsche Club of America - The Mart - 2024 911 Carrera T"><span class="bold">2024 911 Carrera T</span></a> </div>
+                  <div class="item-content">
+                    <div class="item-price">
+                      <div class="price-box"><span class="regular-price"><span class="price" style="font-size:28px;">$155,000.00</span> </span> </div>
+                    </div>
+                    <div class="other-info" style="text-align:left;">
+                      FOR SALE IS MY GORGEOUS 2024 PORSCHE 992.1 CARRERA T WITH THE AMAZING 7-SPEED MANUAL TRANSMISSION. I...
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+		
+          <div class="item">
+            <div class="item-inner">
+              <div class="item-img">
+                	<div class="item-img-info">
+						<div class="mart-container">
+	                	<a href="https://mart.pca.org/ads/81271" target="_blank" class="product-image" title="Porsche Club of America - The Mart - 2018 Macan S">
+                		<img src="https://mart.pca.org/includes/images/martAdImages/81271/81271_8A081673478A89D70BBB1D327327567195E7337DC25365712130DEF87A909BCB.jpg" alt="Porsche Club of America - The Mart - 2018 Macan S" style="max-height:220px; min-height:220px;"></a>
+                  <div class="sale-label sale-top-left">NEW LISTING!</div>
+                  		</div>
+                </div>
+              </div>
+              <div class="item-info">
+                <div class="info-inner">
+                  <div class="item-title" style="min-height:70px;"><a href="https://mart.pca.org/ads/81271" target="_blank" title="Porsche Club of America - The Mart - 2018 Macan S"><span class="bold">2018 Macan S</span></a> </div>
+                  <div class="item-content">
+                    <div class="item-price">
+                      <div class="price-box"><span class="regular-price"><span class="price" style="font-size:28px;">$19,000.00</span> </span> </div>
+                    </div>
+                    <div class="other-info" style="text-align:left;">
+                      GET INTO A PORSCHE FOR THOUSANDS BELOW FAIR VALUE. MECHANICS SPECIAL.  P0024 CAM TIMING CODE PRESENT...
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+		
+          <div class="item">
+            <div class="item-inner">
+              <div class="item-img">
+                	<div class="item-img-info">
+						<div class="mart-container">
+	                	<a href="https://mart.pca.org/ads/81268" target="_blank" class="product-image" title="Porsche Club of America - The Mart - 992.1 Sport Seat Bolster Set">
+                		<img src="https://mart.pca.org/includes/images/martAdImages/81268/81268_20DC4BCF120E9A05615B1474DE2F45D4433F91A285E4B83013AAC817C06F9414.jpg" alt="Porsche Club of America - The Mart - 992.1 Sport Seat Bolster Set" style="max-height:220px; min-height:220px;"></a>
+                  <div class="sale-label sale-top-left">NEW LISTING!</div>
+                  		</div>
+                </div>
+              </div>
+              <div class="item-info">
+                <div class="info-inner">
+                  <div class="item-title" style="min-height:70px;"><a href="https://mart.pca.org/ads/81268" target="_blank" title="Porsche Club of America - The Mart - 992.1 Sport Seat Bolster Set"><span class="bold">992.1 Sport Seat Bolster Set</span></a> </div>
+                  <div class="item-content">
+                    <div class="item-price">
+                      <div class="price-box"><span class="regular-price"><span class="price" style="font-size:28px;">$400.00</span> </span> </div>
+                    </div>
+                    <div class="other-info" style="text-align:left;">
+                      MANUFACTURED BY EXCLUSIVE OPTION BERKELEY CA.    1 SET 992 LWB SEAT BOLSTER PROTECTOR SET- BLACK OEM...
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+		
+          <div class="item">
+            <div class="item-inner">
+              <div class="item-img">
+                	<div class="item-img-info">
+						<div class="mart-container">
+	                	<a href="https://mart.pca.org/ads/80332" target="_blank" class="product-image" title="Porsche Club of America - The Mart - 2012 Cayman R">
+                		<img src="https://mart.pca.org/includes/images/martAdImages/80332/80332_EE603D9EDE148D6C80552AFEF4D6A29BD08FA016FF765A8B6A8789DC6A6423AB.jpg" alt="Porsche Club of America - The Mart - 2012 Cayman R" style="max-height:220px; min-height:220px;"></a>
+                  
+                  		</div>
+                </div>
+              </div>
+              <div class="item-info">
+                <div class="info-inner">
+                  <div class="item-title" style="min-height:70px;"><a href="https://mart.pca.org/ads/80332" target="_blank" title="Porsche Club of America - The Mart - 2012 Cayman R"><span class="bold">2012 Cayman R</span></a> </div>
+                  <div class="item-content">
+                    <div class="item-price">
+                      <div class="price-box"><span class="regular-price"><span class="price" style="font-size:28px;">$53,000.00</span> </span> </div>
+                    </div>
+                    <div class="other-info" style="text-align:left;">
+                      SELLING MY 2012 CAYMAN R (PDK) THAT’S BEEN SET UP PRIMARILY FOR HPDE/TRACK USE. I’M THE CURRENT STEW...
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+		
+          <div class="item">
+            <div class="item-inner">
+              <div class="item-img">
+                	<div class="item-img-info">
+						<div class="mart-container">
+	                	<a href="https://mart.pca.org/ads/81269" target="_blank" class="product-image" title="Porsche Club of America - The Mart - 2020 911 Carrera S">
+                		<img src="https://mart.pca.org/includes/images/martAdImages/81269/81269_F015BA1FF100B147DEF566DF5129CC807AF46A856148B82386F80E0ED35239D9.jpg" alt="Porsche Club of America - The Mart - 2020 911 Carrera S" style="max-height:220px; min-height:220px;"></a>
+                  <div class="sale-label sale-top-left">NEW LISTING!</div>
+                  		</div>
+                </div>
+              </div>
+              <div class="item-info">
+                <div class="info-inner">
+                  <div class="item-title" style="min-height:70px;"><a href="https://mart.pca.org/ads/81269" target="_blank" title="Porsche Club of America - The Mart - 2020 911 Carrera S"><span class="bold">2020 911 Carrera S</span></a> </div>
+                  <div class="item-content">
+                    <div class="item-price">
+                      <div class="price-box"><span class="regular-price"><span class="price" style="font-size:28px;">$126,500.00</span> </span> </div>
+                    </div>
+                    <div class="other-info" style="text-align:left;">
+                      THIS IS A BEAUTIFUL, HIGH-PERFORMANCE CAR IN PERFECT CONDITION.  IT IS A ONE-OWNER CAR WITH JUST OVE...
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+		
+          <div class="item">
+            <div class="item-inner">
+              <div class="item-img">
+                	<div class="item-img-info">
+						<div class="mart-container">
+	                	<a href="https://mart.pca.org/ads/81266" target="_blank" class="product-image" title="Porsche Club of America - The Mart - 1988 944 Turbo S">
+                		<img src="https://mart.pca.org/includes/images/martAdImages/81266/81266_329090416DA6F1E2512A31C7755B9D6604CC9438169F5D282A0C95CC0DC3B2D8.jpg" alt="Porsche Club of America - The Mart - 1988 944 Turbo S" style="max-height:220px; min-height:220px;"></a>
+                  <div class="sale-label sale-top-left">NEW LISTING!</div>
+                  		</div>
+                </div>
+              </div>
+              <div class="item-info">
+                <div class="info-inner">
+                  <div class="item-title" style="min-height:70px;"><a href="https://mart.pca.org/ads/81266" target="_blank" title="Porsche Club of America - The Mart - 1988 944 Turbo S"><span class="bold">1988 944 Turbo S</span></a> </div>
+                  <div class="item-content">
+                    <div class="item-price">
+                      <div class="price-box"><span class="regular-price"><span class="price" style="font-size:28px;">$30,000.00</span> </span> </div>
+                    </div>
+                    <div class="other-info" style="text-align:left;">
+                      FOR SALE - 1988 PORSCHE 944 TURBO S - TRACK BUILD
+
+- LM3Z PAINT CODE - SILVER ROSE METALLIC
+- 95,...
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+		
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+
+
+<div id="topa">
+  <section class=" wow bounceInUp animated">
+    <div class="best-pro slider-items-products container" style="padding-left:0px; padding-right:0px;">
+	
+		<div style="background-color:white; border-top:4px dashed #AB3F59; padding-top:5px;">
+			<div class="new_titles" style="border-bottom:4px dashed #AB3F59; padding-bottom:5px;">
+				<div style="background-color:#F1BCBA;">
+					<div id="colorheaderleft">
+						<a href="https://pca.org/news" style="font-size:21px;font-family:'Saira Condensed', sans-serif;"><h4 class="base-font bold" style="min-height:30px; text-align:center; color:black; background-color:white; max-width:200px;"><div style="padding-top:3px;"><b>MORE FROM PCA</b></div></span></a></h4>
+								<div style="float:right; margin-right:0px; margin-top:-29px;" id="color1">
+									<a href="https://www.rennbow.org" target="_blank"><img src="images/rennbow_stripe.png" style="width:270px; height:29px; float:right;"></a>
+								</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	
+      <div class="container" style="padding:10px;">
+        <div class="row">
+          <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12"><a title="Porsche Club of America - RENNBOW is the Largest Collection of Porsche Images on the Web, Organized by Color" href="https://www.rennbow.org" target="blank" data-scroll-goto="1"><img src="https://mediaassets.pca.org//sites/promos/promo_rennbow.jpg" alt="Porsche Club of America - Rennbow"> </a> </div><div class="col-lg-6 col-md-6 col-sm-6 col-xs-12"><a title="Porsche Club of America - All the latest videos from PCA" href="https://www.youtube.com/porscheclubofamerica" target="blank" data-scroll-goto="1"><img src="https://mediaassets.pca.org//sites/promos/promo_youtube.jpg" alt="Porsche Club of America - PCA on Youtube"> </a> </div>
+        </div>
+      </div>
+    </div>
+  </div> <!-- topa -->
+
+
+    <!-- Tech Q&A -->
+    <section class=" wow bounceInUp animated">
+    <div class="hot_deals slider-items-products container" style="border-top:3px solid #0075E1;">
+      <div class="container" style="padding-top:6px;">
+        <div class="row">
+          <div class="col-sm-4 col-xs-12 col-lg-4">
+          	<h5 class="bold toupper">TECHNICAL Q&A</h5>
+          	
+
+	            <div class="co-info">
+            	<h5><a href="https://pca.org/tech/how-to-open-hood-battery-dead" title="Porsche Club of America - Tech Q&A - how to open hood battery dead"><span class="pca-maroon bold capitalit" style="color:#900000;">how to open hood battery dead</span></a></h5>
+				<h6 style="margin-top:-1px;"><a href="https://pca.org/tech/model/17"></a>  <a href="https://pca.org/tech/cat/cables and controls">Cables and Controls</a></h6>
+				
+    	        </div>
+    	        <div style="height:.5em; clear:both;"></div>
+			
+
+	            <div class="co-info">
+            	<h5><a href="https://pca.org/tech/koni-strut-installation-issue" title="Porsche Club of America - Tech Q&A - Koni strut installation issue"><span class="pca-maroon bold capitalit" style="color:#900000;">Koni strut installation issue</span></a></h5>
+				<h6 style="margin-top:-1px;"><a href="https://pca.org/tech/model/93"></a>  <a href="https://pca.org/tech/cat/suspension">Suspension</a></h6>
+				
+					<div style="margin-top:1px; font-size:12px;">I replace my very old Koni front strut inserts with new adjustable Koni inserts. All went well until I was tightening the top nut. When trying to get the required 59 lb/ft on it, the alignment tab on the washer sheared off. I replaced the washer and ...</div>
+				
+    	        </div>
+    	        <div style="height:.5em; clear:both;"></div>
+			    	        
+                <div class='tp-caption sfb '><a href='https://pca.org/tech'  style='padding:5px; margin-top:10px;' class="buy-btn bold">More Tech Q&A</a> </div>
+
+          </div>
+          <div class="col-sm-4 col-xs-12 col-lg-4" align="center" style=" vertical-align: middle;">
+          	
+			    <br><br>
+			    <br><br>
+			    <a href="https://www.pcaclubracing.org/" target="_blank"><img src="https://www.pcaclubracing.org/wp-content/uploads/2017/09/ClubRacingTransparent299x91.png" style="display: block;    vertical-align: middle; margin-left: auto;  margin-right: auto;"></a>
+		    
+          </div>
+          <div class="col-sm-4 col-xs-12 col-lg-4">
+          <div align="center" style="min-height:300px;">
+					<script>var divID="#botBanner"; var adcode='main'; var pagecode='home'; var minvalue=0; var poscode='bottom'; var adwords=''; var adsize='medium'; getAdBanner();</script>
+					<div align="center" style="width:300px; margin-top:15px;" id="botBanner"></div>
+          </div>
+        </div>
+      </div>
+          	
+          </div>
+        </div>
+    </div>
+    </div>
+    </section>
+  </div>
+
+    <!--END For version 1,2,3,4,5,6,8 --> 
+    <!--exclude For version 6 --> 
+    <!--container--> 
+  </div>
+
+
+
+	<div id="ebrakepop">
+		<div id="list-builder"></div>
+		<div id="popup-box">
+			<img src="https://pca.org/images/close.png" id="popup-close" />
+			<div id="popup-box-content">
+				<h3 class="pca-white">Sign up for PCA's FREE e-Brake News newsletter</h3>
+				<p>
+					Receive Porsche news, stories, features, videos and more in your email inbox each Tuesday evening!
+				</p>
+				<form id="popup-form">
+					<input type="hidden" name="list" value="ebrake" />
+					<input type="email" name="email" placeholder="Email Address" required style="color:black;"/>
+					<button type="button" name="subscribe" class="btn">Subscribe</button>
+				</form>
+			</div>
+		</div>
+	</div>
+
+
+  <footer> 
+    <!-- BEGIN INFORMATIVE FOOTER -->
+    <div class="footer-inner">
+      <div class="our-features-box wow bounceInUp animated animated">
+        <div class="container" style="padding:20px;"><div align="center">
+        	
+        	
+        	</div> 
+        </div>
+      </div>
+      <div class="newsletter-row">
+        <div class="container">
+          <div class="row"> 
+
+            
+            <!-- Footer Newsletter -->
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 col1">
+
+              <div class="newsletter-wrap">
+                <h5>PCA NEWSLETTERS</h5>
+                <h4>Get exclusive content and news!</h4>
+                <form action="https://pca.org/newsletter-signup" method="post" id="newsletter-validate-detail1">
+                  <div id="container_form_news">
+                    <div id="container_form_news2">
+                      <input type="email" required required="yes" name="email" id="newsletter1" title="Sign up for e-Brake News" class="input-text required-entry validate-email" placeholder="Enter your email address">
+                      <button type="submit" title="Subscribe" class="button subscribe"><span>Subscribe</span></button>
+                    </div>
+                    <!--container_form_news2--> 
+                  </div>
+                  <!--container_form_news-->
+                </form>
+              </div>
+              <!--newsletter-wrap--> 
+            	
+            		<br>
+            		<center><a onclick="_gaq.push(['_trackEvent', 'mktLinks', 'Click', 'News Non-member TD Banner']);" href="https://www.pca.org/pca-test-drive" target="_blank"><img src="https://pca.org/images/banners/test_drive_non_members.jpg" alt="Join PCA Today!" style="width:100%; height:auto;"></a></center>
+            		
+				
+            </div>
+            
+          </div>
+        </div>
+        <!--footer-column-last--> 
+      </div>
+
+
+		
+		
+		
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-4 col-xs-12 col-lg-4">
+            <div class="co-info">
+              <h4>CONTACT PCA</h4>
+              <address>
+              <div><span>PCA National Headquarters<br>
+						P.O. Box 6400<br>
+						Columbia, MD 21045<br>
+                </span></div>
+              <div> <span> +1 410 381 0911</span></div>
+              <div> Physical Address:<br>9689 Gerwig Lane, Unit 4C/D<br>
+					Columbia, MD 21046</div>
+              </address>
+            </div>
+          </div>
+          
+          <div class="col-sm-8 col-xs-12 col-lg-8">
+            <div class="footer-column">
+              <h4>Quick Links</h4>
+              <ul class="links">
+                <li class="first"><a title="PCA Membership" href="https://pca.org/membership">MEMBERSHIP</a></li>
+                <li><a title="PCA Events" href="https://pca.org/events">EVENTS</a></li>
+                <li><a title="PCA Porsche News" href="https://pca.org/news">NEWS</a></li>
+                <li><a title="Panorama Magazine" href="https://pca.org/panorama">MAGAZINE</a></li>
+                <li><a title="The Mart" href="https://mart.pca.org" target="_blank">CLASSIFIEDS</a></li>
+                <li class="last"><a title="Cookies" href="https://www.pca.org/news/why-does-pca-use-cookies">COOKIES</a></li>
+              </ul>
+            </div>
+            <div class="footer-column">
+              <h4>&nbsp;</h4>
+              <ul class="links">
+                <li class="first"><a title="PCA Tech Q&A" href="https://pca.org/tech">TECHNICAL</a></li>
+                <li><a title="My PCA Profile" href="https://pca.org/members">MY PROFILE</a></li>
+                <li><a title="PCA Privacy Policy" href="https://pca.org/privacy-policy">PRIVACY POLICY</a></li>
+                <li><a title="PCA Terms of Service" href="https://pca.org/terms-of-service">TERMS OF SERVICE</a></li>
+                <li><a title="PCA Webstore" href="https://www.pcawebstore.org" target="_blank">PCA STORE</a></li>
+                <li class="last"><a title="Connect with PCA" href="https://pca.org/contact">CONNECT</a></li>
+              </ul>
+            </div>
+            
+            <div class="footer-column" align="center">
+            	<a href="https://pca.org/"><img src="https://mediaassets.pca.org/images/pca_300.png" style="max-width:60%; height:auto;" alt="Porsche Club of America"></s>
+            		<div>
+            		<i>it's not just the cars... it's the People</i>
+            		</div>
+            		            		
+            </div>
+          </div>
+          
+          <!--col-sm-12 col-xs-12 col-lg-8--> 
+          <!--col-xs-12 col-lg-4--> 
+        </div>
+        <!--row--> 
+        
+      </div>
+      
+      <!--container--> 
+    </div>
+    <!--footer-inner-->
+    
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+          <div class="col-xs-12 col-sm-4">
+            <div class="social">
+              <ul>
+                <li class="fb1" style="display:none;"><a target="_blank" href="https://www.facebook.com/porscheclubofamerica"></a></li>
+                <li class="fb1" ><a target="_blank" href="https://www.facebook.com/porscheclubofamerica"></a></li>
+                
+                <li class="instagram"><a target="_blank" href="https://www.instagram.com/porscheclubofamerica/"></a></li>
+                <li class="youtube"><a target="_blank" href="https://www.youtube.com/user/PCAHQ"></a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-sm-4 col-xs-12 coppyright">&copy; 2026 The Porsche Club of America Inc.  All rights reserved </div>
+          <div class="col-xs-12 col-sm-4">
+            <div class="payment-accept"> 
+		       	<span style="color:#4F5458; font-size:10px; line-height:10px;">bt=0.18 </span>
+				<div id="loadingtime" style="color:#090909; font-size:10px; line-height:10px;"></div>			
+            	
+            	
+            </div>
+          </div>
+			
+        </div>
+      </div>
+    </div>
+    <!-- BEGIN SIMPLE FOOTER --> 
+
+  </footer>
+  
+</div>
+<!--page--> 
+<!-- Mobile Menu-->
+<div id="mobile-menu">
+  <ul>
+        <li>
+      <div class="mm-search">
+        <form id="search1" name="search" action="https://pca.org/search" method="GET">
+          <div class="input-group">
+            <div class="input-group-btn">
+              <button class="btn btn-default" type="submit"><i class="fa fa-search"></i> </button>
+            </div>
+            <input type="text" class="form-control simple" placeholder="Search PCA" name="p" id="srch-term">
+          </div>
+        </form>
+      </div>
+    </li>
+	
+    <li> <a  class="level-top" href="https://pca.org/pca-membership-join-club-join-fun"><span>Membership</span></a>
+                <ul class="level1"> <li class="level1 first"><a  href="https://pca.org/members"><span>My PCA Account</span></a></li> <li class="level1 nav-10-2"><a  href="https://pca.org/pca-membership-join-club-join-fun"><span>Join</span></a></li> <li class="level1 nav-10-3"><a  href="https://pca.org/renew"><span>Renew</span></a></li> <li class="level1 nav-10-4"><a  href="https://www.pca.org/refer-a-friend"><span>Refer a Friend</span></a></li> <li class="level1 nav-10-5"><a  href="https://pca.org/pca-test-drive"><span>Test Drive</span></a></li> <li class="level1 nav-10-6"><a target="_blank" href="https://www.pcawebstore.org"><span>Shop PCA</span></a></li> <li class="level1 nav-10-7"><a  href="https://pca.org/pca-juniors"><span>PCA Juniors</span></a></li> <li class="level1 nav-10-8"><a  href="https://pca.org/membership-benefits"><span>Benefits</span></a></li> <li class="level1 nav-10-9"><a  href="https://pca.org/digitalofferings"><span>Digital Offerings</span></a></li> <li class="level1 nav-10-9"><a  href="https://pca.org/activities"><span>Activities</span></a></li> <li class="level1 nav-10-9"><a  href="https://pca.org/porsche-values"><span>Porsche Values</span></a></li> <li class="level1 nav-10-9"><a  href="https://pca.org/connect/about-pca"><span>About PCA</span></a></li> <li class="level1 nav-10-9"><a target="_blank" href="https://web.pca.org/giftmemberships"><span>Gift Memberships</span></a></li> <li class="level1 nav-10-9"><a  href="https://www.pca.org/faq"><span>Frequently Asked Questions</span></a></li> <li class="level1 nav-10-9"><a target="_blank" href="https://ww2.pca.org/pca-history"><span>PCA History</span></a></li> <li class="level1 nav-10-9"><a  href="https://pca.org/connect/about-porsche"><span>About Porsche</span></a></li> <li class="level1 nav-10-9"><a  href="https://pca.org/news/pca-diversity-inclusion-its-not-just-the-cars-its-the-people"><span>PCA Diversity and Inclusion</span></a></li>
+                </ul>
+  			</li>
+    
+    <li> <a  class="level-top" href="https://pca.org/events/"><span>Events</span></a>
+                <ul class="level1"> <li class="level1 first"><a  href="https://pca.org/events/submit-event"><span>Submit an Event</span></a></li> <li class="level1 nav-10-2"><a  href="https://pca.org/events/"><span>List All Events</span></a></li> <li class="level1 nav-10-3"><a target="_blank" href="https://www.porscheparade.org/"><span>Porsche Parade</span></a></li> <li class="level1 nav-10-4"><a target="_blank" href="https://www.werksreunion.com/"><span>Werks Reunion</span></a></li> <li class="level1 nav-10-5"><a target="_blank" href="https://pcaclubracing.org/"><span>PCA Club Racing</span></a></li> <li class="level1 nav-10-6"><a  href="https://pca.org/events/tech-tactics-east-2026"><span>Tech Tactics</span></a></li> <li class="level1 nav-10-7"><a  href="https://www.pca.org/events/%C3%BCnstock"><span>ÜnStock</span></a></li> <li class="level1 nav-10-8"><a target="_blank" href="https://treffen.pca.org/"><span>Treffen</span></a></li> <li class="level1 nav-10-9"><a  href="https://pca.org/events/treffen-at-sea-2026-pacific-wine-country"><span>Treffen at Sea</span></a></li> <li class="level1 nav-10-9"><a target="_blank" href="https://pca.org/events/porsche-club-of-america-national-office-open-house-544495"><span>PCA Open House</span></a></li> <li class="level1 nav-10-9"><a  href="https://pca.org/../drivers-education"><span>Driver Education</span></a></li> <li class="level1 nav-10-9"><a  href="https://pca.org/../autox"><span>AutoX</span></a></li> <li class="level1 nav-10-9"><a target="_blank" href="https://www.pcasimracing.org"><span>PCA Sim Racing</span></a></li>
+                </ul>
+  			</li>
+    
+    <li> <a  class="level-top" href="https://web.pca.org/news/"><span>News</span></a>
+                <ul class="level1"> <li class="level1 first"><a  href="https://pca.org/news/photo-gallery"><span>Photo Gallery</span></a></li> <li class="level1 nav-10-2"><a  href="https://pca.org/members-making-a-difference"><span>Members Making a Difference</span></a></li> <li class="level1 nav-10-3"><a  href="https://pca.org/photos-of-the-month"><span>Photos of The Month</span></a></li> <li class="level1 nav-10-4"><a  href="https://www.pca.org/project964"><span>Projekt 964</span></a></li> <li class="level1 nav-10-5"><a target="_blank" href="https://podcast.pca.org/"><span>PCA Insiders Podcast</span></a></li> <li class="level1 nav-10-6"><a  href="https://ww2.pca.org/newsletter-archives"><span>Newsletter Archives</span></a></li> <li class="level1 nav-10-7"><a  href="https://www.pca.org/newsletter-signup"><span>Newsletters Signup</span></a></li>
+                </ul>
+  			</li>
+    
+    <li> <a  class="level-top" href="https://pca.org/panorama/"><span>Magazine</span></a>
+                <ul class="level1"> <li class="level1 first"><a  href="https://pca.org/advertiser-index"><span>Our Advertisers</span></a></li> <li class="level1 nav-10-2"><a  href="https://pca.org/connect/panorama-staff"><span>Contact Panorama Staff</span></a></li> <li class="level1 nav-10-3"><a  href="https://pca.org/advertise-in-porsche-panorama-e-brake-news-pcaorg"><span>Advertise with PCA</span></a></li> <li class="level1 nav-10-4"><a  href="https://pca.org/panorama"><span>Porsche Panorama</span></a></li>
+                </ul>
+  			</li>
+    
+    <li> <a  class="level-top" href="https://mart.pca.org/"><span>Classifieds</span></a>
+                <ul class="level1"> <li class="level1 first"><a target="_blank" href="https://mart.pca.org"><span>Browse Classifieds</span></a></li> <li class="level1 nav-10-2"><a target="_blank" href="https://mart.pca.org/myAds"><span>My Mart Ads</span></a></li> <li class="level1 nav-10-3"><a target="_blank" href="https://mart.pca.org/placeAd"><span>Place an Ad</span></a></li> <li class="level1 nav-10-4"><a target="_blank" href="https://mart.pca.org/news"><span>Mart News</span></a></li> <li class="level1 nav-10-5"><a target="_blank" href="https://mart.pca.org/email-alert"><span>Mart Email Alerts</span></a></li> <li class="level1 nav-10-6"><a target="_blank" href="https://mart.pca.org/rules"><span>Mart Rules</span></a></li> <li class="level1 nav-10-7"><a target="_blank" href="https://mart.pca.org/scams-buyer-safety"><span>Avoiding Scams/Buyer Safety</span></a></li> <li class="level1 nav-10-8"><a target="_blank" href="https://www.pca.org/search?p=fresh%3A&ty=1&news=on"><span>Mart Fresh</span></a></li>
+                </ul>
+  			</li>
+    
+    <li> <a  class="level-top" href="https://pca.org/tech/"><span>Technical</span></a>
+                <ul class="level1"> <li class="level1 first"><a  href="https://pca.org/tech"><span>Tech Q &amp; A</span></a></li> <li class="level1 nav-10-2"><a  href="https://pca.org/tech/tech-tactics-live"><span>Tech Tactics Live</span></a></li> <li class="level1 nav-10-3"><a  href="https://www.pca.org/pca-tech-tips"><span>PCA Tech Tips</span></a></li> <li class="level1 nav-10-4"><a  href="https://pca.org/connect/technical-experts"><span>Experts</span></a></li> <li class="level1 nav-10-5"><a target="_blank" href="https://www.rennbow.org"><span>Rennbow</span></a></li>
+                </ul>
+  			</li>
+    
+    <li> <a  class="level-top" href="https://pca.org/contact"><span>Contact</span></a>
+                <ul class="level1"> <li class="level1 first"><a  href="https://pca.org/contact"><span>Contact Us</span></a></li> <li class="level1 nav-10-2"><a  href="https://pca.org/connect/national-office"><span>National Office</span></a></li> <li class="level1 nav-10-3"><a  href="https://pca.org/connect/region-directory"><span>Region Directory</span></a></li> <li class="level1 nav-10-4"><a  href="https://pca.org/connect/region-officials"><span>Region Officials</span></a></li> <li class="level1 nav-10-5"><a  href="https://pca.org/connect/zone-officials"><span>Zone Reps</span></a></li> <li class="level1 nav-10-6"><a  href="https://pca.org/connect/national-committee-chairs"><span>National Committee Chairs</span></a></li> <li class="level1 nav-10-7"><a  href="https://pca.org/connect/executive-council"><span>Executive Council</span></a></li> <li class="level1 nav-10-8"><a  href="https://pca.org/connect/special-interest-groups"><span>PCA Registries</span></a></li>
+                </ul>
+  			</li>
+    
+    <li><a class="level-top" href="https://pca.org/logout"><span>LOGOUT</span></a></li>
+   </ul>
+   
+   
+</div>
+
+
+
+<!-- JavaScript --> 
+<script type="text/javascript" src="https://pca.org/js/bootstrap-slider.min.js"></script> 
+<script type="text/javascript" src="https://pca.org/js/bootstrap-select.min.js"></script> 
+<script type="text/javascript" src="https://pca.org/js/parallax.js"></script> 
+<script type="text/javascript" src="https://pca.org/js/revslider.js"></script> 
+<script type="text/javascript" src="https://pca.org/js/common.js"></script> 
+<script type="text/javascript" src="https://pca.org/js/jquery.bxslider.min.js"></script> 
+<script type="text/javascript" src="https://pca.org/js/owl.carousel.min.js"></script> 
+<script type="text/javascript" src="https://pca.org/js/jquery.mobile-menu.min.js"></script> 
+<script type="text/javascript" src="https://pca.org/js/countdown.js"></script>
+<script type="text/javascript" src="https://pca.org/js/cookiealert.js"></script>
+
+
+
+
+<script type="text/javascript">
+  $(document).ready(function() {
+  	if (isMobile) {
+		   document.getElementById('mobilespacer').style.display = "block";
+  	};
+  	
+
+  	/// - DYNAMICALLY INSERT ROBOTS TAG BASED ON URL
+    if (window.location.href.indexOf("search") > -1) {
+		var link = document.createElement('meta');
+	  	link.setAttribute('robots', 'noindex,nofollow');
+  		link.content = document.location;
+  		document.getElementsByTagName('head')[0].appendChild(link);
+  		console.log('noindex tage injected');      
+    }
+    else {
+		var link = document.createElement('meta');
+	  	link.setAttribute('robots', '*');
+  		link.content = document.location;
+  		document.getElementsByTagName('head')[0].appendChild(link);      
+    };
+  	//E - DYNAMICALLY INSERT ROBOTS TAG BASED ON URL
+    
+
+    
+  });
+  
+  
+	function isDesktopMode() {
+    	return window.innerWidth > screen.availWidth;
+	};	
+  
+</script>
+
+
+
+    <script src="https://pca.org/js/script.js"></script>
+    
+    
+</body>
+</html>
