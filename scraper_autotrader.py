@@ -575,10 +575,127 @@ def _playwright_available():
     return _PW_AVAILABLE
 
 
+_FINGERPRINT_SCRIPT = """
+// 1. Remove navigator.webdriver
+Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+
+// 2. Realistic plugins list
+const _plugins = [
+    {name: 'PDF Viewer', filename: 'internal-pdf-viewer', description: 'Portable Document Format'},
+    {name: 'Chrome PDF Viewer', filename: 'internal-pdf-viewer', description: 'Portable Document Format'},
+    {name: 'Chromium PDF Viewer', filename: 'internal-pdf-viewer', description: 'Portable Document Format'},
+    {name: 'Microsoft Edge PDF Viewer', filename: 'internal-pdf-viewer', description: 'Portable Document Format'},
+    {name: 'WebKit built-in PDF', filename: 'internal-pdf-viewer', description: 'Portable Document Format'},
+];
+const pluginArray = Object.create(PluginArray.prototype);
+_plugins.forEach(function(p, i) {
+    const plugin = Object.create(Plugin.prototype);
+    Object.defineProperty(plugin, 'name', {get: () => p.name});
+    Object.defineProperty(plugin, 'filename', {get: () => p.filename});
+    Object.defineProperty(plugin, 'description', {get: () => p.description});
+    Object.defineProperty(plugin, 'length', {get: () => 0});
+    pluginArray[i] = plugin;
+});
+Object.defineProperty(pluginArray, 'length', {get: () => _plugins.length});
+Object.defineProperty(navigator, 'plugins', {get: () => pluginArray});
+
+// 3. Languages
+Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']});
+
+// 4. permissions.query — return granted for notifications
+const _origQuery = navigator.permissions && navigator.permissions.query.bind(navigator.permissions);
+if (navigator.permissions) {
+    navigator.permissions.query = function(params) {
+        if (params && params.name === 'notifications') {
+            return Promise.resolve({state: 'granted', onchange: null});
+        }
+        return _origQuery ? _origQuery(params) : Promise.resolve({state: 'prompt', onchange: null});
+    };
+}
+
+// 5. Canvas fingerprint noise — XOR last byte by 1
+(function() {
+    const _toDataURL = HTMLCanvasElement.prototype.toDataURL;
+    HTMLCanvasElement.prototype.toDataURL = function(type, quality) {
+        const result = _toDataURL.call(this, type, quality);
+        // Flip last base64 char to add imperceptible noise
+        if (result && result.length > 4) {
+            const arr = result.split('');
+            const idx = arr.length - 2;
+            const code = arr[idx].charCodeAt(0);
+            arr[idx] = String.fromCharCode(code ^ 1);
+            return arr.join('');
+        }
+        return result;
+    };
+    const _toBlob = HTMLCanvasElement.prototype.toBlob;
+    HTMLCanvasElement.prototype.toBlob = function(callback, type, quality) {
+        return _toBlob.call(this, callback, type, quality);
+    };
+})();
+
+// 6. WebGL renderer spoof
+(function() {
+    const _getParam = WebGLRenderingContext.prototype.getParameter;
+    WebGLRenderingContext.prototype.getParameter = function(param) {
+        if (param === 37445) return 'Intel Inc.';          // UNMASKED_VENDOR_WEBGL
+        if (param === 37446) return 'Intel Iris OpenGL Engine';  // UNMASKED_RENDERER_WEBGL
+        return _getParam.call(this, param);
+    };
+    try {
+        const _getParam2 = WebGL2RenderingContext.prototype.getParameter;
+        WebGL2RenderingContext.prototype.getParameter = function(param) {
+            if (param === 37445) return 'Intel Inc.';
+            if (param === 37446) return 'Intel Iris OpenGL Engine';
+            return _getParam2.call(this, param);
+        };
+    } catch(e) {}
+})();
+
+// 7. chrome runtime object
+if (!window.chrome) {
+    window.chrome = {runtime: {}};
+} else if (!window.chrome.runtime) {
+    window.chrome.runtime = {};
+}
+
+// 8. Screen dimensions
+Object.defineProperty(screen, 'width', {get: () => 1920});
+Object.defineProperty(screen, 'height', {get: () => 1080});
+Object.defineProperty(window, 'outerWidth', {get: () => 1280});
+Object.defineProperty(window, 'outerHeight', {get: () => 900});
+
+// 9. Remove HeadlessChrome from userAgent
+(function() {
+    const ua = navigator.userAgent.replace('HeadlessChrome', 'Chrome');
+    Object.defineProperty(navigator, 'userAgent', {get: () => ua});
+})();
+"""
+
+_USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/124.0.0.0 Safari/537.36"
+)
+
+_LAUNCH_ARGS = [
+    "--disable-blink-features=AutomationControlled",
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-accelerated-2d-canvas",
+    "--no-first-run",
+    "--no-zygote",
+]
+
+
 def _fetch_playwright(url, headless=True):
     """
-    Fetch a page with Playwright.
-    headless=False bypasses Akamai bot detection on the same IP.
+    Fetch a page with Playwright + comprehensive Akamai fingerprint spoofing.
+    Injects JS overrides via add_init_script() before any page navigation,
+    so Akamai's bot checks see spoofed values for webdriver, plugins, canvas,
+    WebGL, chrome runtime, and screen dimensions.
+    headless=False uses a real Chrome window for additional bypass capability.
     Returns HTML or None.
     """
     if not _playwright_available():
@@ -589,7 +706,7 @@ def _fetch_playwright(url, headless=True):
 
     kwargs = {
         "headless": headless,
-        "args": ["--disable-blink-features=AutomationControlled"],
+        "args": _LAUNCH_ARGS,
     }
     proxy = _pw_proxy()
     if proxy:
@@ -600,18 +717,17 @@ def _fetch_playwright(url, headless=True):
             browser = p.chromium.launch(**kwargs)
             ctx = browser.new_context(
                 viewport={"width": 1280, "height": 900},
-                user_agent=(
-                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/123.0.0.0 Safari/537.36"
-                ),
+                user_agent=_USER_AGENT,
                 locale="en-US",
                 timezone_id="America/Los_Angeles",
                 extra_http_headers={"Accept-Language": "en-US,en;q=0.9"},
             )
             page = ctx.new_page()
 
-            # Apply playwright-stealth if available
+            # Inject fingerprint spoofs BEFORE any navigation (runs before page JS)
+            page.add_init_script(_FINGERPRINT_SCRIPT)
+
+            # Belt-and-suspenders: also apply playwright-stealth if available
             try:
                 from playwright_stealth import Stealth
                 Stealth().apply_stealth_sync(page)
@@ -634,14 +750,17 @@ def _fetch_playwright(url, headless=True):
 
             time.sleep(1.5)
             html = page.content()
+
+            if _is_blocked(html) or "__NEXT_DATA__" not in html:
+                log.info(
+                    "Playwright (headless=%s): blocked/no-data (len=%d) first 500 chars: %s",
+                    headless, len(html), html[:500],
+                )
+                browser.close()
+                return None
+
             browser.close()
 
-        if _is_blocked(html):
-            log.info("Playwright (headless=%s): blocked at %s", headless, url)
-            return None
-        if "__NEXT_DATA__" not in html:
-            log.info("Playwright (headless=%s): no __NEXT_DATA__ (len=%d)", headless, len(html))
-            return None
         return html
 
     except Exception as e:
