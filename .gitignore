@@ -4,10 +4,12 @@ __pycache__/
 .env
 *.db
 *.sqlite3
-data/*.db
+data/
 logs/
-*.log
+static/img_cache/
+docs/img_cache/
 distill_drops/
 distill_poller_state.json
-static/img_cache/
+.github_token
+.claude/
 archive/

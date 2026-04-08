@@ -24,7 +24,7 @@ from db import get_conn, get_dashboard_data, init_db, source_category
 import fmv as fmv_engine
 
 BASE_DIR  = Path(__file__).parent
-OUT_PATH  = BASE_DIR / "static" / "index.html"
+OUT_PATH  = BASE_DIR / "docs" / "index.html"
 LOG_DIR   = BASE_DIR / "logs"
 
 # ── Source health (reused from dashboard.py) ─────────────────────────────────
@@ -768,7 +768,7 @@ button{{cursor:pointer;border:none;background:none;font:inherit;color:inherit}}
     <div class="sidebar-label">Quick Links</div>
     <div style="display:flex;flex-direction:column;gap:6px">
       <a href="dashboard.html" style="font-size:0.82em;color:#64748b;padding:4px 6px;border-radius:5px;transition:all .15s" onmouseover="this.style.background='#1e2535';this.style.color='#e2e8f0'" onmouseout="this.style.background='';this.style.color='#64748b'">← Classic Dashboard</a>
-      <a href="../data/live_feed.html" style="font-size:0.82em;color:#64748b;padding:4px 6px;border-radius:5px;transition:all .15s" onmouseover="this.style.background='#1e2535';this.style.color='#e2e8f0'" onmouseout="this.style.background='';this.style.color='#64748b'">Live Feed</a>
+      <a href="live_feed.html" style="font-size:0.82em;color:#64748b;padding:4px 6px;border-radius:5px;transition:all .15s" onmouseover="this.style.background='#1e2535';this.style.color='#e2e8f0'" onmouseout="this.style.background='';this.style.color='#64748b'">Live Feed</a>
       <a href="market_report.html" style="font-size:0.82em;color:#64748b;padding:4px 6px;border-radius:5px;transition:all .15s" onmouseover="this.style.background='#1e2535';this.style.color='#e2e8f0'" onmouseout="this.style.background='';this.style.color='#64748b'">Market Report</a>
       <a href="daily_report.html" style="font-size:0.82em;color:#64748b;padding:4px 6px;border-radius:5px;transition:all .15s" onmouseover="this.style.background='#1e2535';this.style.color='#e2e8f0'" onmouseout="this.style.background='';this.style.color='#64748b'">Daily Auctions</a>
     </div>
@@ -905,7 +905,7 @@ button{{cursor:pointer;border:none;background:none;font:inherit;color:inherit}}
           <div style="font-weight:600;margin-bottom:4px">Monthly Report</div>
           <div style="font-size:0.82em;color:#475569">Monthly macro trends, comp volume, market direction</div>
         </a>
-        <a href="../data/live_feed.html" class="report-card" style="background:#161b27;border:1px solid #2d3748;border-radius:10px;padding:20px;display:block;transition:border-color .15s;color:#e2e8f0" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#2d3748'">
+        <a href="live_feed.html" class="report-card" style="background:#161b27;border:1px solid #2d3748;border-radius:10px;padding:20px;display:block;transition:border-color .15s;color:#e2e8f0" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#2d3748'">
           <div style="font-size:1.5em;margin-bottom:8px">⚡</div>
           <div style="font-weight:600;margin-bottom:4px">Live Feed</div>
           <div style="font-size:0.82em;color:#475569">Newest listings only — BaT, Rennlist, PCA Mart, pcarmarket</div>
