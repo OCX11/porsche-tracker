@@ -92,6 +92,24 @@ def _load_proxy():
 _load_proxy()
 
 
+def _us_proxy_url():
+    """
+    Return a DataImpulse proxy URL with US country targeting (__cr.us suffix).
+    AutoTrader blocks non-US IPs; this ensures curl_cffi requests exit via a US node.
+    Falls back to the base proxy URL if not a DataImpulse proxy.
+    """
+    if not _PROXY_URL or not _PROXY_CFG.get("enabled") or _PROXY_DEAD:
+        return None
+    username = _PROXY_CFG.get("username", "")
+    if username and "dataimpulse" in _PROXY_CFG.get("host", "").lower():
+        us_user = f"{username}__cr.us"
+        return (
+            f"{_PROXY_CFG['protocol']}://{us_user}:{_PROXY_CFG['password']}"
+            f"@{_PROXY_CFG['host']}:{_PROXY_CFG['port']}"
+        )
+    return _PROXY_URL
+
+
 def _disable_proxy():
     """Log proxy failure — but do NOT fall back to direct. AutoTrader requires the proxy."""
     global _PROXY_DEAD
@@ -369,7 +387,7 @@ def _extract_listings_from_html(html):
 # curl_cffi — Chrome TLS impersonation (bypasses Akamai TLS fingerprinting)
 # ---------------------------------------------------------------------------
 _CFFI_AVAILABLE = None
-_CFFI_IMPERSONATE = "chrome124"  # Chrome 124 TLS fingerprint — matches what Apify actors use
+_CFFI_IMPERSONATE = "safari17_0"  # Safari 17 TLS fingerprint — bypasses Akamai; chrome124 gets blocked
 
 
 def _curl_cffi_available():
@@ -385,17 +403,18 @@ def _curl_cffi_available():
 
 def _fetch_curl_cffi(url):
     """
-    Fetch a page using curl_cffi with Chrome TLS impersonation + proxy.
-    Bypasses Akamai TLS fingerprint checks. Always uses DataImpulse proxy.
+    Fetch a page using curl_cffi with Safari TLS impersonation + US-targeted proxy.
+    Bypasses Akamai TLS fingerprint checks. Always uses DataImpulse US proxy.
     Returns HTML string or None.
     """
     if not _curl_cffi_available():
         return None
-    if not _PROXY_URL or not _PROXY_CFG.get("enabled") or _PROXY_DEAD:
+    proxy_url = _us_proxy_url()
+    if not proxy_url:
         log.warning("curl_cffi: proxy not available — skipping")
         return None
     from curl_cffi import requests as cr
-    proxies = {"http": _PROXY_URL, "https": _PROXY_URL}
+    proxies = {"http": proxy_url, "https": proxy_url}
     try:
         r = cr.get(url, impersonate=_CFFI_IMPERSONATE, timeout=25,
                    proxies=proxies, allow_redirects=True)
@@ -487,12 +506,14 @@ def _fetch_rest_api(num_records, first_record):
         "Referer": "https://www.autotrader.com/cars-for-sale/used-cars/porsche/porsche/",
     }
     data = None
-    # Try curl_cffi first (Chrome TLS fingerprint bypasses Akamai)
+    # Try curl_cffi first (Safari TLS fingerprint + US proxy bypasses Akamai)
     if _curl_cffi_available():
         from curl_cffi import requests as cr
+        _cffi_proxy = _us_proxy_url()
+        _cffi_proxies = {"http": _cffi_proxy, "https": _cffi_proxy} if _cffi_proxy else None
         try:
             r = cr.get(url, impersonate=_CFFI_IMPERSONATE, timeout=25,
-                       headers=ajax_headers, allow_redirects=True)
+                       headers=ajax_headers, proxies=_cffi_proxies, allow_redirects=True)
             ct = r.headers.get("content-type", "")
             if "text/html" in ct or _is_blocked(r.text):
                 log.info("  REST API (curl_cffi): block page (len=%d)", len(r.text))
