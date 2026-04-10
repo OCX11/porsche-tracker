@@ -1483,8 +1483,10 @@ def scrape_pcamart():
                             headers={"Referer": "https://mart.pca.org/"},
                         )
                         body = resp.body()
-                        log.debug("PCA img %s → %d bytes status=%s", fname, len(body), resp.status)
-                        if resp.ok and len(body) > 5000:
+                        content_type = resp.headers.get("content-type", "")
+                        is_image = "image/" in content_type
+                        log.debug("PCA img %s → %d bytes status=%s ct=%s", fname, len(body), resp.status, content_type)
+                        if resp.ok and len(body) > 5000 and is_image:
                             fpath.write_bytes(body)
                     if fpath.exists():
                         car["image_url"] = f"/static/img_cache/{fname}"
@@ -1543,14 +1545,17 @@ def scrape_pcarmarket():
             browser.close()
 
         soup = BeautifulSoup(html, "lxml")
+        # Remove <noscript> SSR fallback links — they appear before the real
+        # rendered cards, steal URL dedup slots, and contain no images.
+        for ns in soup.find_all("noscript"):
+            ns.decompose()
         seen = set()
         for a in soup.select("a[href*='/auction/']"):
             href = a.get("href", "")
             url = href if href.startswith("http") else f"{BASE}{href}"
             text = a.get_text(" ", strip=True)
-            # Skip "SAVE LISTING ..." duplicate entries
-            if text.upper().startswith("SAVE LISTING"):
-                continue
+            # Strip "SAVE LISTING" prefix — present on every real rendered card
+            text = re.sub(r"^SAVE\s+LISTING\s*", "", text, flags=re.I).strip()
             # Strip "MarketPlace: " prefix and "— Active/Sold/Pending ..." suffix
             text = re.sub(r"^MarketPlace:\s*", "", text, flags=re.I).strip()
             text = re.sub(r"\s*[—–-]\s*(Active|Sold|Pending).*$", "", text, flags=re.I).strip()
@@ -1580,8 +1585,11 @@ def scrape_pcarmarket():
                 continue
             seen.add(key)
 
+            img_tag = a.find("img")
+            image_url = img_tag.get("src") if img_tag else None
+
             c = dict(year=year, make=make or "Porsche", model=model, trim=trim,
-                     mileage=None, price=None, vin=None, url=url, image_url=None)
+                     mileage=None, price=None, vin=None, url=url, image_url=image_url)
             if _is_valid_listing(c):
                 cars.append(c)
     except Exception as e:
