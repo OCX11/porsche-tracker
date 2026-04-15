@@ -470,6 +470,12 @@ def generate() -> str:
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="refresh" content="180">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PTracker">
+<meta name="theme-color" content="#0f1117">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>Porsche Tracker</title>
 <style>
 /* ── Reset & Base ── */
@@ -1025,9 +1031,16 @@ function sortComps(col) {{
 // ── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {{
   updateCount();
-  // Mark feed-type on cards from data attributes for live-only filter
-  // (cards have data-source-type='auction' for auction sources, data needs feed_type too)
 }});
+
+// ── PWA Service Worker ────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {{
+  window.addEventListener('load', function() {{
+    navigator.serviceWorker.register('/porsche-tracker/sw.js')
+      .then(function(reg) {{ console.log('SW registered:', reg.scope); }})
+      .catch(function(err) {{ console.log('SW registration failed:', err); }});
+  }});
+}}
 </script>
 </body>
 </html>"""
