@@ -15,8 +15,8 @@ FMV Hierarchy (from HANDOVER.md):
     Dealer asking       weight 0.3–0.7  (handled in report.py, not here)
 
 Confidence levels:
-    HIGH   — 5+ sold comps within 24 months for this segment
-    MEDIUM — 2–4 sold comps, or 5+ but older than 12 months
+    HIGH   — 4+ sold comps within 24 months for this segment
+    MEDIUM — 2–3 sold comps, or 4+ but older than 12 months
     LOW    — 1 sold comp or only RNM data
     NONE   — no comparable data found
 """
@@ -66,8 +66,10 @@ def get_generation(year: Optional[int], model: str, trim: str = "") -> str:
         if year <= 2016:  return "981_boxster"
         return "718_boxster"
 
-    if model_lower == "718":
-        # 718-badged cars are all 2017+; use trim to split Cayman vs Boxster/Spyder
+    if model_lower in ("718", "718 cayman", "718 boxster", "718 spyder"):
+        # 718-badged cars are all 2017+; use trim/model to split Cayman vs Boxster/Spyder.
+        # Scrapers sometimes emit "718 Boxster" / "718 Cayman" / "718 Spyder" as the model.
+        if model_lower in ("718 boxster", "718 spyder"):  return "718_boxster"
         if "spyder" in trim_lower:  return "718_boxster"
         if "boxster" in trim_lower: return "718_boxster"
         return "718_cayman"  # Cayman, GT4, GT4 RS, etc.
@@ -145,7 +147,149 @@ _TRIM_ALIASES = {
     "rs america":               "RS America",
     # Cayman/Boxster
     "r":                        "R",
+
+    # ── 718 Cayman/Boxster — BaT stores trims with "Cayman"/"Boxster" prefix ──
+    # Comps: "Cayman GT4 RS Weissach", "Cayman GT4 6-Speed", etc.
+    # Listings from some scrapers: "GT4 RS", "GT4", "Cayman S", etc.
+    # Normalize both to the same canonical so they match.
+    "cayman gt4 rs weissach":       "GT4 RS",
+    "cayman gt4 rs":                "GT4 RS",
+    "cayman gt4 6-speed":           "GT4",
+    "cayman gt4":                   "GT4",
+    "cayman gts 4.0 6-speed":       "GTS",
+    "cayman gts 4.0":               "GTS",
+    "cayman gts 6-speed":           "GTS",
+    "cayman gts":                   "GTS",
+    "cayman s 6-speed":             "S",
+    "cayman s":                     "S",
+    "cayman 6-speed":               "Cayman",   # base 718 Cayman
+    "cayman t 6-speed":             "T",
+    "cayman t":                     "T",
+    "boxster gts 4.0 6-speed":      "GTS",
+    "boxster gts 4.0":              "GTS",
+    "boxster gts 6-speed":          "GTS",
+    "boxster gts":                  "GTS",
+    "boxster s 6-speed":            "S",
+    "boxster s":                    "S",
+    "boxster 6-speed":              "Boxster",  # base 718 Boxster
+    "25 years 6-speed":             "Boxster 25 Years",
+    "spyder rs weissach":           "Spyder RS",
+    "spyder rs":                    "Spyder RS",
+    "718 spyder":                   "Spyder",
+
+    # ── Body-style / transmission suffix variants ─────────────────────────────
+    # BaT comps include body style ("Coupe", "Cabriolet") and gearbox in trim.
+    # Dealer/scraper listings often omit these.  Both sides must normalize to the
+    # same canonical so they can match in _trim_match_score.
+    "carrera s coupe 7-speed":          "Carrera S",
+    "carrera s coupe 6-speed":          "Carrera S",
+    "carrera s coupe":                  "Carrera S",
+    "carrera s cabriolet 7-speed":      "Carrera S",
+    "carrera s cabriolet 6-speed":      "Carrera S",
+    "carrera s cabriolet":              "Carrera S",
+    "carrera 4s coupe 7-speed":         "Carrera 4S",
+    "carrera 4s coupe 6-speed":         "Carrera 4S",
+    "carrera 4s coupe":                 "Carrera 4S",
+    "carrera 4s cabriolet 7-speed":     "Carrera 4S",
+    "carrera 4s cabriolet 6-speed":     "Carrera 4S",
+    "carrera 4s cabriolet":             "Carrera 4S",
+    "carrera gts coupe 7-speed":        "Carrera GTS",
+    "carrera gts coupe 6-speed":        "Carrera GTS",
+    "carrera gts coupe":                "Carrera GTS",
+    "carrera gts cabriolet 7-speed":    "Carrera GTS",
+    "carrera gts cabriolet 6-speed":    "Carrera GTS",
+    "carrera gts cabriolet":            "Carrera GTS",
+    "carrera 4 coupe 6-speed":          "Carrera 4",
+    "carrera 4 coupe 5-speed":          "Carrera 4",
+    "carrera 4 coupe":                  "Carrera 4",
+    "carrera 4 cabriolet 6-speed":      "Carrera 4",
+    "carrera 4 cabriolet 5-speed":      "Carrera 4",
+    "carrera 4 cabriolet":              "Carrera 4",
+    "carrera t coupe 7-speed":          "Carrera T",
+    "carrera t coupe 6-speed":          "Carrera T",
+    "carrera t coupe":                  "Carrera T",
+    "targa 4s 7-speed":                 "Targa 4S",
+    "targa 4s 6-speed":                 "Targa 4S",
+    "targa 4 gts 7-speed":              "Targa 4 GTS",
+    "targa 4 gts":                      "Targa 4 GTS",
+    "gt3 rs clubsport":                 "GT3 RS",
+    "turbo s coupe exclusive series":   "Turbo S",
+    "turbo s cabriolet exclusive series": "Turbo S",
+    "turbo coupe 7-speed":              "Turbo",
+    "turbo cabriolet 7-speed":          "Turbo",
+    "turbo 2dr coupe":                  "Turbo",
+
+    # ── Short / eBay body-style-only trims (718 Boxster / Cayman) ────────────
+    # eBay and AutoTrader sometimes use only body style or partial names as trim.
+    "gts 4.0 6-speed":                  "GTS",
+    "gts 4.0":                          "GTS",
+    "gts":                              "GTS",
+    "spyder spyder":                    "Spyder",    # eBay duplicate artifact
+    "roadster":                         "Boxster",   # base 718 Boxster
+    "roadster 2d":                      "Boxster",
+    "s roadster":                       "S",
+    "s roadster 2d":                    "S",
+    "coupe":                            "Cayman",    # base 718 Cayman
+    "coupe 2d":                         "Cayman",
+    "s coupe 2d":                       "S",
+    "boxster spyder":                   "Spyder",    # 987/981 Boxster Spyder
+
+    # ── Carrera base body-style variants ─────────────────────────────────────
+    # BaT comps for base 911 Carrera include body style in trim.
+    "carrera coupe 7-speed":            "Carrera",
+    "carrera coupe 6-speed":            "Carrera",
+    "carrera coupe":                    "Carrera",
+    "carrera s coupe 2d":               "Carrera S",
+
+    # ── "2dr/4dr" body-style-first formats (AutoTrader/eBay/Cars.com) ────────
+    # Some scrapers emit "2dr Cabriolet Carrera S" or "2dr Coupe Carrera" etc.
+    "2dr cabriolet carrera s":          "Carrera S",
+    "2dr coupe carrera s":              "Carrera S",
+    "2dr cabriolet carrera":            "Carrera",
+    "2dr coupe carrera":                "Carrera",
+
+    # ── 911 prefix in trim field (eBay/PCA Mart sometimes includes model) ─────
+    "911 turbo s":                      "Turbo S",
+    "911 turbo":                        "Turbo",
+    "911 gt3 rs":                       "GT3 RS",
+    "911 gt3":                          "GT3",
+    "911 gt2 rs":                       "GT2 RS",
+    "911 gt2":                          "GT2",
+    "911 carrera s":                    "Carrera S",
+    "911 carrera gts":                  "Carrera GTS",
+    "911 carrera 4s":                   "Carrera 4S",
+    "911 carrera 4":                    "Carrera 4",
+    "911 carrera":                      "Carrera",
+
+    # ── G-Series / air-cooled era variant names ───────────────────────────────
+    "carrera 2 speedster":              "Speedster",
+    "carrera 2 cabriolet":              "Carrera",
+    "carrera 2":                        "Carrera",
+    "carrera 3.2":                      "Carrera",
+    "carrera 3.2 cabriolet":            "Carrera",
+    "cabriolet":                        "Carrera",     # bare Cabriolet = base Carrera cab
+    "coupe 5-speed":                    "Carrera",     # G-series base coupe
+
+    # ── Keyword-prefixed descriptions (dealer marketing text in trim field) ───
+    # Prefix matching handles longer strings that START with these keys.
+    "new generation carrera":           "Carrera",
+    "carrera s coupe pdk":              "Carrera S",
+    "carrera s pdk":                    "Carrera S",
+    "carrera gts pdk":                  "Carrera GTS",
+    "carrera 4s pdk":                   "Carrera 4S",
 }
+
+# ── Prefix-matching support ───────────────────────────────────────────────────
+# Sorted alias keys (longest first) for prefix matching.  This handles long
+# eBay/scraper titles that start with a recognizable trim prefix, e.g.:
+#   "GT4 RS Weissach Package, CCB, Front Axle Lift..." → "GT4 RS"
+#   "Carrera GTS Coupe 6-Speed Carbon Fiber..."        → "Carrera GTS"
+#   "Turbo S Exclusive Manufaktur Leather..."           → "Turbo S"
+# We EXCLUDE the bare "carrera" key because it is too short and would
+# incorrectly absorb "Carrera 2 Coupe 5-Speed" and similar variant trims
+# that already receive accurate comp matching through their exact strings.
+_TRIM_ALIAS_KEYS_BY_LEN = sorted(_TRIM_ALIASES.keys(), key=len, reverse=True)
+_PREFIX_MATCH_EXCLUDED = frozenset({"carrera"})
 
 
 def normalize_trim(trim: Optional[str]) -> Optional[str]:
@@ -153,7 +297,16 @@ def normalize_trim(trim: Optional[str]) -> Optional[str]:
     if not trim:
         return None
     key = trim.lower().strip()
-    return _TRIM_ALIASES.get(key, trim.strip())
+    exact = _TRIM_ALIASES.get(key)
+    if exact is not None:
+        return exact
+    # Prefix match: "GT4 RS Weissach Package, CCB..." → "GT4 RS"
+    for alias_key in _TRIM_ALIAS_KEYS_BY_LEN:
+        if alias_key in _PREFIX_MATCH_EXCLUDED:
+            continue
+        if key.startswith(alias_key + " "):
+            return _TRIM_ALIASES[alias_key]
+    return trim.strip()
 
 
 # ── Comp matching ─────────────────────────────────────────────────────────────
@@ -198,6 +351,35 @@ class FMVResult:
     # The comps themselves (for report display)
     comps: list = field(default_factory=list)
     rnm_comps: list = field(default_factory=list)
+
+
+# ── Model normalization for DB queries ───────────────────────────────────────
+# Some scrapers emit "718 Cayman", "718 Boxster", "718 Spyder" as the model
+# field, but sold comps store 718-era cars as model="718".  This maps listing
+# model names to the canonical model name(s) used in sold_comps.
+_MODEL_QUERY_MAP = {
+    "718 cayman": "718",
+    "718 boxster": "718",
+    "718 spyder":  "718",
+}
+
+
+def _query_model(model: str, generation: str = "") -> str:
+    """Return the sold_comps model name to use when querying for this listing.
+
+    Handles two cases:
+    1. Scrapers that emit "718 Cayman" / "718 Boxster" / "718 Spyder" as model
+       — BaT stores 718-era cars as model="718".
+    2. Scrapers that emit plain "Cayman" or "Boxster" for 2017+ cars (718-era)
+       — same issue, detected via the generation bucket.
+    """
+    key = (model or "").lower().strip()
+    if key in _MODEL_QUERY_MAP:
+        return _MODEL_QUERY_MAP[key]
+    # Plain "Cayman" or "Boxster" for 718-era cars: sold comps use model="718"
+    if generation in ("718_cayman", "718_boxster") and key in ("cayman", "boxster"):
+        return "718"
+    return model
 
 
 # Source credibility weights
@@ -277,9 +459,13 @@ def _trim_match_score(target_trim: Optional[str], comp_trim: Optional[str]) -> f
     gt4_family = {"GT4", "GT4 RS"}
     turbo_family = {"Turbo", "Turbo S"}
     carrera_family = {"Carrera", "Carrera S", "Carrera 4", "Carrera 4S",
-                      "Carrera GTS", "Carrera Targa", "Carrera RS"}
+                      "Carrera GTS", "Carrera Targa", "Carrera RS",
+                      "Carrera T", "Targa 4S", "Targa 4 GTS"}
+    spyder_family = {"Spyder", "Spyder RS"}
+    mid_engine_s_family = {"S", "GTS", "T", "Cayman", "Boxster"}
 
-    for family in (gt3_family, gt2_family, gt4_family, turbo_family, carrera_family):
+    for family in (gt3_family, gt2_family, gt4_family, turbo_family,
+                   carrera_family, spyder_family, mid_engine_s_family):
         if t in family and c in family:
             return 0.7
 
@@ -318,6 +504,11 @@ def get_fmv(
     norm_trim    = normalize_trim(trim)
     today        = date.today()
 
+    # Normalize listing model to the model name used in sold_comps.
+    # "718 Cayman" / "718 Boxster" → "718"; also plain "Cayman"/"Boxster" for
+    # 718-era (2017+) cars where BaT stores the comp as model="718".
+    comp_model = _query_model(model, target_gen)
+
     # Date window: since_date overrides months_back when explicitly provided
     if since_date:
         cutoff_date = since_date
@@ -333,7 +524,7 @@ def get_fmv(
                  AND sold_date >= ?
                  AND sold_date <= ?
                ORDER BY sold_date DESC""",
-            (model, cutoff_date, until_date),
+            (comp_model, cutoff_date, until_date),
         ).fetchall()
     else:
         rows = conn.execute(
@@ -342,7 +533,7 @@ def get_fmv(
                WHERE LOWER(model) = LOWER(?)
                  AND sold_date >= ?
                ORDER BY sold_date DESC""",
-            (model, cutoff_date),
+            (comp_model, cutoff_date),
         ).fetchall()
 
     # Build Comp objects with scores
@@ -392,8 +583,35 @@ def get_fmv(
         # No trim known — cross-gen fallback is acceptable
         use_comps = scored
     else:
-        # Trim is known but no same-gen comps exist — report NONE, not garbage
-        use_comps = []
+        # Trim is known but no same-gen comps matched (likely unrecognized trim
+        # string from scraper).  Try two broader fallback tiers before NONE:
+        #   Tier A — same-gen comps that share a trim family (ts > 0)
+        #            or have no normalized trim at all.
+        #   Tier B — pure generation baseline: all same-gen comps equally.
+        # This prevents garbage-trim listings from getting NONE confidence when
+        # there is plenty of generation-level comp data available.
+        #
+        # Always build both tiers. Use Tier A only when it yields >= 3 comps
+        # (a meaningful family-level signal); otherwise fall through to the
+        # broader gen baseline so a single no-trim comp doesn't block hundreds
+        # of useful same-generation comps.
+        gen_family = []
+        gen_all = []
+        for c in sold_comps:
+            if c.generation != target_gen:
+                continue
+            ts = _trim_match_score(norm_trim, c.trim_normalized)
+            rec_w = _recency_weight(c.sold_date)
+            src_w = c.source_weight
+            fb_all = src_w * rec_w * 0.4
+            if fb_all > 0.05:
+                gen_all.append((c, fb_all))
+            if ts > 0.0 or c.trim_normalized is None:
+                fb_fam = src_w * rec_w * (0.4 + 0.4 * ts)
+                if fb_fam > 0.05:
+                    gen_family.append((c, fb_fam))
+
+        use_comps = gen_family if len(gen_family) >= 3 else gen_all
 
     if not use_comps:
         # No comps found at all
@@ -405,6 +623,17 @@ def get_fmv(
             confidence="NONE", date_range=None,
             comps=[], rnm_comps=rnm_comps,
         )
+
+    # ── Exact-trim preference ────────────────────────────────────────────────
+    # When we have enough exact-trim comps, restrict use_comps to those.
+    # This prevents a large pool of lower-priced family comps (e.g. 450 base
+    # Carrera comps) from diluting the FMV of a rarer trim (e.g. Carrera GTS).
+    # The threshold matches the HIGH-confidence cutoff so we only tighten when
+    # the exact-trim signal is strong enough to stand alone.
+    exact_trim_comps = [(c, s) for c, s in use_comps
+                        if _trim_match_score(norm_trim, c.trim_normalized) >= 0.9]
+    if len(exact_trim_comps) >= 4:
+        use_comps = exact_trim_comps
 
     # ── Weighted statistics ──────────────────────────────────────────────────
     prices_weights = [(c.sold_price, s) for c, s in use_comps]
@@ -443,16 +672,16 @@ def get_fmv(
             rnm_floor = rnm_bids[len(rnm_bids) // 2]
 
     # ── Confidence ───────────────────────────────────────────────────────────
-    exact_trim_comps = [(c, s) for c, s in use_comps
-                        if _trim_match_score(norm_trim, c.trim_normalized) >= 0.9]
+    # exact_trim_comps already computed above (and use_comps may have been
+    # narrowed to them when >= 5 were available).
     comp_count = len(use_comps)
 
     oldest_date = min((c.sold_date for c, _ in use_comps if c.sold_date), default=None)
     newest_date = max((c.sold_date for c, _ in use_comps if c.sold_date), default=None)
 
-    if len(exact_trim_comps) >= 5:
+    if len(exact_trim_comps) >= 4:
         confidence = "HIGH"
-    elif len(exact_trim_comps) >= 2 or comp_count >= 5:
+    elif len(exact_trim_comps) >= 2 or comp_count >= 4:
         confidence = "MEDIUM"
     elif comp_count >= 1:
         confidence = "LOW"
@@ -568,6 +797,12 @@ def score_active_listings(
 
         deal = get_deal_score(price, fmv) if price else None
 
+        # Flat convenience keys so callers can do s.get('confidence') etc.
+        # without navigating nested objects.
+        flat_confidence = fmv.confidence
+        flat_flag = deal["deal_flag"] if deal else None
+        flat_discount_pct = abs(deal["pct_vs_fmv"]) * 100.0 if deal else 0.0
+
         results.append({
             "id":           lid,
             "dealer":       dealer,
@@ -583,6 +818,10 @@ def score_active_listings(
             "source_category": src_cat,
             "fmv":          fmv,
             "deal_score":   deal,
+            # Flat shortcuts
+            "confidence":   flat_confidence,
+            "flag":         flat_flag,
+            "discount_pct": flat_discount_pct,
         })
 
     return results

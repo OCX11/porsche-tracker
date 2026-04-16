@@ -216,8 +216,14 @@ def _format_alert(s: dict) -> str:
     elif conf == "MEDIUM":
         conf_note = f"\n({comp_cnt} comps)"
 
+    flag_line = (f"{flag_emoji} {flag}: {year} Porsche {model} {trim}").rstrip()
+    if (flag == "DEAL" and conf == "LOW"
+            and price is not None
+            and (price < 15000 or abs(pct) > 0.70)):
+        flag_line += " \u26a0\ufe0f LOW CONF"
+
     lines = [
-        f"{flag_emoji} {flag}: {year} Porsche {model} {trim}",
+        flag_line,
         f"💰 {price_str}  {pct_str}",
         f"🛣️  {miles_str}",
         f"📍 {dealer}{src_label}  [{tier_label}]",
