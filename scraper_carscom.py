@@ -651,16 +651,50 @@ def _save_state(state):
 # ---------------------------------------------------------------------------
 # Main public function
 # ---------------------------------------------------------------------------
+def _get_known_vins():
+    """Load all known cars.com VINs from the DB for incremental stop logic."""
+    try:
+        import sqlite3
+        db_path = Path(__file__).resolve().parent / "data" / "inventory.db"
+        conn = sqlite3.connect(str(db_path))
+        rows = conn.execute(
+            "SELECT vin FROM listings WHERE dealer='cars.com' AND vin IS NOT NULL"
+        ).fetchall()
+        conn.close()
+        return set(r[0] for r in rows)
+    except Exception as e:
+        log.debug("Could not load known VINs: %s", e)
+        return set()
+
+
 def scrape_carscom():
     """
     Scrape Cars.com for used Porsche 911/Boxster/Cayman/718 listings.
-    Queries each model slug separately to avoid Macan/Cayenne/Panamera noise.
-    Paginates each model until empty page or 15-page safety cap.
-    Always routes through DataImpulse proxy — never exposes bare Mac Mini IP.
+
+    Incremental mode (normal): fetches sorted by listed_at_desc.
+    Paginates each slug until ALL VINs on a page are already in the DB
+    (meaning we've reached the existing inventory frontier) or the page
+    is empty. Typically 1-2 pages per slug on routine runs.
+
+    Full mode (first run / state cleared): paginates up to 15 pages per slug.
+    State file written after first successful full run.
     """
     if not _PROXY_URL or not _PROXY_CFG.get("enabled"):
         log.warning("cars.com: proxy not configured — skipping scrape")
         return []
+
+    state = _load_state()
+    bootstrapped = state.get("bootstrapped", False)
+
+    # Load known VINs for incremental stop logic
+    known_vins = _get_known_vins() if bootstrapped else set()
+    max_pages = 15 if not bootstrapped else 3  # 3-page cap on incremental (~60 listings/slug max)
+
+    if bootstrapped:
+        log.info("cars.com: incremental run (known VINs: %d, cap: %d pages/slug)",
+                 len(known_vins), max_pages)
+    else:
+        log.info("cars.com: bootstrap run (up to %d pages/slug)", max_pages)
 
     all_listings = []
     seen_keys = set()
@@ -668,9 +702,9 @@ def scrape_carscom():
 
     for slug in _MODEL_SLUGS:
         model_name = slug.replace("porsche-", "").replace("_", " ")
-        log.info("cars.com: scraping model slug=%s", slug)
+        log.info("cars.com: scraping slug=%s", slug)
 
-        for page_num in range(1, 16):  # safety cap 15 pages per model (~300 listings max)
+        for page_num in range(1, max_pages + 1):
             if _PROXY_DEAD:
                 log.warning("cars.com: proxy died — stopping")
                 return all_listings
@@ -678,17 +712,19 @@ def scrape_carscom():
             url = _SEARCH_TEMPLATE.format(slug=slug, page=page_num)
             html = _fetch_page(url)
             if not html:
-                log.info("cars.com: fetch failed on %s page %d — next model", model_name, page_num)
+                log.info("cars.com: fetch failed on %s p%d — next slug", model_name, page_num)
                 break
 
             raw = _parse_page(html)
             if not raw:
-                log.info("cars.com: 0 cards on %s page %d — end of results", model_name, page_num)
+                log.info("cars.com: empty page on %s p%d — done with slug", model_name, page_num)
                 break
 
             new_this_page = 0
+            all_known = True  # assume all known until we find a new one
             for car in raw:
-                key = car.get("vin") or car.get("url") or "{}|{}|{}".format(
+                vin = car.get("vin")
+                key = vin or car.get("url") or "{}|{}|{}".format(
                     car.get("year"), car.get("model"), car.get("price"))
                 if key in seen_keys:
                     continue
@@ -697,6 +733,10 @@ def scrape_carscom():
                 url_val = car.get("url") or ""
                 if "/vehicledetail/" not in url_val:
                     continue
+
+                # Check if this VIN is new (not in DB)
+                if vin and vin not in known_vins:
+                    all_known = False
 
                 if not _is_valid_listing(car):
                     filtered_out += 1
@@ -708,14 +748,27 @@ def scrape_carscom():
             log.info("cars.com %s p%d: %d new (total: %d)",
                      model_name, page_num, new_this_page, len(all_listings))
 
+            # Incremental stop: entire page VINs already in DB — frontier reached
+            # (new_this_page may still be >0 if listing passed session dedup but
+            #  VIN was already in DB — all_known is the authoritative stop signal)
+            if bootstrapped and all_known:
+                log.info("cars.com %s: all VINs on p%d already in DB — frontier reached",
+                         model_name, page_num)
+                break
+
             if new_this_page == 0:
                 break
 
             time.sleep(1.5)
 
+    if not bootstrapped and all_listings:
+        _save_state({"bootstrapped": True})
+        log.info("cars.com: bootstrap complete — state saved")
+
     log.info("cars.com scrape complete: %d listings (%d filtered out)",
              len(all_listings), filtered_out)
     return all_listings
+
 
 
 # ---------------------------------------------------------------------------
