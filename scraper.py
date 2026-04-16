@@ -1620,8 +1620,16 @@ def scrape_pcarmarket():
                             image_url = val
                             break
 
+            price = None
+            price_span = a.select_one("span.pcar-auction-info__price")
+            if price_span:
+                raw_price = price_span.get_text(strip=True)
+                digits = re.sub(r"[^\d]", "", raw_price)
+                if digits:
+                    price = int(digits)
+
             c = dict(year=year, make=make or "Porsche", model=model, trim=trim,
-                     mileage=None, price=None, vin=None, url=url, image_url=image_url)
+                     mileage=None, price=price, vin=None, url=url, image_url=image_url)
             if _is_valid_listing(c):
                 cars.append(c)
 
