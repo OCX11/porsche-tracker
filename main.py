@@ -319,6 +319,13 @@ def main():
     except Exception as e:
         log.warning("iMessage new-listing alerts failed: %s", e)
 
+    # iMessage price-drop alerts
+    try:
+        with database.get_conn() as conn:
+            notify_imessage.notify_price_drops(conn)
+    except Exception as e:
+        log.warning("iMessage price-drop alerts failed: %s", e)
+
     # iMessage deal alerts — deal/watch scoring
     try:
         notify_imessage.main()

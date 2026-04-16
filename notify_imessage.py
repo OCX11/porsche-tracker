@@ -256,6 +256,115 @@ def _format_alert(s: dict) -> str:
     return "\n".join(lines)
 
 
+# ── Price-drop alerts ─────────────────────────────────────────────────────────
+
+def notify_price_drops(conn):
+    """Send one iMessage per listing that dropped price in the last 90 minutes.
+
+    Called from main.py after notify_new_listings() and before notify_deals().
+    Dedup key: "drop:{listing_id}:{new_price}" in seen_alerts_imessage.json.
+    Minimum drop: $500 to filter out data noise.
+    """
+    if not NOTIFICATIONS_ENABLED:
+        log.info("Notifications disabled — skipping price-drop alerts.")
+        return
+
+    cfg = _load_config()
+    recipient = cfg.get("recipient", "")
+    if not recipient:
+        log.error("No recipient configured for price-drop alerts.")
+        return
+
+    rows = conn.execute(
+        """SELECT l.id, l.year, l.model, l.trim, l.mileage, l.dealer,
+                  l.listing_url, l.tier, l.source_category,
+                  l.image_url, l.image_url_cdn,
+                  ph_new.price AS new_price, ph_old.price AS old_price
+           FROM listings l
+           JOIN price_history ph_new ON ph_new.listing_id = l.id
+           JOIN price_history ph_old ON ph_old.listing_id = l.id
+           WHERE ph_new.recorded_at = (
+               SELECT MAX(recorded_at) FROM price_history WHERE listing_id = l.id
+           )
+             AND ph_old.recorded_at = (
+               SELECT MIN(recorded_at) FROM price_history
+               WHERE listing_id = l.id AND recorded_at < ph_new.recorded_at
+           )
+             AND ph_new.price < ph_old.price
+             AND ph_new.recorded_at > datetime('now', '-90 minutes')
+             AND l.status = 'active'
+             AND (ph_old.price - ph_new.price) >= 500"""
+    ).fetchall()
+
+    if not rows:
+        log.info("Price-drop alerts: 0 drops in last 90 minutes")
+        return
+
+    seen = _load_seen()
+    sent = 0
+
+    for row in rows:
+        s = dict(row)
+        listing_id = s["id"]
+        new_price  = s["new_price"]
+        old_price  = s["old_price"]
+        drop       = old_price - new_price
+        drop_pct   = drop / old_price * 100.0 if old_price else 0.0
+
+        seen_key = "drop:{}:{}".format(listing_id, new_price)
+        if seen_key in seen:
+            log.debug("Skip price-drop alert (already sent): %s", seen_key)
+            continue
+
+        year      = s.get("year", "?")
+        model     = s.get("model", "")
+        trim      = s.get("trim") or ""
+        mileage   = s.get("mileage")
+        dealer    = s.get("dealer", "?")
+        url       = s.get("listing_url", "")
+        tier      = s.get("tier", "TIER2")
+        tier_label = "GT/Collector" if tier == "TIER1" else "Standard"
+        miles_str  = "{:,} mi".format(mileage) if mileage else "—"
+        trim_disp  = _short_trim(trim)
+        url_clean  = _clean_url(url)
+
+        msg = "\n".join([
+            ("📉 PRICE DROP: {} Porsche {} {}".format(year, model, trim_disp)).rstrip(),
+            "💰 ${:,} (was ${:,}, -{:.0f}%)".format(new_price, old_price, drop_pct),
+            "🛣️  {}".format(miles_str),
+            "📍 {}  [{}]".format(dealer, tier_label),
+            "🔗 {}".format(url_clean),
+        ])
+
+        log.info("PRICE DROP: %s %s %s  $%s → $%s (-%.0f%%)",
+                 year, model, trim_disp, "{:,}".format(old_price),
+                 "{:,}".format(new_price), drop_pct)
+
+        ok = _send_imessage(recipient, msg)
+        seen[seen_key] = {
+            "alerted_at": datetime.now().isoformat(),
+            "alerted":    ok,
+        }
+        _save_seen(seen)
+
+        if ok:
+            sent += 1
+            log.info("  → iMessage sent to %s", recipient)
+            img_url = s.get("image_url") or ""
+            if img_url.startswith("/static/"):
+                img_url = s.get("image_url_cdn") or ""
+            if img_url and img_url.startswith("http"):
+                img_ok = _send_imessage_image(recipient, img_url)
+                if img_ok:
+                    log.info("  → image sent")
+                else:
+                    log.debug("  → image skipped (download failed)")
+        else:
+            log.error("  → iMessage delivery failed")
+
+    log.info("Price-drop alerts: %d sent of %d drops found", sent, len(rows))
+
+
 # ── New-listing alerts ────────────────────────────────────────────────────────
 
 def _format_new_listing(s):
