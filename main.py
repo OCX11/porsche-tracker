@@ -293,6 +293,22 @@ def main():
         except Exception as e:
             log.warning("%s failed: %s", label, e)
 
+    # Run sold comp scraper once per day
+    try:
+        _comp_stamp = BASE_DIR / "data" / "last_comp_scrape.txt"
+        _run_comps = True
+        if _comp_stamp.exists():
+            _last = _comp_stamp.read_text().strip()
+            if _last == today:
+                _run_comps = False
+        if _run_comps:
+            log.info("Running daily sold comp scrape...")
+            comp_scraper.run_comp_scrape()
+            _comp_stamp.write_text(today)
+            log.info("Sold comp scrape complete")
+    except Exception as e:
+        log.warning("Sold comp scrape failed: %s", e)
+
 
     # iMessage alerts — new listing ping (every new car, no FMV threshold)
     try:
