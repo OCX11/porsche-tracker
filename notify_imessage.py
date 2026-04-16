@@ -310,7 +310,7 @@ def notify_new_listings(conn, new_listing_ids):
     placeholders = ",".join("?" * len(new_listing_ids))
     rows = conn.execute(
         f"""SELECT id, year, make, model, trim, price, mileage, dealer,
-                   listing_url, source_category, tier, image_url
+                   listing_url, source_category, tier, image_url, image_url_cdn
             FROM listings WHERE id IN ({placeholders})""",
         new_listing_ids
     ).fetchall()
@@ -343,8 +343,10 @@ def notify_new_listings(conn, new_listing_ids):
         if ok:
             sent += 1
             log.info("  → iMessage sent to %s", recipient)
-            # Send image as second message for sources with direct image URLs
+            # Prefer CDN URL for PCA Mart (image_url is local /static/img_cache/ path)
             img_url = s.get("image_url") or ""
+            if img_url.startswith("/static/"):
+                img_url = s.get("image_url_cdn") or ""
             if img_url and img_url.startswith("http"):
                 img_ok = _send_imessage_image(recipient, img_url)
                 if img_ok:
@@ -443,8 +445,10 @@ def main():
             seen[key]["alerted"] = True
             alerts_sent += 1
             log.info("  → iMessage sent to %s", recipient)
-            # Send image as second message for sources with direct image URLs
+            # Prefer CDN URL for PCA Mart (image_url is local /static/img_cache/ path)
             img_url = s.get("image_url") or ""
+            if img_url.startswith("/static/"):
+                img_url = s.get("image_url_cdn") or ""
             if img_url and img_url.startswith("http"):
                 img_ok = _send_imessage_image(recipient, img_url)
                 if img_ok:

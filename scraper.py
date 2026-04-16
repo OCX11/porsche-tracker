@@ -1518,6 +1518,7 @@ def scrape_pcamart():
                             fpath.write_bytes(body)
                             log.debug("PCA img cached %s (%d bytes)", fname, len(body))
                     if fpath.exists():
+                        car["image_url_cdn"] = img  # preserve original CDN URL
                         car["image_url"] = f"/static/img_cache/{fname}"
                         cached_count += 1
                 except Exception as _ie:

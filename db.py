@@ -283,6 +283,9 @@ def init_db():
         if "auction_ends_at" not in cols:
             conn.execute("ALTER TABLE listings ADD COLUMN auction_ends_at TEXT")
 
+        if "image_url_cdn" not in cols:
+            conn.execute("ALTER TABLE listings ADD COLUMN image_url_cdn TEXT")
+
         # Extended sold_comps columns (added by enrich_bat_vins.py)
         sc_cols_now = [r[1] for r in conn.execute("PRAGMA table_info(sold_comps)").fetchall()]
         for col in ("generation", "engine", "drivetrain", "options"):
@@ -389,7 +392,7 @@ def feed_type_for(dealer: str) -> str:
 def upsert_listing(conn, dealer, year, make, model, trim, mileage, price, vin, url, today,
                    image_url=None, color=None, transmission=None, location=None,
                    condition=None, body_style=None, seller_type=None, feed_type=None,
-                   date_first_seen=None, auction_ends_at=None):
+                   date_first_seen=None, auction_ends_at=None, image_url_cdn=None):
     """Insert or update a listing. Returns (listing_id, is_new, price_changed)."""
     # Auto-derive feed_type from dealer name if not explicitly supplied
     if feed_type is None:
@@ -421,11 +424,12 @@ def upsert_listing(conn, dealer, year, make, model, trim, mileage, price, vin, u
                    location=COALESCE(?,location), condition=COALESCE(?,condition),
                    body_style=COALESCE(?,body_style), seller_type=COALESCE(?,seller_type),
                    feed_type=COALESCE(feed_type,?),
-                   auction_ends_at=COALESCE(?,auction_ends_at)
+                   auction_ends_at=COALESCE(?,auction_ends_at),
+                   image_url_cdn=COALESCE(?,image_url_cdn)
                WHERE id=?""",
             (today, price, trim, mileage, url, image_url, source_category(dealer), tier,
              color, transmission, location, condition, body_style, seller_type,
-             feed_type, auction_ends_at, listing_id)
+             feed_type, auction_ends_at, image_url_cdn, listing_id)
         )
         if price_changed and price and price > 0 and price < 2_000_000:
             conn.execute(
@@ -439,12 +443,12 @@ def upsert_listing(conn, dealer, year, make, model, trim, mileage, price, vin, u
                                     listing_url, image_url, date_first_seen, date_last_seen,
                                     source_category, tier, color, transmission, location,
                                     condition, body_style, seller_type, feed_type,
-                                    auction_ends_at)
-               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                                    auction_ends_at, image_url_cdn)
+               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (dealer, vin, year, make, model, trim, mileage, price, url, image_url,
              date_first_seen or today, today,
              source_category(dealer), tier, color, transmission, location,
-             condition, body_style, seller_type, feed_type, auction_ends_at)
+             condition, body_style, seller_type, feed_type, auction_ends_at, image_url_cdn)
         )
         listing_id = cur.lastrowid
         if price and price > 0 and price < 2_000_000:
