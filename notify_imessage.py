@@ -287,13 +287,14 @@ def notify_price_drops(conn):
                SELECT MAX(recorded_at) FROM price_history WHERE listing_id = l.id
            )
              AND ph_old.recorded_at = (
-               SELECT MIN(recorded_at) FROM price_history
+               SELECT MAX(recorded_at) FROM price_history
                WHERE listing_id = l.id AND recorded_at < ph_new.recorded_at
            )
              AND ph_new.price < ph_old.price
              AND ph_new.recorded_at > datetime('now', '-90 minutes')
              AND l.status = 'active'
-             AND (ph_old.price - ph_new.price) >= 500"""
+             AND (ph_old.price - ph_new.price) >= 500
+             AND l.created_at < datetime('now', '-1 hour')"""
     ).fetchall()
 
     if not rows:
