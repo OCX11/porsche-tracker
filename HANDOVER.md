@@ -1,5 +1,5 @@
 # Vehicle Market Analyzer — Project Handover Summary
-*Last updated: April 16, 2026 (auction countdown timer added)*
+*Last updated: April 16, 2026 (auction countdown + Rennlist 403 fix)*
 
 ---
 
@@ -211,7 +211,7 @@ URL: https://ocx11.github.io/porsche-tracker/
 
 | Issue | Severity | Status |
 |---|---|---|
-| Rennlist 403 block | High | BROKEN — fix in Rennlist chat |
+| Rennlist 403 block | ✅ Fixed | curl_cffi Chrome impersonation — April 16 |
 | eBay Motors collapse (200→7) | High | Investigate OAuth/query |
 | AutoTrader ~50% zero cycles | Medium | Known — Akamai mobile block |
 | PCA Mart images local-only | Low | `/static/img_cache/` not public |
