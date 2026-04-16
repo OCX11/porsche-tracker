@@ -8,6 +8,7 @@ import json
 import time
 import logging
 import traceback
+from datetime import datetime as _dt
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urljoin
@@ -1306,10 +1307,19 @@ def scrape_bat():
             if img:
                 image_url = (img.get("src") or img.get("data-src") or "").split("?")[0] or None
 
+            auction_ends_at = None
+            ts_end = card.get("data-timestamp_end")
+            if ts_end:
+                try:
+                    auction_ends_at = _dt.utcfromtimestamp(int(ts_end)).strftime("%Y-%m-%dT%H:%M:%SZ")
+                except (ValueError, OSError):
+                    pass
+
             if not year:
                 continue
             c = dict(year=year, make=make or "Porsche", model=model, trim=trim,
-                     mileage=mileage, price=price, vin=None, url=url, image_url=image_url)
+                     mileage=mileage, price=price, vin=None, url=url, image_url=image_url,
+                     auction_ends_at=auction_ends_at)
             if _is_valid_listing(c):
                 cars.append(c)
     except Exception as e:

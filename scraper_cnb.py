@@ -12,6 +12,7 @@ the "cars & bids" / "carsandbids" pattern in db.source_category()).
 """
 import logging
 import re
+from datetime import datetime, timedelta, timezone
 
 from bs4 import BeautifulSoup
 
@@ -197,6 +198,19 @@ def _parse_cards(html):
         subtitle = item.find("p", class_="auction-subtitle")
         mileage = _parse_mileage(subtitle.get_text() if subtitle else "")
 
+        # Auction end time — <span class="ticking">HH:MM:SS</span> (Playwright-rendered)
+        auction_ends_at = None
+        ticking = item.find("span", class_="ticking")
+        if ticking:
+            countdown_text = ticking.get_text(strip=True)
+            tm = re.match(r"(\d+):(\d+):(\d+)", countdown_text)
+            if tm:
+                h = int(tm.group(1))
+                mn = int(tm.group(2))
+                s = int(tm.group(3))
+                ends = datetime.now(timezone.utc) + timedelta(hours=h, minutes=mn, seconds=s)
+                auction_ends_at = ends.strftime("%Y-%m-%dT%H:%M:%SZ")
+
         parsed = _parse_title(title)
         parsed.update({
             "mileage": mileage,
@@ -204,6 +218,7 @@ def _parse_cards(html):
             "vin": None,
             "url": url,
             "image_url": image_url,
+            "auction_ends_at": auction_ends_at,
         })
 
         if not _is_valid(parsed):

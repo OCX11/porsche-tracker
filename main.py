@@ -118,6 +118,7 @@ def run_snapshot(dealer_results: dict, today: str):
                         location=car.get("location"),
                         transmission=car.get("transmission"),
                         date_first_seen=car.get("date_first_seen"),
+                        auction_ends_at=car.get("auction_ends_at"),
                     )
                     if is_new:
                         new_total += 1

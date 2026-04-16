@@ -251,8 +251,9 @@ def _card(car: dict, fmv_score: dict) -> str:
     created  = car.get("created_at", "") or car.get("date_first_seen", "")
     location = car.get("location", "") or ""
     trans    = car.get("transmission", "") or ""
-    days     = car.get("days_on_site") or 0
-    tier     = car.get("tier", "") or ""
+    days          = car.get("days_on_site") or 0
+    tier          = car.get("tier", "") or ""
+    auction_ends_at = car.get("auction_ends_at") or ""
     is_auc   = _is_auction(dealer)
 
     fmv_val    = fmv_score.get("fmv")
@@ -319,6 +320,11 @@ def _card(car: dict, fmv_score: dict) -> str:
     if days and int(days) >= 30:
         days_html = f' · <span class="days-stale">⏱ {days}d listed</span>'
 
+    # Auction end time / countdown
+    ends_html = ""
+    if is_auc and auction_ends_at:
+        ends_html = f'<div class="auction-ends">Ends: <span class="countdown" data-ends="{_h(auction_ends_at)}">…</span></div>'
+
     return f"""<div class="card" data-dealer="{_h(dealer)}" data-year="{year}" data-model="{_h(model)}" data-gen="{_h(_gen(year,model))}" data-tier="{_h(tier)}" data-price="{price or 0}" data-source-type="{'auction' if is_auc else 'retail'}" onclick="window.open('{_h(url)}','_blank')">
   {img_html}
   <div class="card-body">
@@ -334,6 +340,7 @@ def _card(car: dict, fmv_score: dict) -> str:
       {delta if not is_auc else ""}
     </div>
     {fmv_block}
+    {ends_html}
     <div class="card-meta">{chips_html}{days_html}</div>
   </div>
 </div>"""
@@ -611,6 +618,8 @@ button{{cursor:pointer;border:none;background:none;font:inherit;color:inherit}}
 .price-auction{{font-size:1.2em;font-weight:700;color:#a78bfa}}
 .card-meta{{font-size:0.75em;color:#475569;margin-top:4px}}
 .days-stale{{color:#f87171}}
+.auction-ends{{font-size:0.75em;color:#94a3b8;margin-top:3px}}
+.countdown{{font-weight:600;color:#fb923c}}
 
 /* ── FMV line ── */
 .fmv-line{{
@@ -1029,9 +1038,34 @@ function sortComps(col) {{
   rows.forEach(r => tbody.appendChild(r));
 }}
 
+// ── Auction countdown timers ──────────────────────────────────────────────────
+function updateCountdowns() {{
+  document.querySelectorAll('.countdown[data-ends]').forEach(function(el) {{
+    var ends = new Date(el.dataset.ends);
+    var now = new Date();
+    var diff = ends - now;
+    if (diff <= 0) {{
+      el.textContent = 'Ended';
+      el.style.color = '#ef4444';
+      return;
+    }}
+    var d = Math.floor(diff / 86400000);
+    var h = Math.floor((diff % 86400000) / 3600000);
+    var m = Math.floor((diff % 3600000) / 60000);
+    var s = Math.floor((diff % 60000) / 1000);
+    if (d > 0) {{
+      el.textContent = d + 'd ' + h + 'h ' + m + 'm';
+    }} else {{
+      el.textContent = h + 'h ' + m + 'm ' + s + 's';
+    }}
+  }});
+}}
+
 // ── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {{
   updateCount();
+  updateCountdowns();
+  setInterval(updateCountdowns, 1000);
 }});
 
 // ── PWA Service Worker ────────────────────────────────────────────────────────
