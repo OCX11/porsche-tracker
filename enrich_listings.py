@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 import db
 import scraper as sc
 
-CAP = 200  # max enrichments per run
+CAP = 50   # max enrichments per run
 
 
 def _extract_price(soup):
@@ -137,6 +137,7 @@ def run_enrichment():
               AND listing_url IS NOT NULL
               AND listing_url != ''
               AND (price IS NULL OR mileage IS NULL)
+              AND dealer NOT IN ('eBay Motors','Bring a Trailer','Cars and Bids','pcarmarket')
             ORDER BY date_last_seen DESC
             LIMIT ?
         """, (CAP,)).fetchall()

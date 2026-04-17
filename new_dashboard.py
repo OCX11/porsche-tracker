@@ -391,6 +391,16 @@ def generate() -> str:
             else:
                 fmv_by_id[row["id"]] = {"fmv": None, "confidence": "NONE", "comp_count": 0}
 
+        # All active listings with FMV scores attached
+        active = d["active"]
+        def _keep(c):
+            if (c.get("dealer") or "").lower() == "holt motorsports": return False
+            if (c.get("year") or 9999) < 1984: return False
+            return True
+        active = [c for c in active if _keep(c)]
+        for c in active:
+            c["_fmv"] = fmv_by_id.get(c["id"], {"fmv": None, "confidence": "NONE", "comp_count": 0})
+
         # Sort newest first (default view)
         active_sorted = sorted(active, key=lambda c: c.get("created_at") or c.get("date_first_seen") or "", reverse=True)
 
