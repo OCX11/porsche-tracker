@@ -308,6 +308,13 @@ def _card(car: dict, fmv_score: dict) -> str:
     if tier == "TIER1":
         tier_html = '<span class="tier-badge">GT / Collector</span>'
 
+    # Price drop chip
+    orig_price     = car.get("_orig_price")
+    price_drop_html = ""
+    if orig_price and price and price < orig_price - 500:
+        drop = orig_price - price
+        price_drop_html = f' · <span class="price-drop-chip">📉 -${drop:,}</span>'
+
     # Meta chips
     chips = []
     if trans:    chips.append(_h(trans))
@@ -341,7 +348,7 @@ def _card(car: dict, fmv_score: dict) -> str:
     </div>
     {fmv_block}
     {ends_html}
-    <div class="card-meta">{chips_html}{days_html}</div>
+    <div class="card-meta">{chips_html}{days_html}{price_drop_html}</div>
   </div>
 </div>"""
 
@@ -402,6 +409,16 @@ def generate() -> str:
             else:
                 fmv_by_id[row["id"]] = {"fmv": None, "confidence": "NONE", "comp_count": 0}
 
+        # Original prices from price_history (first entry per listing)
+        orig_price_rows = conn.execute("""
+            SELECT ph.listing_id, ph.price
+            FROM price_history ph
+            WHERE ph.recorded_at = (
+                SELECT MIN(recorded_at) FROM price_history WHERE listing_id = ph.listing_id
+            )
+        """).fetchall()
+        orig_prices = {row[0]: row[1] for row in orig_price_rows}
+
         # All active listings with FMV scores attached
         active = d["active"]
 
@@ -412,9 +429,10 @@ def generate() -> str:
             return True
         active = [c for c in active if _keep(c)]
 
-        # Attach FMV scores
+        # Attach FMV scores and original prices
         for c in active:
             c["_fmv"] = fmv_by_id.get(c["id"], {"fmv": None, "confidence": "NONE", "comp_count": 0})
+            c["_orig_price"] = orig_prices.get(c["id"])
 
         # Sort newest first (default view)
         active_sorted = sorted(active, key=lambda c: c.get("created_at") or c.get("date_first_seen") or "", reverse=True)
@@ -618,6 +636,7 @@ button{{cursor:pointer;border:none;background:none;font:inherit;color:inherit}}
 .price-auction{{font-size:1.2em;font-weight:700;color:#a78bfa}}
 .card-meta{{font-size:0.75em;color:#475569;margin-top:4px}}
 .days-stale{{color:#f87171}}
+.price-drop-chip{{color:#f87171;font-size:0.72em;font-weight:600}}
 .auction-ends{{font-size:0.75em;color:#94a3b8;margin-top:3px}}
 .countdown{{font-weight:600;color:#fb923c}}
 
