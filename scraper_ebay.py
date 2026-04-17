@@ -62,16 +62,20 @@ except Exception:
 _ALLOWED_MODEL_TOKENS = frozenset({"911", "cayman", "boxster", "718"})
 
 
+YEAR_MIN = 1984
+YEAR_MAX = 2024  # HARD RULE: do not increase until Jan 1 2027
+
 def _local_valid(car):
     """Lightweight validity check that works without scraper.py's _is_valid_listing().
-    Filters non-target Porsche models and extreme mileage.
-    Year filtering is intentionally left to scraper.py's run_all() pass so that
-    the YEAR_MAX constant there is the single source of truth.
+    Filters non-target Porsche models, year range, and extreme mileage.
     """
     model = (car.get("model") or "").lower()
     if not model:
         return False
     if not any(g in model for g in _ALLOWED_MODEL_TOKENS):
+        return False
+    year = car.get("year")
+    if year and not (YEAR_MIN <= int(year) <= YEAR_MAX):
         return False
     mileage = car.get("mileage")
     if mileage is not None and mileage > 100_000:
@@ -427,6 +431,48 @@ def _save_cache(listings):
 # ---------------------------------------------------------------------------
 # Main public function
 # ---------------------------------------------------------------------------
+# Seller usernames to always sweep specifically (owner's own listings etc.)
+_WATCH_SELLERS = ["holtmotorsports"]
+
+def _search_seller(token, seller_username):
+    """Fetch all active Porsche listings for a specific eBay seller username.
+    Uses seller_id filter on the Browse API. Returns parsed listing dicts.
+    """
+    params = {
+        "q": "porsche",
+        "category_ids": "6001",
+        "filter": "sellers:{%s},conditionIds:{3000|4000|6000},priceCurrency:USD" % seller_username,
+        "sort": "newlyListed",
+        "limit": "50",
+    }
+    headers = {
+        "Authorization": "Bearer {}".format(token),
+        "X-EBAY-C-MARKETPLACE-ID": "EBAY_US",
+        "Accept": "application/json",
+    }
+    proxies = _get_proxies()
+    try:
+        r = requests.get(_SEARCH_URL, params=params, headers=headers, timeout=30, proxies=proxies)
+        if r.status_code != 200:
+            log.warning("eBay seller search (%s): HTTP %d — %s", seller_username, r.status_code, r.text[:200])
+            return []
+        data = r.json()
+        items = data.get("itemSummaries") or []
+        log.info("eBay seller '%s': %d listings returned", seller_username, len(items))
+        results = []
+        for item in items:
+            try:
+                car = _parse_item(item)
+                if car and _local_valid(car):
+                    results.append(car)
+            except Exception as e:
+                log.warning("eBay seller parse error: %s", e)
+        return results
+    except Exception as e:
+        log.warning("eBay seller search (%s) failed: %s", seller_username, e)
+        return []
+
+
 def _fetch_pages(token, max_pages):
     """
     Fetch up to max_pages from the eBay Browse API.
@@ -480,6 +526,19 @@ def _fetch_pages(token, max_pages):
             time.sleep(0.5)
 
     log.info("eBay fetch complete: %d listings (%d filtered out)", len(all_listings), filtered_out)
+
+    # Always sweep watch-list sellers — Browse API misses them in generic search
+    seller_seen = {l.get("url") for l in all_listings if l.get("url")}
+    for seller in _WATCH_SELLERS:
+        seller_listings = _search_seller(token, seller)
+        added = 0
+        for sl in seller_listings:
+            if sl.get("url") and sl["url"] not in seller_seen:
+                all_listings.append(sl)
+                seller_seen.add(sl["url"])
+                added += 1
+        log.info("eBay seller sweep '%s': %d new listings merged", seller, added)
+
     return all_listings
 
 
@@ -532,6 +591,18 @@ def scrape_ebay():
                     cached_by_url[car["url"]] = car
             except Exception as e:
                 log.warning("eBay: parse error (%s): %s", item.get("itemId", "?"), e)
+
+        # Also check watch-list sellers on every incremental run
+        for seller in _WATCH_SELLERS:
+            seller_listings = _search_seller(token, seller)
+            s_added = 0
+            for sl in seller_listings:
+                if sl.get("url") and sl["url"] not in cached_by_url:
+                    cached_by_url[sl["url"]] = sl
+                    s_added += 1
+                    new_count += 1
+            if s_added:
+                log.info("eBay seller sweep '%s': %d new listings added", seller, s_added)
 
         merged = list(cached_by_url.values())
         _save_cache(merged)

@@ -35,10 +35,16 @@ _STATE_FILE = Path.home() / "porsche-tracker" / "data" / "autotrader_state.json"
 # ---------------------------------------------------------------------------
 # Import filter from scraper.py
 # ---------------------------------------------------------------------------
+YEAR_MIN = 1984
+YEAR_MAX = 2024  # HARD RULE: do not increase until Jan 1 2027
+
 try:
     from scraper import _is_valid_listing
 except Exception:
     def _is_valid_listing(car):
+        year = car.get("year")
+        if year and not (YEAR_MIN <= int(year) <= YEAR_MAX):
+            return False
         return True
 
 # ---------------------------------------------------------------------------
