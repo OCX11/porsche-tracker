@@ -8,7 +8,7 @@ import json
 import time
 import logging
 import traceback
-from datetime import datetime as _dt
+from datetime import datetime as _dt, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urljoin
@@ -1534,6 +1534,26 @@ def scrape_pcamart():
     return _dedupe(cars)
 
 
+def _parse_pcar_relative_time(text):
+    """Parse pcarmarket 'Ends In' value to ISO UTC string.
+    Handles: '45M', '2H 56M', '1D 4H 32M'.
+    Returns ISO UTC string or None.
+    """
+    days = hours = mins = 0
+    for token in text.upper().split():
+        token = token.strip()
+        if token.endswith("D") and token[:-1].isdigit():
+            days = int(token[:-1])
+        elif token.endswith("H") and token[:-1].isdigit():
+            hours = int(token[:-1])
+        elif token.endswith("M") and token[:-1].isdigit():
+            mins = int(token[:-1])
+    if days == 0 and hours == 0 and mins == 0:
+        return None
+    ends = _dt.now(timezone.utc) + timedelta(days=days, hours=hours, minutes=mins)
+    return ends.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def scrape_pcarmarket():
     """pcarmarket.com — Porsche auction + marketplace, Playwright required.
     Scrapes two pages:
@@ -1639,8 +1659,17 @@ def scrape_pcarmarket():
                 if digits:
                     price = int(digits)
 
+            # Auction end time — find "Ends In" label, then read adjacent value
+            auction_ends_at = None
+            ends_label = a.find(string=re.compile(r"ends\s+in", re.I))
+            if ends_label:
+                val_el = a.select_one(".pcar-auction-info__value")
+                if val_el:
+                    auction_ends_at = _parse_pcar_relative_time(val_el.get_text(strip=True))
+
             c = dict(year=year, make=make or "Porsche", model=model, trim=trim,
-                     mileage=None, price=price, vin=None, url=url, image_url=image_url)
+                     mileage=None, price=price, vin=None, url=url, image_url=image_url,
+                     auction_ends_at=auction_ends_at)
             if _is_valid_listing(c):
                 cars.append(c)
 

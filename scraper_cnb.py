@@ -158,6 +158,29 @@ def _fetch_html():
             browser.close()
 
 
+def _parse_cnb_countdown(text):
+    """Parse C&B countdown to ISO UTC string.
+    Handles '4:32:15' (HH:MM:SS) and '2d 04:32:15' (Xd HH:MM:SS).
+    Returns ISO UTC string or None.
+    """
+    if not text:
+        return None
+    text = text.strip()
+    m = re.match(r"(\d+)d\s+(\d+):(\d+):(\d+)", text, re.I)
+    if m:
+        ends = datetime.now(timezone.utc) + timedelta(
+            days=int(m.group(1)), hours=int(m.group(2)), minutes=int(m.group(3))
+        )
+        return ends.strftime("%Y-%m-%dT%H:%M:%SZ")
+    m = re.match(r"(\d+):(\d+):(\d+)", text)
+    if m:
+        ends = datetime.now(timezone.utc) + timedelta(
+            hours=int(m.group(1)), minutes=int(m.group(2))
+        )
+        return ends.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return None
+
+
 def _parse_cards(html):
     soup = BeautifulSoup(html, "html.parser")
 
@@ -198,18 +221,33 @@ def _parse_cards(html):
         subtitle = item.find("p", class_="auction-subtitle")
         mileage = _parse_mileage(subtitle.get_text() if subtitle else "")
 
-        # Auction end time — <span class="ticking">HH:MM:SS</span> (Playwright-rendered)
+        # Auction end time — span.ticking primary, with multi-format + fallbacks
         auction_ends_at = None
         ticking = item.find("span", class_="ticking")
         if ticking:
-            countdown_text = ticking.get_text(strip=True)
-            tm = re.match(r"(\d+):(\d+):(\d+)", countdown_text)
-            if tm:
-                h = int(tm.group(1))
-                mn = int(tm.group(2))
-                s = int(tm.group(3))
-                ends = datetime.now(timezone.utc) + timedelta(hours=h, minutes=mn, seconds=s)
-                auction_ends_at = ends.strftime("%Y-%m-%dT%H:%M:%SZ")
+            auction_ends_at = _parse_cnb_countdown(ticking.get_text(strip=True))
+        # Fallback: any span/div with "time" in class name containing digits
+        if not auction_ends_at:
+            for el in item.find_all(["span", "div"]):
+                cls = " ".join(el.get("class") or [])
+                if "time" in cls.lower():
+                    el_text = el.get_text(strip=True)
+                    if re.search(r"\d+:\d+", el_text):
+                        auction_ends_at = _parse_cnb_countdown(el_text)
+                        if auction_ends_at:
+                            break
+        # Fallback: data attribute on the li (Unix timestamp)
+        if not auction_ends_at:
+            for attr in ("data-time", "data-end", "data-expires", "data-ends-at"):
+                val = item.get(attr)
+                if val:
+                    try:
+                        ts = int(val)
+                        ends = datetime.fromtimestamp(ts, tz=timezone.utc)
+                        auction_ends_at = ends.strftime("%Y-%m-%dT%H:%M:%SZ")
+                        break
+                    except (ValueError, OSError):
+                        pass
 
         parsed = _parse_title(title)
         parsed.update({
