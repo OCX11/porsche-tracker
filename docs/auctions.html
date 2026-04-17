@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="120">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Auctions">
+<meta name="theme-color" content="#0f1117">
+<title>Auction Watcher · Porsche Tracker</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;background:#0f1117;color:#e2e8f0}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
+
+/* ── Topbar ── */
+.topbar{height:52px;min-height:52px;background:#161b27;border-bottom:1px solid #2d3748;display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:16px;position:sticky;top:0;z-index:50}
+.topbar-left{display:flex;align-items:center;gap:20px}
+.logo{font-size:1.05em;font-weight:700;color:#f1f5f9;letter-spacing:-0.3px;white-space:nowrap}
+.logo span{color:#ef4444}
+.nav-tabs{display:flex;gap:2px}
+.nav-tab{padding:6px 14px;border-radius:6px;font-size:0.88em;font-weight:500;color:#94a3b8;transition:all .15s;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.nav-tab:hover{background:#2d3748;color:#f1f5f9}
+.nav-tab.active{background:#3b82f6;color:#fff}
+.topbar-right{display:flex;align-items:center;gap:12px;font-size:0.78em;color:#475569;white-space:nowrap}
+
+/* ── Page body ── */
+.page-body{max-width:1400px;margin:0 auto;padding:20px 20px 40px}
+
+/* ── Hero stats bar ── */
+.stats-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  background:#161b27;border:1px solid #2d3748;border-radius:12px;
+  padding:16px 24px;margin-bottom:24px;flex-wrap:wrap;gap:12px;
+}
+.stats-group{display:flex;gap:24px;flex-wrap:wrap}
+.stat-item{display:flex;flex-direction:column;gap:2px}
+.stat-val{font-size:1.6em;font-weight:700;line-height:1;color:#f1f5f9}
+.stat-val.orange{color:#fb923c}
+.stat-val.blue{color:#60a5fa}
+.stat-val.green{color:#4ade80}
+.stat-lbl{font-size:0.7em;color:#475569;text-transform:uppercase;letter-spacing:.5px}
+.live-badge{display:flex;align-items:center;gap:6px;font-size:0.78em;color:#4ade80;background:#14532d;padding:5px 10px;border-radius:8px;font-weight:600}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+
+/* ── Section ── */
+.section{margin-bottom:32px}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.section-hdr-left{display:flex;align-items:center;gap:12px}
+.section-icon{font-size:1.4em}
+.section-title{font-size:1.05em;font-weight:700;color:#f1f5f9}
+.section-count{display:inline-block;background:#2d3748;color:#94a3b8;font-size:0.75em;font-weight:600;padding:1px 7px;border-radius:10px;margin-left:6px;vertical-align:middle}
+.section-sub{font-size:0.78em;color:#475569;margin-top:2px}
+.section.ending-soon .section-title{color:#fb923c}
+.section.ending-soon .section-count{background:#431407;color:#fb923c}
+
+/* ── Cards grid ── */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+
+/* ── Auction card ── */
+.auc-card{
+  background:#161b27;border:1px solid #2d3748;border-radius:12px;
+  overflow:hidden;cursor:pointer;
+  transition:box-shadow .15s,transform .15s,border-color .15s;
+  display:flex;flex-direction:column;
+}
+.auc-card:hover{box-shadow:0 6px 28px rgba(0,0,0,.5);transform:translateY(-2px);border-color:#3b82f6}
+.ending-soon .auc-card{border-color:#431407}
+.ending-soon .auc-card:hover{border-color:#fb923c;box-shadow:0 6px 28px rgba(251,146,60,.15)}
+
+.card-img-wrap{width:100%;height:185px;overflow:hidden;background:#1e2535;flex-shrink:0}
+.card-img{width:100%;height:185px;object-fit:cover;display:block;transition:transform .2s}
+.auc-card:hover .card-img{transform:scale(1.03)}
+.img-fallback{opacity:0.5}
+
+.card-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:0;flex:1}
+.card-top-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.gen-label{font-size:0.72em;color:#475569;white-space:nowrap}
+.card-title{font-size:0.94em;font-weight:600;color:#f1f5f9;margin-bottom:4px;line-height:1.3}
+.tier-badge{display:inline-block;font-size:0.68em;font-weight:700;background:#451a03;color:#fbbf24;padding:2px 7px;border-radius:4px;margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px;border:1px solid #78350f}
+
+/* ── Countdown ── */
+.countdown-wrap{
+  background:#1a1f2e;border:1px solid #2d3748;border-radius:8px;
+  padding:8px 12px;margin-bottom:9px;display:flex;align-items:baseline;gap:8px;
+}
+.countdown-label{font-size:0.72em;color:#64748b;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.countdown-timer{font-size:1.35em;font-weight:700;color:#fb923c;font-variant-numeric:tabular-nums;letter-spacing:1px}
+.countdown-timer.urgent{color:#ef4444;animation:urgentPulse 1s infinite}
+@keyframes urgentPulse{0%,100%{opacity:1}50%{opacity:.6}}
+.countdown-timer.done{color:#475569}
+.no-end{font-size:0.82em;color:#475569;font-style:italic}
+
+/* ── Bid row ── */
+.bid-row{display:flex;align-items:baseline;gap:8px;margin-bottom:7px;flex-wrap:wrap}
+.bid-label{font-size:0.72em;color:#64748b}
+.bid-val{font-size:1.3em;font-weight:700;color:#a78bfa}
+
+/* ── FMV line ── */
+.fmv-line{font-size:0.78em;padding:5px 8px;border-radius:5px;margin-bottom:6px;line-height:1.4}
+.fmv-val{font-weight:700;font-size:1.05em}
+.fmv-comps{opacity:0.65}
+.fmv-none   {background:#1e2535;color:#475569}
+.fmv-neutral{background:#1e2535;color:#94a3b8}
+.fmv-great  {background:#14532d;color:#86efac}
+.fmv-good   {background:#14532d;color:#4ade80}
+.fmv-mid    {background:#431407;color:#fdba74}
+.fmv-high   {background:#450a0a;color:#fca5a5}
+
+/* ── Delta badges ── */
+.delta{font-size:0.72em;font-weight:700;padding:2px 6px;border-radius:5px;white-space:nowrap}
+.delta-great{background:#14532d;color:#4ade80}
+.delta-good {background:#14532d;color:#86efac}
+.delta-flat {background:#1e2535;color:#64748b}
+.delta-mid  {background:#431407;color:#fdba74}
+.delta-high {background:#450a0a;color:#fca5a5}
+
+/* ── Source badge ── */
+.badge{font-size:0.72em;font-weight:600;padding:2px 7px;border-radius:8px;display:inline-block;white-space:nowrap}
+
+/* ── Card meta ── */
+.card-meta{font-size:0.75em;color:#475569;margin-top:auto;padding-top:4px}
+
+/* ── Empty state ── */
+.empty{grid-column:1/-1;text-align:center;padding:40px 20px;color:#475569}
+.empty-icon{font-size:2.5em;margin-bottom:10px}
+.empty-text{font-size:0.95em;font-weight:500;color:#64748b}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#0f1117}
+::-webkit-scrollbar-thumb{background:#2d3748;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#3b4a5e}
+
+/* ── Responsive ── */
+@media(max-width:640px){
+  .topbar-right{display:none}
+  .stats-group{gap:14px}
+  .page-body{padding:12px 12px 32px}
+  .cards-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="logo">🏎 Porsche <span>Tracker</span></div>
+    <nav class="nav-tabs">
+      <a class="nav-tab" href="index.html">New Listings</a>
+      <span class="nav-tab active">🔨 Auctions</span>
+      <a class="nav-tab" href="index.html#comps">Sold Comps</a>
+      <a class="nav-tab" href="search.html">🔍 Search</a>
+    </nav>
+  </div>
+  <div class="topbar-right">
+    <span>Updated: 2026-04-17 17:28 UTC</span>
+    <span>Auto-refresh 2 min</span>
+  </div>
+</header>
+
+<div class="page-body">
+
+  <div class="stats-bar">
+    <div class="stats-group">
+      <div class="stat-item">
+        <span class="stat-val orange" id="stat-total">60</span>
+        <span class="stat-lbl">Active Auctions</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-val" id="stat-ending">…</span>
+        <span class="stat-lbl">Ending &lt; 3 hr</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-val blue" id="stat-today">…</span>
+        <span class="stat-lbl">Later Today</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-val green" id="stat-coming">…</span>
+        <span class="stat-lbl">Coming Up</span>
+      </div>
+    </div>
+    <div class="live-badge"><span class="live-dot"></span> Live Countdown</div>
+  </div>
+
+  <div id="section-ending" class="section ending-soon">
+    <div class="section">
+  <div class="section-hdr">
+    <div class="section-hdr-left">
+      <span class="section-icon">🔥</span>
+      <div>
+        <div class="section-title">Ending Soon <span class="section-count">6</span></div>
+        <div class="section-sub">Under 3 hours</div>
+      </div>
+    </div>
+  </div>
+  <div class="cards-grid">
+    <div class="auc-card" data-ends="2026-04-17T17:59:00Z" data-price="229000" onclick="window.open('https://bringatrailer.com/listing/2023-porsche-911-turbo-s-coupe-30-2/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2023_porsche_911-turbo-s-coupe_009-HAL08137-00370-scaled-H9s6Hh.jpg" alt="2023 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">992</span>
+    </div>
+    <div class="card-title">2023 Porsche 911 Turbo S Coupe</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-17T17:59:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$229,000</span>
+      <span class="delta delta-good" title="-3.8% vs FMV · Est. FMV $238,000">↓4%</span>
+    </div>
+    <div class="fmv-line fmv-good">🟢 Est. FMV <span class="fmv-val">$238,000</span> · 4% below FMV <span class="fmv-comps">(44 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-17T18:11:00Z" data-price="136000" onclick="window.open('https://bringatrailer.com/listing/2024-porsche-911-carrera-gts-cabriolet/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/2024_porsche_911-carrera-gts-cabriolet_2024_porsche_911-carrera-gts-cabriolet_ac4014e7-aa3b-4fd9-9602-7130af3b4eae-Elwsq8-69487-69488-scaled.jpg" alt="2024 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">992</span>
+    </div>
+    <div class="card-title">2024 Porsche 911 Carrera GTS Cabriolet</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-17T18:11:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$136,000</span>
+      <span class="delta delta-great" title="-18.1% vs FMV · Est. FMV $166,000">↓18%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$166,000</span> · <strong>18% below FMV</strong> 🔥 <span class="fmv-comps">(25 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-17T19:03:00Z" data-price="63991" onclick="window.open('https://bringatrailer.com/listing/2013-porsche-911-carrera-4s-coupe-26/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/991-april6-1-94025-scaled.jpg" alt="2013 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">991.1</span>
+    </div>
+    <div class="card-title">2013 Porsche 911 Carrera 4S Coupe</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-17T19:03:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$63,991</span>
+      <span class="delta delta-flat" title="+1.6% vs FMV · Est. FMV $63,000">≈ FMV</span>
+    </div>
+    <div class="fmv-line fmv-neutral">🟢 Est. FMV <span class="fmv-val">$63,000</span> · at market <span class="fmv-comps">(106 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-17T19:49:57Z" data-price="15000" onclick="window.open('https://carsandbids.com/auctions/KV1wMjYz/2000-porsche-911-carrera-4-cabriolet','_blank')">
+  <div class="card-img-wrap"><img src="https://media.carsandbids.com/cdn-cgi/image/width=768,quality=70/39ba75f9b610a05237adc3ca976891cd48f5832c/photos/exterior/9lb7npMK-6RR86n9/edit/FXa4B.jpg?t=177559603457" alt="2000 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#431407;color:#fb923c">C&amp;B</span>
+      <span class="gen-label">996</span>
+    </div>
+    <div class="card-title">2000 Porsche 911 Carrera 4 Cabriolet</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-17T19:49:57Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$15,000</span>
+      <span class="delta delta-great" title="-44.4% vs FMV · Est. FMV $27,000">↓44%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$27,000</span> · <strong>44% below FMV</strong> 🔥 <span class="fmv-comps">(80 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-17T20:01:00Z" data-price="81500" onclick="window.open('https://bringatrailer.com/listing/1987-porsche-911-carrera-coupe-114/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/Web205072320198720Porsche20911-1-96962.jpg" alt="1987 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">G-Series</span>
+    </div>
+    <div class="card-title">1987 Porsche 911 Carrera Coupe G50</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-17T20:01:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$81,500</span>
+      <span class="delta delta-mid" title="+7.2% vs FMV · Est. FMV $76,000">↑7%</span>
+    </div>
+    <div class="fmv-line fmv-mid">🟢 Est. FMV <span class="fmv-val">$76,000</span> · 7% above FMV <span class="fmv-comps">(180 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-17T20:13:57Z" data-price="55000" onclick="window.open('https://carsandbids.com/auctions/KdABRpo5/2012-porsche-911-carrera-coupe','_blank')">
+  <div class="card-img-wrap"><img src="https://media.carsandbids.com/cdn-cgi/image/width=768,quality=70/7a0a3c6148108c9c64425dd85e0181fa3cccb652/photos/application/s-c8tAa5Z/edit/t7za-.jpg?t=177499237896" alt="2012 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#431407;color:#fb923c">C&amp;B</span>
+      <span class="gen-label">997.2</span>
+    </div>
+    <div class="card-title">2012 Porsche 911 Carrera Coupe</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-17T20:13:57Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$55,000</span>
+      <span class="delta delta-high" title="+20.9% vs FMV · Est. FMV $45,500">↑21%</span>
+    </div>
+    <div class="fmv-line fmv-high">🟢 Est. FMV <span class="fmv-val">$45,500</span> · <strong>21% above FMV</strong> <span class="fmv-comps">(104 comps)</span></div>
+    <div class="card-meta">38,000 mi</div>
+  </div>
+</div>
+  </div>
+</div>
+  </div>
+
+  <div id="section-today" class="section">
+    <div class="section">
+  <div class="section-hdr">
+    <div class="section-hdr-left">
+      <span class="section-icon">⏰</span>
+      <div>
+        <div class="section-title">Later Today <span class="section-count">1</span></div>
+        <div class="section-sub">3–24 hours</div>
+      </div>
+    </div>
+  </div>
+  <div class="cards-grid">
+    <div class="auc-card" data-ends="2026-04-18T17:04:00Z" data-price="85000" onclick="window.open('https://bringatrailer.com/listing/2015-porsche-911-turbo-cabriolet-7/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2015_porsche_911-turbo-cabriolet_img_2538-00938.jpeg" alt="2015 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">991.1</span>
+    </div>
+    <div class="card-title">2015 Porsche 911 Turbo Cabriolet</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-18T17:04:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$85,000</span>
+      <span class="delta delta-great" title="-15.0% vs FMV · Est. FMV $100,000">↓15%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$100,000</span> · <strong>15% below FMV</strong> 🔥 <span class="fmv-comps">(14 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+  </div>
+</div>
+  </div>
+
+  <div id="section-coming" class="section">
+    <div class="section">
+  <div class="section-hdr">
+    <div class="section-hdr-left">
+      <span class="section-icon">📅</span>
+      <div>
+        <div class="section-title">Coming Up <span class="section-count">37</span></div>
+        <div class="section-sub">1–7 days</div>
+      </div>
+    </div>
+  </div>
+  <div class="cards-grid">
+    <div class="auc-card" data-ends="2026-04-18T17:44:00Z" data-price="13750" onclick="window.open('https://bringatrailer.com/listing/2000-porsche-911-carrera-190-2/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/2000_porsche_911-carrera-cabriolet_20260330_153607_resized-18579.jpg" alt="2000 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">996</span>
+    </div>
+    <div class="card-title">2000 Porsche 911 Carrera Cabriolet 6-Speed</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-18T17:44:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$13,750</span>
+      <span class="delta delta-great" title="-49.5% vs FMV · Est. FMV $27,250">↓50%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$27,250</span> · <strong>50% below FMV</strong> 🔥 <span class="fmv-comps">(300 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-19T17:01:00Z" data-price="130000" onclick="window.open('https://bringatrailer.com/listing/2023-porsche-718-cayman-gt4-rs-80/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/2023_porsche_718-cayman-gt4-rs_2023_porsche_718-cayman-gt4-rs_5004c628-c9a2-4e29-b356-01c057b72925-3xs51x-36384-73668.jpg" alt="2023 718" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">718/982</span>
+    </div>
+    <div class="card-title">2023 Porsche 718 Cayman GT4 RS Weissach</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-19T17:01:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$130,000</span>
+      <span class="delta delta-great" title="-35.6% vs FMV · Est. FMV $202,000">↓36%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$202,000</span> · <strong>36% below FMV</strong> 🔥 <span class="fmv-comps">(28 comps)</span></div>
+    <div class="card-meta">1,900 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-19T17:17:00Z" data-price="45982" onclick="window.open('https://bringatrailer.com/listing/2020-porsche-718-cayman-t/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2020_porsche_718-cayman-t_dsc_0158-18106-57652.jpeg" alt="2020 718" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">718/982</span>
+    </div>
+    <div class="card-title">2020 Porsche 718 Cayman T 6-Speed</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-19T17:17:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$45,982</span>
+      <span class="delta delta-great" title="-34.8% vs FMV · Est. FMV $70,500">↓35%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟡 Est. FMV <span class="fmv-val">$70,500</span> · <strong>35% below FMV</strong> 🔥 <span class="fmv-comps">(30 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-19T17:47:00Z" data-price="30500" onclick="window.open('https://bringatrailer.com/listing/2001-porsche-911-turbo-coupe-128/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2001_porsche_911-turbo-coupe_img_0979-66984.jpeg" alt="2001 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">996</span>
+    </div>
+    <div class="card-title">2001 Porsche 911 Turbo Coupe 6-Speed</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-19T17:47:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$30,500</span>
+      <span class="delta delta-great" title="-53.1% vs FMV · Est. FMV $65,000">↓53%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$65,000</span> · <strong>53% below FMV</strong> 🔥 <span class="fmv-comps">(134 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-19T18:31:00Z" data-price="7096" onclick="window.open('https://bringatrailer.com/listing/2002-porsche-911-carrera-targa-36/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/2002_porsche_911-carrera-targa_1-29-65806.jpeg" alt="2002 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">996</span>
+    </div>
+    <div class="card-title">2002 Porsche 911 Carrera Targa 6-Speed</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-19T18:31:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$7,096</span>
+      <span class="delta delta-great" title="-75.7% vs FMV · Est. FMV $29,250">↓76%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$29,250</span> · <strong>76% below FMV</strong> 🔥 <span class="fmv-comps">(15 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-20T17:48:00Z" data-price="50993" onclick="window.open('https://bringatrailer.com/listing/1996-porsche-911-carrera-4-coupe-25/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/1996_porsche_911-carrera-4-coupe_img_1324-02090.jpeg" alt="1996 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">993</span>
+    </div>
+    <div class="card-title">1996 Porsche 911 Carrera 4 Coupe 6-Speed</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-20T17:48:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$50,993</span>
+      <span class="delta delta-great" title="-29.2% vs FMV · Est. FMV $72,000">↓29%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$72,000</span> · <strong>29% below FMV</strong> 🔥 <span class="fmv-comps">(22 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-20T17:52:00Z" data-price="9986" onclick="window.open('https://bringatrailer.com/listing/2000-porsche-boxster-s-188/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/2000_porsche_boxster-s_img_0994-31739.jpeg" alt="2000 Boxster" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">986</span>
+    </div>
+    <div class="card-title">2000 Porsche Boxster S 6-Speed</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-20T17:52:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$9,986</span>
+      <span class="delta delta-great" title="-38.9% vs FMV · Est. FMV $16,350">↓39%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$16,350</span> · <strong>39% below FMV</strong> 🔥 <span class="fmv-comps">(109 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-20T18:39:45Z" data-price="27000" onclick="window.open('https://www.pcarmarket.com/auction/2011-porsche-boxster-spyder-10','_blank')">
+  <div class="card-img-wrap"><img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY1MTA3IC0gMjAxMSBQb3JzY2hlIEJveHN0ZXIgU3B5ZGVyIiwic2x1ZyI6IjY1MTA3LTIwMTEtcG9yc2NoZS1ib3hzdGVyLXNweWRlci1hZDlkZTdiZSJ9/.thumbnails/c2be1e63-1028-4e7d-9fb3-ebc167f8ad65.webp/c2be1e63-1028-4e7d-9fb3-ebc167f8ad65-tiny-380x0.webp" alt="2011 Boxster" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#14532d;color:#4ade80">pcarmarket</span>
+      <span class="gen-label">987</span>
+    </div>
+    <div class="card-title">2011 Porsche Boxster Boxster Spyder</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-20T18:39:45Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$27,000</span>
+      <span class="delta delta-great" title="-62.0% vs FMV · Est. FMV $70,987">↓62%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$70,987</span> · <strong>62% below FMV</strong> 🔥 <span class="fmv-comps">(9 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-20T19:09:45Z" data-price="199992" onclick="window.open('https://www.pcarmarket.com/auction/2024-porsche-911-turbo-s-6','_blank')">
+  <div class="card-img-wrap"><img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY0ODM0IC0gVHVyYm8iLCJzbHVnIjoiNjQ4MzQtdHVyYm8tNzgzOWNkMDIifQ/.thumbnails/4e83b657-25da-4354-b629-7ad4b48c85bb.webp/4e83b657-25da-4354-b629-7ad4b48c85bb-tiny-380x0.webp" alt="2024 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#14532d;color:#4ade80">pcarmarket</span>
+      <span class="gen-label">992</span>
+    </div>
+    <div class="card-title">2024 Porsche 911 Turbo S Coupe</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-20T19:09:45Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$199,992</span>
+      <span class="delta delta-great" title="-16.0% vs FMV · Est. FMV $238,000">↓16%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$238,000</span> · <strong>16% below FMV</strong> 🔥 <span class="fmv-comps">(44 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-21T17:10:00Z" data-price="50993" onclick="window.open('https://bringatrailer.com/listing/1997-porsche-911-gt2/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/DSC_4678-46729-scaled.jpg" alt="1997 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">993</span>
+    </div>
+    <div class="card-title">1997 Porsche 911 GT2 R Race Car Project</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-21T17:10:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$50,993</span>
+      <span class="delta delta-great" title="-52.3% vs FMV · Est. FMV $107,000">↓52%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟡 Est. FMV <span class="fmv-val">$107,000</span> · <strong>52% below FMV</strong> 🔥 <span class="fmv-comps">(292 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-21T18:28:00Z" data-price="5125" onclick="window.open('https://bringatrailer.com/listing/2014-porsche-cayman-61/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2014_porsche_cayman_img_0396-80204.jpg" alt="2014 Cayman" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">981</span>
+    </div>
+    <div class="card-title">2014 Porsche Cayman</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-21T18:28:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$5,125</span>
+      <span class="delta delta-great" title="-91.7% vs FMV · Est. FMV $62,000">↓92%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟡 Est. FMV <span class="fmv-val">$62,000</span> · <strong>92% below FMV</strong> 🔥 <span class="fmv-comps">(112 comps)</span></div>
+    <div class="card-meta">11,000 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-21T19:09:00Z" data-price="911" onclick="window.open('https://bringatrailer.com/listing/2009-porsche-911-carrera-4s-coupe-31/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2009_porsche_911-carrera-4s-coupe_img_2188-60387.jpg" alt="2009 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">997.2</span>
+    </div>
+    <div class="card-title">2009 Porsche 911 Carrera 4S Coupe</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-21T19:09:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$911</span>
+      <span class="delta delta-great" title="-98.6% vs FMV · Est. FMV $63,000">↓99%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$63,000</span> · <strong>99% below FMV</strong> 🔥 <span class="fmv-comps">(106 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-21T19:11:00Z" data-price="55500" onclick="window.open('https://bringatrailer.com/listing/1991-porsche-911-carrera-2-targa-25/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/1991_porsche_911-carrera-2-targa_img_4202-15886.jpg" alt="1991 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">964</span>
+    </div>
+    <div class="card-title">1991 Porsche 911 Carrera 2 Targa 5-Speed</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-21T19:11:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$55,500</span>
+      <span class="delta delta-great" title="-43.1% vs FMV · Est. FMV $97,500">↓43%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$97,500</span> · <strong>43% below FMV</strong> 🔥 <span class="fmv-comps">(89 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-21T19:12:00Z" data-price="91718" onclick="window.open('https://bringatrailer.com/listing/2022-porsche-718-spyder-35/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2022_porsche_718-spyder_IMG_2167-41485-scaled.jpg" alt="2022 718" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">718/982</span>
+    </div>
+    <div class="card-title">2022 Porsche 718 Spyder 6-Speed</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-21T19:12:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$91,718</span>
+      <span class="delta delta-great" title="-27.5% vs FMV · Est. FMV $126,500">↓27%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$126,500</span> · <strong>27% below FMV</strong> 🔥 <span class="fmv-comps">(28 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-21T19:16:00Z" data-price="25000" onclick="window.open('https://bringatrailer.com/listing/1995-porsche-911-carrera-cabriolet-171/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2025/07/1995_porsche_911-carrera-cabriolet_right-front-62673.jpg" alt="1995 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">993</span>
+    </div>
+    <div class="card-title">1995 Porsche 911 Carrera Cabriolet 6-Speed</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-21T19:16:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$25,000</span>
+      <span class="delta delta-great" title="-70.2% vs FMV · Est. FMV $83,993">↓70%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$83,993</span> · <strong>70% below FMV</strong> 🔥 <span class="fmv-comps">(138 comps)</span></div>
+    <div class="card-meta">45,000 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-21T19:36:00Z" data-price="4292" onclick="window.open('https://bringatrailer.com/listing/2004-porsche-boxster-33/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/2004_porsche_boxster_1222362-04644.jpg" alt="2004 Boxster" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">986</span>
+    </div>
+    <div class="card-title">2004 Porsche Boxster 5-Speed</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-21T19:36:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$4,292</span>
+      <span class="delta delta-great" title="-68.2% vs FMV · Est. FMV $13,500">↓68%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$13,500</span> · <strong>68% below FMV</strong> 🔥 <span class="fmv-comps">(125 comps)</span></div>
+    <div class="card-meta">43,000 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-21T20:16:00Z" data-price="27500" onclick="window.open('https://bringatrailer.com/listing/2008-porsche-boxster-rs-60-spyder-47/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/2008_porsche_boxster-rs-60-spyder_36a2452-40548.jpg" alt="2008 Boxster" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">987</span>
+    </div>
+    <div class="card-title">2008 Porsche Boxster RS 60 Spyder</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-21T20:16:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$27,500</span>
+      <span class="delta delta-good" title="-2.5% vs FMV · Est. FMV $28,210">↓3%</span>
+    </div>
+    <div class="fmv-line fmv-good">🟢 Est. FMV <span class="fmv-val">$28,210</span> · 3% below FMV <span class="fmv-comps">(4 comps)</span></div>
+    <div class="card-meta">25,000 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-22T17:36:00Z" data-price="111000" onclick="window.open('https://bringatrailer.com/listing/2022-porsche-911-gt3-137/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/2022_porsche_911-gt3_wide-high-44046.jpg" alt="2022 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">992</span>
+    </div>
+    <div class="card-title">2022 Porsche 911 GT3 6-Speed</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-22T17:36:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$111,000</span>
+      <span class="delta delta-great" title="-56.5% vs FMV · Est. FMV $255,000">↓56%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$255,000</span> · <strong>56% below FMV</strong> 🔥 <span class="fmv-comps">(36 comps)</span></div>
+    <div class="card-meta">2,000 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-22T17:39:00Z" data-price="77911" onclick="window.open('https://bringatrailer.com/listing/1998-porsche-911-carrera-s-coupe-95/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/1998_porsche_911-carrera-s-coupe_porsche-911-carrera-s-993-119-62984.jpeg" alt="1998 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">993</span>
+    </div>
+    <div class="card-title">1998 Porsche 911 Carrera S Coupe 6-Speed</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-22T17:39:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$77,911</span>
+      <span class="delta delta-great" title="-59.8% vs FMV · Est. FMV $193,993">↓60%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$193,993</span> · <strong>60% below FMV</strong> 🔥 <span class="fmv-comps">(36 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-22T17:43:00Z" data-price="31000" onclick="window.open('https://bringatrailer.com/listing/2013-porsche-boxster-25/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2013_porsche_boxster_1-2013-porsche-boxster-157-of-257-28-92389.jpg" alt="2013 Boxster" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">981</span>
+    </div>
+    <div class="card-title">2013 Porsche Boxster 6-Speed</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-22T17:43:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$31,000</span>
+      <span class="delta delta-great" title="-13.3% vs FMV · Est. FMV $35,750">↓13%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$35,750</span> · <strong>13% below FMV</strong> 🔥 <span class="fmv-comps">(9 comps)</span></div>
+    <div class="card-meta">16,000 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-22T18:13:00Z" data-price="2200" onclick="window.open('https://bringatrailer.com/listing/2006-porsche-cayman-s-281/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2006_porsche_cayman-s_dsc_5579-04015.jpg" alt="2006 Cayman" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">987</span>
+    </div>
+    <div class="card-title">2006 Porsche Cayman S 6-Speed</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-22T18:13:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$2,200</span>
+      <span class="delta delta-great" title="-92.9% vs FMV · Est. FMV $31,000">↓93%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$31,000</span> · <strong>93% below FMV</strong> 🔥 <span class="fmv-comps">(69 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-22T18:59:01Z" data-price="996" onclick="window.open('https://www.pcarmarket.com/auction/2001-porsche-911-carrera-16','_blank')">
+  <div class="card-img-wrap"><img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY0NzExIC0gMjAwMSBQb3JzY2hlIDkxMSBDYXJyZXJhIiwic2x1ZyI6IjY0NzExLTIwMDEtcG9yc2NoZS05MTEtY2FycmVyYS1kYTI0MDA3NCJ9/.thumbnails/6021fa27-4a0f-411a-a40c-8aa529c7e5c6.webp/6021fa27-4a0f-411a-a40c-8aa529c7e5c6-tiny-380x0.webp" alt="2001 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#14532d;color:#4ade80">pcarmarket</span>
+      <span class="gen-label">996</span>
+    </div>
+    <div class="card-title">2001 Porsche 911 Carrera Coupe Aerokit 6-Speed</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-22T18:59:01Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$996</span>
+      <span class="delta delta-great" title="-96.3% vs FMV · Est. FMV $27,250">↓96%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$27,250</span> · <strong>96% below FMV</strong> 🔥 <span class="fmv-comps">(300 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-22T19:09:00Z" data-price="90000" onclick="window.open('https://bringatrailer.com/listing/2021-porsche-718-spyder-32/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2021_porsche_718-spyder_2021_porsche_718-spyder_dfe4f488-f1cb-44f9-816f-37eeafcafe35-6IKi8D-18197-18198-scaled.jpg" alt="2021 718" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">718/982</span>
+    </div>
+    <div class="card-title">2021 Porsche 718 Spyder 6-Speed</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-22T19:09:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$90,000</span>
+      <span class="delta delta-great" title="-28.9% vs FMV · Est. FMV $126,500">↓29%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$126,500</span> · <strong>29% below FMV</strong> 🔥 <span class="fmv-comps">(28 comps)</span></div>
+    <div class="card-meta">6,000 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-23T17:15:00Z" data-price="45000" onclick="window.open('https://bringatrailer.com/listing/1990-porsche-911-carrera-4-coupe-38/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/1990_porsche_911-carrera-4-coupe_136a5886-89054.jpg" alt="1990 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">964</span>
+    </div>
+    <div class="card-title">1990 Porsche 911 Carrera 4 Coupe 5-Speed</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-23T17:15:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$45,000</span>
+      <span class="delta delta-great" title="-52.6% vs FMV · Est. FMV $95,000">↓53%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$95,000</span> · <strong>53% below FMV</strong> 🔥 <span class="fmv-comps">(38 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-23T17:22:00Z" data-price="114000" onclick="window.open('https://bringatrailer.com/listing/2016-porsche-911-carrera-gts-rennsport-reunion-edition-7/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2016_porsche_911-carrera-gts-rennsport-reunion-edition_20260401_102442-97835.jpg" alt="2016 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">991.1</span>
+    </div>
+    <div class="card-title">2016 Porsche 911 Carrera GTS Rennsport Reunion Edition</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-23T17:22:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$114,000</span>
+      <span class="delta delta-good" title="-5.1% vs FMV · Est. FMV $120,077">↓5%</span>
+    </div>
+    <div class="fmv-line fmv-good">🟢 Est. FMV <span class="fmv-val">$120,077</span> · 5% below FMV <span class="fmv-comps">(28 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-23T17:29:00Z" data-price="47500" onclick="window.open('https://bringatrailer.com/listing/2007-porsche-911-turbo-coupe-203/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/2007_porsche_911-turbo-coupe_2007_porsche_911-turbo-coupe_1faada83-215c-4419-ac3b-e8dc789643e8-kmandc-29137-79605.jpg" alt="2007 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">997.1</span>
+    </div>
+    <div class="card-title">2007 Porsche 911 Turbo Coupe</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-23T17:29:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$47,500</span>
+      <span class="delta delta-great" title="-50.5% vs FMV · Est. FMV $96,000">↓51%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$96,000</span> · <strong>51% below FMV</strong> 🔥 <span class="fmv-comps">(129 comps)</span></div>
+    <div class="card-meta">43,000 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-23T17:42:00Z" data-price="911" onclick="window.open('https://bringatrailer.com/listing/1999-porsche-911-carrera-cabriolet-161/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/1999_porsche_911-carrera-cabriolet_dsc_3461-85657.jpg" alt="1999 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">996</span>
+    </div>
+    <div class="card-title">1999 Porsche 911 Carrera Cabriolet 6-Speed</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-23T17:42:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$911</span>
+      <span class="delta delta-great" title="-96.7% vs FMV · Est. FMV $27,250">↓97%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$27,250</span> · <strong>97% below FMV</strong> 🔥 <span class="fmv-comps">(300 comps)</span></div>
+    <div class="card-meta">29,000 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-23T18:15:00Z" data-price="201000" onclick="window.open('https://bringatrailer.com/listing/2019-porsche-911-gt3-touring-45/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/2019_porsche_911-gt3-touring_2019_porsche_911-gt3-touring_4e0306ae-08e1-4243-bee3-4190ce536e29-cvgfec-84845-15001.jpg" alt="2019 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">991.2</span>
+    </div>
+    <div class="card-title">2019 Porsche 911 GT3 Touring 6-Speed</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-23T18:15:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$201,000</span>
+      <span class="delta delta-great" title="-19.9% vs FMV · Est. FMV $251,000">↓20%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$251,000</span> · <strong>20% below FMV</strong> 🔥 <span class="fmv-comps">(24 comps)</span></div>
+    <div class="card-meta">17,000 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-23T18:18:00Z" data-price="45000" onclick="window.open('https://bringatrailer.com/listing/2011-porsche-911-carrera-gts-58/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2011_porsche_911-carrera-gts_img_2698-74026.jpeg" alt="2011 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">997.2</span>
+    </div>
+    <div class="card-title">2011 Porsche 911 Carrera GTS Coupe 6-Speed</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-23T18:18:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$45,000</span>
+      <span class="delta delta-great" title="-55.4% vs FMV · Est. FMV $101,000">↓55%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$101,000</span> · <strong>55% below FMV</strong> 🔥 <span class="fmv-comps">(26 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-23T18:30:00Z" data-price="70000" onclick="window.open('https://bringatrailer.com/listing/2017-porsche-911-carrera-4s-coupe-25/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/2017_porsche_911-carrera-4s-coupe_2017_porsche_911-carrera-4s-coupe_3a503a15-163f-40ef-988f-e3cae54852ff-3rxvvq-06667-26084.jpg" alt="2017 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">991.2</span>
+    </div>
+    <div class="card-title">2017 Porsche 911 Carrera 4S Coupe</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-23T18:30:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$70,000</span>
+      <span class="delta delta-great" title="-22.2% vs FMV · Est. FMV $90,000">↓22%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$90,000</span> · <strong>22% below FMV</strong> 🔥 <span class="fmv-comps">(35 comps)</span></div>
+    <div class="card-meta">11,000 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-23T18:46:00Z" data-price="15000" onclick="window.open('https://bringatrailer.com/listing/2006-porsche-911-carrera-s-coupe-105/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2006_porsche_911-carrera-s-coupe_l1013180-87945.jpeg" alt="2006 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">997.1</span>
+    </div>
+    <div class="card-title">2006 Porsche 911 Carrera S Coupe 6-Speed</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-23T18:46:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$15,000</span>
+      <span class="delta delta-great" title="-73.9% vs FMV · Est. FMV $57,500">↓74%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$57,500</span> · <strong>74% below FMV</strong> 🔥 <span class="fmv-comps">(217 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-23T18:59:01Z" data-price="30000" onclick="window.open('https://www.pcarmarket.com/auction/2003-porsche-911-carrera-4s-17','_blank')">
+  <div class="card-img-wrap"><img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY1MTk2IC0gMjAwMyBQb3JzY2hlIDkxMSBDYXJyZXJhIDRTIiwic2x1ZyI6IjY1MTk2LTIwMDMtcG9yc2NoZS05MTEtY2FycmVyYS00cy0zM2I0NjIwNiJ9/.thumbnails/1bb74160-6e3b-49c2-9245-7698559f2fa3.webp/1bb74160-6e3b-49c2-9245-7698559f2fa3-tiny-380x0.webp" alt="2003 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#14532d;color:#4ade80">pcarmarket</span>
+      <span class="gen-label">996</span>
+    </div>
+    <div class="card-title">2003 Porsche 911 Carrera 4S Coupe 6-Speed</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-23T18:59:01Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$30,000</span>
+      <span class="delta delta-great" title="-25.5% vs FMV · Est. FMV $40,250">↓25%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$40,250</span> · <strong>25% below FMV</strong> 🔥 <span class="fmv-comps">(99 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-23T19:21:00Z" data-price="159972" onclick="window.open('https://bringatrailer.com/listing/2012-porsche-911-turbo-coupe-17/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/turbo20gray-256-99194-scaled.jpg" alt="2012 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">997.2</span>
+    </div>
+    <div class="card-title">2012 Porsche 911 Turbo Coupe 6-Speed</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-23T19:21:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$159,972</span>
+      <span class="delta delta-high" title="+66.6% vs FMV · Est. FMV $96,000">↑67%</span>
+    </div>
+    <div class="fmv-line fmv-high">🟢 Est. FMV <span class="fmv-val">$96,000</span> · <strong>67% above FMV</strong> <span class="fmv-comps">(129 comps)</span></div>
+    <div class="card-meta">26,000 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-24T17:29:00Z" data-price="0" onclick="window.open('https://bringatrailer.com/listing/2018-porsche-911-carrera-cabriolet-11/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/2018_porsche_911-carrera-cabriolet_2018_porsche_911-carrera-cabriolet_a8b3873b-36ca-4bb4-a40b-0644dbf211cd-xxjlys-49946-88008.jpg" alt="2018 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">991.2</span>
+    </div>
+    <div class="card-title">2018 Porsche 911 Carrera Cabriolet</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-24T17:29:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">—</span>
+      
+    </div>
+    <div class="fmv-line fmv-none">FMV: not enough comps yet</div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-24T17:36:00Z" data-price="0" onclick="window.open('https://bringatrailer.com/listing/2003-porsche-911-turbo-coupe-107/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2003_porsche_911-turbo-coupe_2003-porsche-911-turbo-003-dsc04366-10675.jpg" alt="2003 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">996</span>
+    </div>
+    <div class="card-title">2003 Porsche 911 Turbo Coupe</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-24T17:36:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">—</span>
+      
+    </div>
+    <div class="fmv-line fmv-none">FMV: not enough comps yet</div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-24T17:50:00Z" data-price="12500" onclick="window.open('https://bringatrailer.com/listing/2014-porsche-boxster-s-34/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2014_porsche_boxster-s_img_4461-43819.jpeg" alt="2014 Boxster" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">981</span>
+    </div>
+    <div class="card-title">2014 Porsche Boxster S</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-24T17:50:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$12,500</span>
+      <span class="delta delta-great" title="-71.4% vs FMV · Est. FMV $43,750">↓71%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$43,750</span> · <strong>71% below FMV</strong> 🔥 <span class="fmv-comps">(22 comps)</span></div>
+    <div class="card-meta">42,000 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-26T18:00:00Z" data-price="7400" onclick="window.open('https://bringatrailer.com/listing/2011-porsche-boxster-spyder-86/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2011_porsche_boxster-spyder_2011_porsche_boxster-spyder_GUARDS20RED2098720BOXSTER20SPYDER20MT11ZKO20WEB20SPORTS20PURPOSE20C2A9JORDAN20BUTTERS-17-73072-scaled20copy-67063.jpg" alt="2011 Boxster" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">987</span>
+    </div>
+    <div class="card-title">2011 Porsche Boxster Spyder 6-Speed</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-26T18:00:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$7,400</span>
+      <span class="delta delta-great" title="-89.6% vs FMV · Est. FMV $70,987">↓90%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$70,987</span> · <strong>90% below FMV</strong> 🔥 <span class="fmv-comps">(9 comps)</span></div>
+    <div class="card-meta">25,000 mi</div>
+  </div>
+</div>
+  </div>
+</div>
+  </div>
+
+  <div id="section-noend" class="section">
+    <div class="section">
+  <div class="section-hdr">
+    <div class="section-hdr-left">
+      <span class="section-icon">🏷</span>
+      <div>
+        <div class="section-title">No End Time <span class="section-count">16</span></div>
+        <div class="section-sub">Buy-now / end time not listed</div>
+      </div>
+    </div>
+  </div>
+  <div class="cards-grid">
+    <div class="auc-card" data-ends="" data-price="550000" onclick="window.open('https://bringatrailer.com/listing/1995-porsche-911-carrera-speedster-by-gunther-werks/','_blank')">
+  <div class="card-img-wrap"><img src="https://bringatrailer.com/wp-content/uploads/2026/02/1995_porsche_911-carrera-speedster-by-gunther-werks_IMGby40Jamesleyjuiceart-192-90887-scaled.jpg" alt="1995 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#1e3a5f;color:#60a5fa">BaT</span>
+      <span class="gen-label">993</span>
+    </div>
+    <div class="card-title">1995 Porsche 911 Carrera Speedster by Gunther Werks</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label no-end">No end time listed</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$550,000</span>
+      <span class="delta delta-great" title="-43.0% vs FMV · Est. FMV $965,000">↓43%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟡 Est. FMV <span class="fmv-val">$965,000</span> · <strong>43% below FMV</strong> 🔥 <span class="fmv-comps">(3 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="" data-price="0" onclick="window.open('https://www.pcarmarket.com/auction/marketplace-2004-porsche-boxster-2','_blank')">
+  <div class="card-img-wrap"><img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY0OTQ3IC0gMjAwNCBQb3JzY2hlIEJveHN0ZXIiLCJzbHVnIjoiNjQ5NDctMjAwNC1wb3JzY2hlLWJveHN0ZXItOTQ3MTBiMzQifQ/.thumbnails/85c9e2c0-e5f5-4f34-9d7b-51c94e70b412.webp/85c9e2c0-e5f5-4f34-9d7b-51c94e70b412-tiny-380x0.webp" alt="2004 Boxster" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#14532d;color:#4ade80">pcarmarket</span>
+      <span class="gen-label">986</span>
+    </div>
+    <div class="card-title">2004 Porsche Boxster Boxster 5-Speed Marketplace Buy Now $12,500</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label no-end">No end time listed</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">—</span>
+      
+    </div>
+    <div class="fmv-line fmv-none">FMV: not enough comps yet</div>
+    <div class="card-meta">76,290 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="" data-price="0" onclick="window.open('https://www.pcarmarket.com/auction/marketplace-2015-porsche-911-gt3-17','_blank')">
+  <div class="card-img-wrap"><img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY0ODgwIC0gMjAxNSBQb3JzY2hlIDkxMSBHVDMiLCJzbHVnIjoiNjQ4ODAtMjAxNS1wb3JzY2hlLTkxMS1ndDMtNTc1NDZiODcifQ/.thumbnails/3cc05a5a-f69a-4089-84b5-572b0c5ce810.webp/3cc05a5a-f69a-4089-84b5-572b0c5ce810-tiny-380x0.webp" alt="2015 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#14532d;color:#4ade80">pcarmarket</span>
+      <span class="gen-label">991.1</span>
+    </div>
+    <div class="card-title">2015 Porsche 911 GT3 w/ PCCB Marketplace Buy Now $110,000</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label no-end">No end time listed</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">—</span>
+      
+    </div>
+    <div class="fmv-line fmv-none">FMV: not enough comps yet</div>
+    <div class="card-meta">22,746 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="" data-price="0" onclick="window.open('https://www.pcarmarket.com/auction/marketplace-1985-ruf-btr-iii-targa','_blank')">
+  <div class="card-img-wrap"><img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY0ODE0IC0gMTk4NSBSdWYgQlRSIElJSSBUYXJnYSIsInNsdWciOiI2NDgxNC0xOTg1LXJ1Zi1idHItaWlpLXRhcmdhLWM3YWZkMGYxIn0/.thumbnails/5b54da74-6793-47cc-a22b-b414488c0f6e.webp/5b54da74-6793-47cc-a22b-b414488c0f6e-tiny-380x0.webp" alt="1985 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#14532d;color:#4ade80">pcarmarket</span>
+      <span class="gen-label">G-Series</span>
+    </div>
+    <div class="card-title">1985 Porsche 911 Carrera Targa RUF BTR III G50 5-Speed Conversion Marketplace Buy Now $500,000</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label no-end">No end time listed</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">—</span>
+      
+    </div>
+    <div class="fmv-line fmv-none">FMV: not enough comps yet</div>
+    <div class="card-meta">46,100 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="" data-price="325000" onclick="window.open('https://www.pcarmarket.com/auction/marketplace-1989-porsche-911-carrera-8','_blank')">
+  <div class="card-img-wrap"><img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY0NDMwIC0gMTk4OSBQb3JzY2hlIDkzMC85MzQgXCJDb2RlIFJlZFwiIiwic2x1ZyI6IjY0NDMwLTE5ODktcG9yc2NoZS05MzAtOTM0LWNvZGUtcmVkLWY4ZmJiODQzIn0/.thumbnails/e18d69b1-bbc0-40ae-b8fb-71857aef4f93.webp/e18d69b1-bbc0-40ae-b8fb-71857aef4f93-tiny-380x0.webp" alt="1989 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#14532d;color:#4ade80">pcarmarket</span>
+      <span class="gen-label">G-Series</span>
+    </div>
+    <div class="card-title">1989 Porsche 911 Carrera G50 Turbocharged 3.3L “Code Red” by Air Cooled Classics</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label no-end">No end time listed</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$325,000</span>
+      <span class="delta delta-high" title="+327.6% vs FMV · Est. FMV $76,000">↑328%</span>
+    </div>
+    <div class="fmv-line fmv-high">🟢 Est. FMV <span class="fmv-val">$76,000</span> · <strong>328% above FMV</strong> <span class="fmv-comps">(180 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-16T18:10:00Z" data-price="22250" onclick="window.open('https://carsandbids.com/auctions/KYdagZAv/2013-porsche-boxster','_blank')">
+  <div class="card-img-wrap"><img src="https://media.carsandbids.com/cdn-cgi/image/width=768,quality=70/da6e8a1d4896127a9d2adf83461993b45339474c/photos/Porsche2013Boxster20260330015/edit/VqPCF.jpg?t=177522803995" alt="2013 Boxster" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#431407;color:#fb923c">C&amp;B</span>
+      <span class="gen-label">981</span>
+    </div>
+    <div class="card-title">2013 Porsche Boxster</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-16T18:10:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$22,250</span>
+      <span class="delta delta-great" title="-49.8% vs FMV · Est. FMV $44,335">↓50%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟡 Est. FMV <span class="fmv-val">$44,335</span> · <strong>50% below FMV</strong> 🔥 <span class="fmv-comps">(68 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="2026-04-16T19:10:00Z" data-price="14350" onclick="window.open('https://carsandbids.com/auctions/9l0vpjo5/2000-porsche-boxster','_blank')">
+  <div class="card-img-wrap"><img src="https://media.carsandbids.com/cdn-cgi/image/width=768,quality=70/ed78097aa58f066c512bf791295fd6bd05a95297/photos/PorscheBoxster200020260328007.jpg?t=177500187262" alt="2000 Boxster" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#431407;color:#fb923c">C&amp;B</span>
+      <span class="gen-label">986</span>
+    </div>
+    <div class="card-title">2000 Porsche Boxster</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label">Ends in</span><span class="countdown-timer" data-ends="2026-04-16T19:10:00Z">…</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$14,350</span>
+      <span class="delta delta-flat" title="-1.7% vs FMV · Est. FMV $14,600">≈ FMV</span>
+    </div>
+    <div class="fmv-line fmv-neutral">🟡 Est. FMV <span class="fmv-val">$14,600</span> · at market <span class="fmv-comps">(275 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="" data-price="65000" onclick="window.open('https://carsandbids.com/auctions/rEQoDwXR/2015-porsche-911-gt3','_blank')">
+  <div class="card-img-wrap"><img src="https://media.carsandbids.com/cdn-cgi/image/width=768,quality=70/9004500a220bf3a3d455d15ee052cf8c332606f8/photos/application/s-Xd52tFR/edit/SFJRp.jpg?t=177579424333" alt="2015 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#431407;color:#fb923c">C&amp;B</span>
+      <span class="gen-label">991.1</span>
+    </div>
+    <div class="card-title">2015 Porsche 911 GT3</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label no-end">No end time listed</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$65,000</span>
+      <span class="delta delta-great" title="-59.6% vs FMV · Est. FMV $161,000">↓60%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$161,000</span> · <strong>60% below FMV</strong> 🔥 <span class="fmv-comps">(56 comps)</span></div>
+    <div class="card-meta">9,400 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="" data-price="18996" onclick="window.open('https://carsandbids.com/auctions/3v7ZJEyv/1999-porsche-911-carrera-coupe','_blank')">
+  <div class="card-img-wrap"><img src="https://media.carsandbids.com/cdn-cgi/image/width=768,quality=70/b39a44f305ebdd9deab9e0d03ab553aa50a0ec3e/photos/exterior/9nE04v2r-0iQfF58/edit/hjg_a.jpg?t=177569012704" alt="1999 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#431407;color:#fb923c">C&amp;B</span>
+      <span class="gen-label">996</span>
+    </div>
+    <div class="card-title">1999 Porsche 911 Carrera Coupe</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label no-end">No end time listed</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$18,996</span>
+      <span class="delta delta-great" title="-30.3% vs FMV · Est. FMV $27,250">↓30%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$27,250</span> · <strong>30% below FMV</strong> 🔥 <span class="fmv-comps">(300 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="" data-price="29000" onclick="window.open('https://carsandbids.com/auctions/3pnjnnx6/2013-porsche-911-carrera-coupe','_blank')">
+  <div class="card-img-wrap"><img src="https://media.carsandbids.com/cdn-cgi/image/width=768,quality=70/8e6341e27a680ffab7d98e42bef83b0dd1b0fb94/photos/9Wx1Mk13-KSdpZhr/edit/bUwBm.jpg?t=177528798600" alt="2013 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#431407;color:#fb923c">C&amp;B</span>
+      <span class="gen-label">991.1</span>
+    </div>
+    <div class="card-title">2013 Porsche 911 Carrera Coupe</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label no-end">No end time listed</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$29,000</span>
+      <span class="delta delta-great" title="-36.3% vs FMV · Est. FMV $45,500">↓36%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$45,500</span> · <strong>36% below FMV</strong> 🔥 <span class="fmv-comps">(104 comps)</span></div>
+    <div class="card-meta">56,700 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="" data-price="86500" onclick="window.open('https://carsandbids.com/auctions/3qJ8y0pz/2023-porsche-718-cayman-gt4','_blank')">
+  <div class="card-img-wrap"><img src="https://media.carsandbids.com/cdn-cgi/image/width=768,quality=70/4822e9034b0b6b357b3f73fabdfc10e586c36f68/photos/Porsche718CaymanGT4202320260404002/edit/9H50P.jpg?t=177557003255" alt="2023 718" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#431407;color:#fb923c">C&amp;B</span>
+      <span class="gen-label">718/982</span>
+    </div>
+    <div class="card-title">2023 Porsche 718 GT4</div>
+    <span class="tier-badge">GT / Collector</span>
+    <div class="countdown-wrap"><span class="countdown-label no-end">No end time listed</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$86,500</span>
+      <span class="delta delta-great" title="-29.1% vs FMV · Est. FMV $122,000">↓29%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$122,000</span> · <strong>29% below FMV</strong> 🔥 <span class="fmv-comps">(28 comps)</span></div>
+    <div class="card-meta">9,900 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="" data-price="11600" onclick="window.open('https://carsandbids.com/auctions/30xEvbbL/2014-porsche-911-carrera-cabriolet','_blank')">
+  <div class="card-img-wrap"><img src="https://media.carsandbids.com/cdn-cgi/image/width=768,quality=70/9004500a220bf3a3d455d15ee052cf8c332606f8/photos/Porsche911201420260404002/edit/btqne.jpg?t=177561913350" alt="2014 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#431407;color:#fb923c">C&amp;B</span>
+      <span class="gen-label">991.1</span>
+    </div>
+    <div class="card-title">2014 Porsche 911 Carrera Cabriolet</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label no-end">No end time listed</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$11,600</span>
+      <span class="delta delta-great" title="-84.0% vs FMV · Est. FMV $72,515">↓84%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$72,515</span> · <strong>84% below FMV</strong> 🔥 <span class="fmv-comps">(35 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="" data-price="6800" onclick="window.open('https://carsandbids.com/auctions/rM2Aw5gZ/2007-porsche-cayman','_blank')">
+  <div class="card-img-wrap"><img src="https://media.carsandbids.com/cdn-cgi/image/width=768,quality=70/da6e8a1d4896127a9d2adf83461993b45339474c/photos/exterior/KVzee0dx-UStC-wU/edit/CP_oy.jpg?t=177565073844" alt="2007 Cayman" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#431407;color:#fb923c">C&amp;B</span>
+      <span class="gen-label">987</span>
+    </div>
+    <div class="card-title">2007 Porsche Cayman</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label no-end">No end time listed</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$6,800</span>
+      <span class="delta delta-great" title="-77.5% vs FMV · Est. FMV $30,250">↓78%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟡 Est. FMV <span class="fmv-val">$30,250</span> · <strong>78% below FMV</strong> 🔥 <span class="fmv-comps">(140 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="" data-price="115000" onclick="window.open('https://carsandbids.com/auctions/3LGEl7w0/2023-porsche-911-carrera-t-coupe','_blank')">
+  <div class="card-img-wrap"><img src="https://media.carsandbids.com/cdn-cgi/image/width=768,quality=70/1477bbe21e8d6b5e719c7c3ccab577fd47dd8cc3/photos/9lEd7BAz-hyHKJgt/edit/OCm9a.jpg?t=177568179190" alt="2023 911" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#431407;color:#fb923c">C&amp;B</span>
+      <span class="gen-label">992</span>
+    </div>
+    <div class="card-title">2023 Porsche 911 Carrera T Coupe</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label no-end">No end time listed</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$115,000</span>
+      <span class="delta delta-great" title="-12.2% vs FMV · Est. FMV $131,000">↓12%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$131,000</span> · <strong>12% below FMV</strong> 🔥 <span class="fmv-comps">(18 comps)</span></div>
+    <div class="card-meta">2,800 mi</div>
+  </div>
+</div>
+<div class="auc-card" data-ends="" data-price="10100" onclick="window.open('https://carsandbids.com/auctions/3RZmgRPx/2003-porsche-boxster-s','_blank')">
+  <div class="card-img-wrap"><img src="https://media.carsandbids.com/cdn-cgi/image/width=768,quality=70/c7387fa5557775cb743f87fc02d6cb831afb20b2/photos/rEqpm60k-jxFSaTtkRh/edit/Qi2GT.jpg?t=177613834504" alt="2003 Boxster" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#431407;color:#fb923c">C&amp;B</span>
+      <span class="gen-label">986</span>
+    </div>
+    <div class="card-title">2003 Porsche Boxster S</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label no-end">No end time listed</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$10,100</span>
+      <span class="delta delta-great" title="-37.8% vs FMV · Est. FMV $16,250">↓38%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟢 Est. FMV <span class="fmv-val">$16,250</span> · <strong>38% below FMV</strong> 🔥 <span class="fmv-comps">(10 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+<div class="auc-card" data-ends="" data-price="13500" onclick="window.open('https://carsandbids.com/auctions/3vQW8M1N/2014-porsche-boxster','_blank')">
+  <div class="card-img-wrap"><img src="https://media.carsandbids.com/cdn-cgi/image/width=768,quality=70/9004500a220bf3a3d455d15ee052cf8c332606f8/photos/application/s-sX41VP3/edit/hLr68.jpg?t=177579969627" alt="2014 Boxster" class="card-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%231e2530'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='13' fill='%234b5563'%3ENo photo%3C/text%3E%3C/svg%3E';this.classList.add('img-fallback')"></div>
+  <div class="card-body">
+    <div class="card-top-row">
+      <span class="badge" style="background:#431407;color:#fb923c">C&amp;B</span>
+      <span class="gen-label">981</span>
+    </div>
+    <div class="card-title">2014 Porsche Boxster</div>
+    
+    <div class="countdown-wrap"><span class="countdown-label no-end">No end time listed</span></div>
+    <div class="bid-row">
+      <span class="bid-label">Current Bid</span>
+      <span class="bid-val">$13,500</span>
+      <span class="delta delta-great" title="-69.6% vs FMV · Est. FMV $44,335">↓70%</span>
+    </div>
+    <div class="fmv-line fmv-great">🟡 Est. FMV <span class="fmv-val">$44,335</span> · <strong>70% below FMV</strong> 🔥 <span class="fmv-comps">(68 comps)</span></div>
+    <div class="card-meta"></div>
+  </div>
+</div>
+  </div>
+</div>
+  </div>
+
+</div><!-- /page-body -->
+
+<script>
+// ── Countdown engine ──────────────────────────────────────────────────────────
+function fmtCountdown(secs) {
+  if (secs <= 0) return 'ENDED';
+  var d = Math.floor(secs / 86400);
+  var h = Math.floor((secs % 86400) / 3600);
+  var m = Math.floor((secs % 3600) / 60);
+  var s = Math.floor(secs % 60);
+  if (d > 0) return d + 'd ' + pad(h) + ':' + pad(m) + ':' + pad(s);
+  return pad(h) + ':' + pad(m) + ':' + pad(s);
+}
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+function tickAll() {
+  var now = Date.now();
+  var timers = document.querySelectorAll('.countdown-timer[data-ends]');
+  var endingSoon = 0;
+  timers.forEach(function(el) {
+    var endMs = new Date(el.dataset.ends).getTime();
+    var secs = Math.floor((endMs - now) / 1000);
+    if (secs <= 0) {
+      el.textContent = 'ENDED';
+      el.classList.add('done');
+      el.classList.remove('urgent');
+    } else {
+      el.textContent = fmtCountdown(secs);
+      el.classList.remove('done');
+      if (secs < 3600) {
+        el.classList.add('urgent');
+        endingSoon++;
+      } else {
+        el.classList.remove('urgent');
+      }
+    }
+  });
+
+  // Update stat counters from live DOM
+  var todayTimers = document.querySelectorAll('#section-today .countdown-timer[data-ends]');
+  var comingTimers = document.querySelectorAll('#section-coming .countdown-timer[data-ends]');
+  var es = document.getElementById('stat-ending');
+  var et = document.getElementById('stat-today');
+  var ec = document.getElementById('stat-coming');
+  if (es) es.textContent = endingSoon;
+  if (et) et.textContent = todayTimers.length;
+  if (ec) ec.textContent = comingTimers.length;
+}
+
+tickAll();
+setInterval(tickAll, 1000);
+</script>
+</body>
+</html>

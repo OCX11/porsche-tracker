@@ -42,6 +42,7 @@ import db as database
 import scraper as sc
 import dashboard as dash
 import new_dashboard as ndash
+import auction_dashboard as auc_dash
 import live_feed as lf
 import comp_scraper
 import report as rpt
@@ -275,6 +276,12 @@ def main():
         print(f"New Dashboard: file://{np}")
     except Exception as e:
         log.warning("New dashboard generation failed: %s", e)
+
+    try:
+        auc_dash.generate()
+        log.info("Auction page generated")
+    except Exception as e:
+        log.warning("Auction dashboard generation failed: %s", e)
 
     try:
         lp = lf.generate()

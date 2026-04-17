@@ -697,7 +697,7 @@ button{{cursor:pointer;border:none;background:none;font:inherit;color:inherit}}
     <div class="logo">🏎 Porsche <span>Tracker</span></div>
     <nav class="nav-tabs">
       <button class="nav-tab active" onclick="switchView('listings')">New Listings</button>
-      <button class="nav-tab" onclick="switchView('auctions')">Auctions</button>
+      <a class="nav-tab" href="auctions.html" style="text-decoration:none">🔨 Auctions</a>
       <button class="nav-tab" onclick="switchView('comps')">Sold Comps</button>
       <button class="nav-tab" onclick="switchView('market')">Market Reports</button>
       <a class="nav-tab" href="search.html" style="text-decoration:none">🔍 Search</a>
