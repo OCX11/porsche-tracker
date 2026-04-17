@@ -398,15 +398,36 @@ def upsert_listing(conn, dealer, year, make, model, trim, mileage, price, vin, u
     if feed_type is None:
         feed_type = feed_type_for(dealer)
 
-    row = conn.execute(
-        "SELECT id, price, status FROM listings WHERE dealer=? AND vin=?",
-        (dealer, vin)
-    ).fetchone() if vin else conn.execute(
-        """SELECT id, price, status FROM listings
-           WHERE dealer=? AND year=? AND make=? AND model=? AND vin IS NULL
-           LIMIT 1""",
-        (dealer, year, make, model)
-    ).fetchone()
+    # Lookup priority:
+    # 1. VIN match (most reliable — same physical car)
+    # 2. listing_url match (same platform listing ID — catches eBay relists correctly)
+    # 3. year/make/model fallback (only when no VIN and no URL)
+    if vin:
+        row = conn.execute(
+            "SELECT id, price, status FROM listings WHERE dealer=? AND vin=?",
+            (dealer, vin)
+        ).fetchone()
+    elif url:
+        row = conn.execute(
+            "SELECT id, price, status FROM listings WHERE dealer=? AND listing_url=? LIMIT 1",
+            (dealer, url)
+        ).fetchone()
+        # If not found by URL, also check year/make/model to avoid duplicates for
+        # sources that change their URLs (not eBay, but defensive)
+        if row is None and dealer not in ("eBay Motors",):
+            row = conn.execute(
+                """SELECT id, price, status FROM listings
+                   WHERE dealer=? AND year=? AND make=? AND model=? AND vin IS NULL
+                   LIMIT 1""",
+                (dealer, year, make, model)
+            ).fetchone()
+    else:
+        row = conn.execute(
+            """SELECT id, price, status FROM listings
+               WHERE dealer=? AND year=? AND make=? AND model=? AND vin IS NULL
+               LIMIT 1""",
+            (dealer, year, make, model)
+        ).fetchone()
 
     tier = classify_tier(model, trim, year)
 
