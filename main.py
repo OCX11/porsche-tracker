@@ -322,6 +322,13 @@ def main():
     # iMessage deal alerts — TEMPORARILY DISABLED (re-enable when ready)
     # notify_imessage.main()
 
+    # iMessage auction-ending alerts (3hr Tier1, 1hr Tier2)
+    try:
+        with database.get_conn() as conn:
+            notify_imessage.notify_auction_ending(conn)
+    except Exception as e:
+        log.warning("iMessage auction-ending alerts failed: %s", e)
+
     # Health monitor
     try:
         health_monitor.main()

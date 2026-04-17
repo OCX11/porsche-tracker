@@ -26,7 +26,7 @@ import subprocess
 import sys
 import tempfile
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
@@ -356,6 +356,101 @@ def notify_new_listings(conn, new_listing_ids):
             log.error("  → iMessage delivery failed")
 
     log.info("New-listing alerts: %d sent of %d new IDs", sent, len(new_listing_ids))
+
+
+def notify_auction_ending(conn):
+    """Send iMessage alerts for auctions ending soon.
+
+    TIER1: alert when auction_ends_at is within 3 hours.
+    TIER2: alert only when auction_ends_at is within 1 hour (last-minute only).
+    Dedup key: 'ending:{listing_id}' — fires ONCE per listing.
+    """
+    if not NOTIFICATIONS_ENABLED:
+        return
+
+    cfg = _load_config()
+    recipient = cfg.get("recipient", "")
+    if not recipient:
+        return
+
+    now = datetime.utcnow()
+    window_3h = (now + timedelta(hours=3)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    window_1h = (now + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    now_str   = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    rows = conn.execute("""
+        SELECT id, year, make, model, trim, price, mileage, dealer,
+               listing_url, source_category, tier, image_url, image_url_cdn,
+               auction_ends_at
+        FROM listings
+        WHERE status = 'active'
+          AND source_category = 'AUCTION'
+          AND auction_ends_at IS NOT NULL
+          AND auction_ends_at > ?
+          AND auction_ends_at <= ?
+    """, (now_str, window_3h)).fetchall()
+
+    seen  = _load_seen()
+    sent  = 0
+
+    for row in rows:
+        s    = dict(row)
+        tier = s.get("tier", "TIER2")
+        lid  = s.get("id")
+        ends = s.get("auction_ends_at", "")
+
+        # TIER2: only alert in last hour
+        if tier != "TIER1" and ends > window_1h:
+            continue
+
+        seen_key = f"ending:{lid}"
+        if seen_key in seen:
+            continue
+
+        # Compute time remaining
+        try:
+            ends_dt = datetime.strptime(ends, "%Y-%m-%dT%H:%M:%SZ")
+            delta   = ends_dt - now
+            total_s = max(0, int(delta.total_seconds()))
+            rem_h   = total_s // 3600
+            rem_m   = (total_s % 3600) // 60
+        except Exception:
+            rem_h = rem_m = 0
+
+        tier_label = "GT/Collector" if tier == "TIER1" else "Standard"
+        price      = s.get("price")
+        price_str  = f"${price:,}" if price else "No Price"
+        trim_disp  = _short_trim(s.get("trim") or "")
+        url_clean  = _clean_url(s.get("listing_url") or "")
+
+        lines = [
+            (f"⏰ ENDING SOON: {s.get('year','?')} Porsche {s.get('model','')} {trim_disp}").rstrip(),
+            f"💰 Current Bid: {price_str}",
+            f"⏱  Ends in {rem_h}h {rem_m}m",
+            f"📍 {s.get('dealer','?')}  [{tier_label}]",
+            f"🔗 {url_clean}",
+        ]
+        msg = "\n".join(lines)
+
+        log.info("ENDING SOON: %s %s %s — %dh %dm remaining",
+                 s.get("year"), s.get("model"), s.get("trim") or "", rem_h, rem_m)
+
+        seen[seen_key] = {"alerted_at": datetime.now().isoformat(), "alerted": False}
+        ok = _send_imessage(recipient, msg)
+        if ok:
+            seen[seen_key]["alerted"] = True
+            sent += 1
+            log.info("  → ending-soon iMessage sent to %s", recipient)
+            img_url = s.get("image_url") or ""
+            if img_url.startswith("/static/"):
+                img_url = s.get("image_url_cdn") or ""
+            if img_url and img_url.startswith("http"):
+                _send_imessage_image(recipient, img_url)
+        else:
+            log.error("  → ending-soon iMessage delivery failed")
+        _save_seen(seen)
+
+    log.info("Ending-soon alerts: %d sent", sent)
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
