@@ -1,137 +1,72 @@
 """
-Standalone Cars & Bids active listings scraper.
+scraper_cnb.py — Cars & Bids Playwright scraper for Porsche listings.
 
 Fetches https://carsandbids.com using Playwright headless Chromium (no proxy needed).
-Scrolls the page to trigger lazy-loading, then parses all active auction cards.
-
-Returns a list of {year, make, model, trim, mileage, price, vin, url, image_url} dicts.
-No state file — fetch and return every run (~10-20 active Porsche listings).
-VIN is not available on the listing index page; returned as None.
-source_category is AUCTION (wired via DEALERS list name "Cars and Bids" which maps to
-the "cars & bids" / "carsandbids" pattern in db.source_category()).
+Parses auction cards, extracts bids, mileage, end times, and images.
 """
-import logging
 import re
-from datetime import datetime, timedelta, timezone
+import logging
+import time
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
 
 from bs4 import BeautifulSoup
 
 log = logging.getLogger(__name__)
 
-DEALER_NAME = "Cars and Bids"
-_BASE_URL = "https://carsandbids.com"
-_INDEX_URL = "https://carsandbids.com"
+DEALER_NAME  = "Cars and Bids"
+YEAR_MIN     = 1984
+YEAR_MAX     = 2024  # HARD RULE: do not change — owner decision required
+
+_BASE_URL  = "https://carsandbids.com"
+_INDEX_URL = "https://carsandbids.com/?make=Porsche"
 
 # ---------------------------------------------------------------------------
-# Filters — must stay in sync with scraper.py
-# ---------------------------------------------------------------------------
-YEAR_MIN = 1984
-YEAR_MAX = 2024  # HARD RULE: do not change — owner decision required
-_ALLOWED_MODELS = frozenset({"911", "cayman", "boxster", "718"})
-_BLOCKED_MODELS = frozenset({"cayenne", "macan", "panamera", "taycan", "918"})
-
-_YEAR_RE = re.compile(r"\b(19[6-9]\d|20[0-2]\d)\b")
-_PRICE_RE = re.compile(r"\$\s*([\d,]+)")
-_MILES_RE = re.compile(r"~?([\d,]+)\s*[Mm]iles?")
-
-
-# ---------------------------------------------------------------------------
-# Parse helpers
+# Helpers
 # ---------------------------------------------------------------------------
 
-def _int(s):
-    if s is None:
+def _parse_price(text):
+    if not text:
         return None
-    s = re.sub(r"[^\d]", "", str(s))
-    return int(s) if s else None
+    digits = re.sub(r"[^\d]", "", text)
+    return int(digits) if digits else None
+
+
+def _parse_mileage(text):
+    if not text:
+        return None
+    m = re.search(r"([\d,]+)\s*mi", text, re.I)
+    if m:
+        return int(m.group(1).replace(",", ""))
+    return None
 
 
 def _parse_title(title):
-    """Extract year/make/model/trim from a C&B title like '2015 Porsche 911 GT3'."""
-    result = {"year": None, "make": "Porsche", "model": None, "trim": None}
-    if not title:
-        return result
-
-    m = _YEAR_RE.search(title)
+    """Parse 'YYYY Make Model Trim' from C&B auction title."""
+    m = re.match(r"(\d{4})\s+Porsche\s+(.*)", title, re.I)
     if not m:
-        return result
-    result["year"] = int(m.group(1))
-
-    # Strip leading year + optional make
-    rest = title[m.end():].strip()
-    rest = re.sub(r"^Porsche\s+", "", rest, flags=re.I).strip()
-
-    # Match model tokens — longest first to catch "718 Cayman" before "718"
-    _MODELS = [
-        ("718 Cayman", "718"),
-        ("718 Boxster", "718"),
-        ("718", "718"),
-        ("911 GT3 RS", "911"),   # keep full trim intact below
-        ("911", "911"),
-        ("Cayman", "Cayman"),
-        ("Boxster", "Boxster"),
-    ]
-    for token, canonical in _MODELS:
-        if re.match(r"^" + re.escape(token) + r"\b", rest, re.I):
-            result["model"] = canonical
-            after = rest[len(token):].strip()
-            after = re.sub(r"^[\s'\"\-\u2013\u2014,]+", "", after).strip()
-            after = re.sub(r"[\s'\"]+$", "", after).strip()
-            if after:
-                if len(after) > 60:
-                    after = after[:60].rsplit(" ", 1)[0].strip()
-                result["trim"] = after or None
-            break
-
-    return result
-
-
-def _parse_mileage(subtitle):
-    """Extract mileage from subtitle like '~29,300 Miles, 6-Speed Manual...'."""
-    if not subtitle:
-        return None
-    m = _MILES_RE.search(subtitle)
-    if not m:
-        return None
-    v = _int(m.group(1))
-    if v and 0 < v < 999999:
-        return v
-    return None
-
-
-def _parse_price(bid_text):
-    """Parse price from '$51,500'."""
-    m = _PRICE_RE.search(bid_text or "")
-    if not m:
-        return None
-    v = _int(m.group(1))
-    if v and v >= 100:
-        return v
-    return None
+        return {"year": None, "model": None, "trim": None}
+    year = int(m.group(1))
+    rest = m.group(2).strip()
+    # Split model from trim on first space-separated word
+    parts = rest.split(None, 1)
+    model = parts[0] if parts else rest
+    trim  = parts[1] if len(parts) > 1 else None
+    return {"year": year, "model": model, "trim": trim}
 
 
 def _is_valid(car):
-    model = (car.get("model") or "").lower()
     year = car.get("year")
-    if not model:
+    if not year:
         return False
-    if any(b in model for b in _BLOCKED_MODELS):
-        return False
-    if not any(g in model for g in _ALLOWED_MODELS):
-        return False
-    if year and not (YEAR_MIN <= year <= YEAR_MAX):
+    if not (YEAR_MIN <= year <= YEAR_MAX):
         return False
     return True
 
 
-# ---------------------------------------------------------------------------
-# Playwright fetch + parse
-# ---------------------------------------------------------------------------
-
 def _fetch_html():
-    """Return rendered HTML for the C&B homepage via Playwright (with scroll)."""
+    """Return rendered HTML for the C&B Porsche page via Playwright."""
     from playwright.sync_api import sync_playwright
-    import time
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         try:
@@ -147,74 +82,88 @@ def _fetch_html():
             page.goto(_INDEX_URL, wait_until="domcontentloaded", timeout=45000)
             time.sleep(3)
 
-            # Scroll through the full page to trigger lazy-loading of all cards
+            # Scroll to trigger lazy-loading of all auction cards
             for i in range(12):
                 page.evaluate("window.scrollTo(0, %d)" % (i * 2000))
                 time.sleep(0.25)
             time.sleep(1)
 
-            # Inject auction end times into the DOM before handing off to BS4.
-            # C&B renders countdowns via React state — not in static HTML.
-            # We read the JS timer values and stamp them as data-ends-iso on each li.
-            page.evaluate("""() => {
-                document.querySelectorAll('li.auction-item').forEach(li => {
-                    // Try React fiber props to find endsAt timestamp
-                    const tryFiber = (el) => {
-                        const key = Object.keys(el).find(k => k.startsWith('__reactFiber') || k.startsWith('__reactProps'));
-                        if (!key) return null;
-                        try {
-                            const props = el[key];
-                            const str = JSON.stringify(props);
-                            const m = str.match(/(endsAt|endTime|ends_at)[\s'":\\]+([0-9T:\-Z+\.]{10,30})/);
-                            return m ? m[2] : null;
-                        } catch(e) { return null; }
-                    };
-                    // Walk all descendants for React data
-                    const all = li.querySelectorAll('*');
-                    for (let el of all) {
-                        const val = tryFiber(el);
-                        if (val) { li.setAttribute('data-ends-iso', val); break; }
-                    }
-                    // Also check ticking span text directly
-                    const tick = li.querySelector('.ticking');
-                    if (tick && tick.textContent.trim()) {
-                        li.setAttribute('data-ticking-text', tick.textContent.trim());
-                    }
-                });
-            }""")
-            time.sleep(0.5)
+            # Stamp .ticking countdown text as a plain data attribute so BS4 can read it.
+            # C&B renders the countdown via React — text is in the live DOM but not
+            # in the static HTML snapshot. We read it now and stamp it onto the <li>.
+            page.evaluate(
+                "document.querySelectorAll('li.auction-item').forEach(function(li) {"
+                "  var tick = li.querySelector('.ticking');"
+                "  if (tick && tick.textContent.trim()) {"
+                "    li.setAttribute('data-ticking-text', tick.textContent.trim());"
+                "  }"
+                "});"
+            )
+            time.sleep(0.3)
             return page.content()
         finally:
             browser.close()
 
 
 def _parse_cnb_countdown(text):
-    """Parse C&B countdown to ISO UTC string.
-    Handles '4:32:15' (HH:MM:SS) and '2d 04:32:15' (Xd HH:MM:SS).
-    Returns ISO UTC string or None.
+    """Parse C&B countdown text to ISO UTC string.
+
+    Handles multiple formats:
+      - '4:32:15'          (HH:MM:SS)
+      - '2d 04:32:15'      (Xd HH:MM:SS)
+      - '3 Days'            (human-readable)
+      - '4 Hours'           (human-readable)
+      - '15 Minutes'        (human-readable)
+      - 'Ended'             (auction over)
     """
     if not text:
         return None
     text = text.strip()
+
+    # "Ended" or similar
+    if text.lower() in ("ended", "sold", "reserve not met"):
+        return None
+
+    # Xd HH:MM:SS
     m = re.match(r"(\d+)d\s+(\d+):(\d+):(\d+)", text, re.I)
     if m:
         ends = datetime.now(timezone.utc) + timedelta(
             days=int(m.group(1)), hours=int(m.group(2)), minutes=int(m.group(3))
         )
         return ends.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # HH:MM:SS
     m = re.match(r"(\d+):(\d+):(\d+)", text)
     if m:
         ends = datetime.now(timezone.utc) + timedelta(
-            hours=int(m.group(1)), minutes=int(m.group(2))
+            hours=int(m.group(1)), minutes=int(m.group(2)), seconds=int(m.group(3))
         )
         return ends.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # "N Days" / "N Day"
+    m = re.match(r"(\d+)\s+days?", text, re.I)
+    if m:
+        ends = datetime.now(timezone.utc) + timedelta(days=int(m.group(1)))
+        return ends.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # "N Hours" / "N Hour"
+    m = re.match(r"(\d+)\s+hours?", text, re.I)
+    if m:
+        ends = datetime.now(timezone.utc) + timedelta(hours=int(m.group(1)))
+        return ends.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # "N Minutes" / "N Minute" / "N Min"
+    m = re.match(r"(\d+)\s+min", text, re.I)
+    if m:
+        ends = datetime.now(timezone.utc) + timedelta(minutes=int(m.group(1)))
+        return ends.strftime("%Y-%m-%dT%H:%M:%SZ")
+
     return None
 
 
 def _parse_cards(html):
     soup = BeautifulSoup(html, "html.parser")
 
-    # All <li class="auction-item"> — exclude "heroup" hero-carousel items
     all_items = soup.find_all("li", class_="auction-item")
     items = [li for li in all_items if "heroup" not in li.get("class", [])]
     log.info("C&B: found %d auction cards on page (%d heroup excluded)",
@@ -224,7 +173,6 @@ def _parse_cards(html):
     seen_urls = set()
 
     for item in items:
-        # Main link — <a class="hero" href="/auctions/...">
         a = item.find("a", href=re.compile(r"/auctions/"))
         if not a:
             continue
@@ -239,51 +187,49 @@ def _parse_cards(html):
         if not title:
             continue
 
-        # Image — first <img> inside the hero <a>
         img_tag = a.find("img")
         image_url = img_tag.get("src") if img_tag else None
 
-        # Current bid — <span class="bid-value">
         bid_span = item.find(class_="bid-value")
         price = _parse_price(bid_span.get_text() if bid_span else "")
 
-        # Mileage — <p class="auction-subtitle">
         subtitle = item.find("p", class_="auction-subtitle")
         mileage = _parse_mileage(subtitle.get_text() if subtitle else "")
 
-        # Auction end time — span.ticking primary, with multi-format + fallbacks
+        # --- Auction end time ---
         auction_ends_at = None
-        ticking = item.find("span", class_="ticking")
-        if ticking:
-            auction_ends_at = _parse_cnb_countdown(ticking.get_text(strip=True))
-        # Fallback: any span/div with "time" in class name containing digits
+
+        # Primary: li.time-left > span.value (current C&B markup as of Apr 2026)
+        time_left_li = item.find("li", class_="time-left")
+        if time_left_li:
+            val_span = time_left_li.find("span", class_="value")
+            if val_span:
+                auction_ends_at = _parse_cnb_countdown(val_span.get_text(strip=True))
+
+        # Fallback 1: .ticking span (legacy C&B markup)
         if not auction_ends_at:
-            for el in item.find_all(["span", "div"]):
-                cls = " ".join(el.get("class") or [])
-                if "time" in cls.lower():
-                    el_text = el.get_text(strip=True)
-                    if re.search(r"\d+:\d+", el_text):
-                        auction_ends_at = _parse_cnb_countdown(el_text)
-                        if auction_ends_at:
-                            break
-        # Fallback 1: ticking text injected via JS into data-ticking-text
+            ticking = item.find("span", class_="ticking")
+            if ticking:
+                auction_ends_at = _parse_cnb_countdown(ticking.get_text(strip=True))
+
+        # Fallback 2: stamped by our JS injection before snapshot
         if not auction_ends_at:
             ticking_text = item.get("data-ticking-text")
             if ticking_text:
                 auction_ends_at = _parse_cnb_countdown(ticking_text)
 
-        # Fallback 2: ISO timestamp injected via JS into data-ends-iso
+        # Fallback 3: any span/div with "time" in class
         if not auction_ends_at:
-            iso_val = item.get("data-ends-iso")
-            if iso_val:
-                try:
-                    from datetime import datetime as _dt
-                    # Normalise and store as-is if already ISO
-                    auction_ends_at = iso_val.strip()
-                except Exception:
-                    pass
+            for el in item.find_all(["span", "div"]):
+                cls = " ".join(el.get("class") or [])
+                if "time" in cls.lower():
+                    el_text = el.get_text(strip=True)
+                    if el_text:
+                        auction_ends_at = _parse_cnb_countdown(el_text)
+                        if auction_ends_at:
+                            break
 
-        # Fallback 3: data attribute on the li (Unix timestamp)
+        # Fallback 4: Unix timestamp in data attributes on the li
         if not auction_ends_at:
             for attr in ("data-time", "data-end", "data-expires", "data-ends-at"):
                 val = item.get(attr)
@@ -298,11 +244,11 @@ def _parse_cards(html):
 
         parsed = _parse_title(title)
         parsed.update({
-            "mileage": mileage,
-            "price": price,
-            "vin": None,
-            "url": url,
-            "image_url": image_url,
+            "mileage":        mileage,
+            "price":          price,
+            "vin":            None,
+            "url":            url,
+            "image_url":      image_url,
             "auction_ends_at": auction_ends_at,
         })
 
@@ -310,34 +256,24 @@ def _parse_cards(html):
             log.debug("C&B: filtered out '%s'", title)
             continue
 
-        log.info("C&B: %s %s %s | bid:$%s | %s",
+        log.info("C&B: %s %s %s | bid:$%s | ends:%s | %s",
                  parsed.get("year"), parsed.get("model"),
-                 parsed.get("trim") or "", parsed.get("price"), url)
+                 parsed.get("trim") or "", parsed.get("price"),
+                 auction_ends_at or "unknown", url)
         listings.append(parsed)
 
     return listings
 
 
-# ---------------------------------------------------------------------------
-# Public entry point
-# ---------------------------------------------------------------------------
-
 def scrape_cnb():
-    """Scrape Cars & Bids active Porsche auction listings.
-
-    Returns a list of {year, make, model, trim, mileage, price, vin, url, image_url} dicts.
-    """
+    """Public entry point — returns list of active Porsche auction dicts."""
+    log.info("Scraping Cars and Bids\u2026")
     try:
         html = _fetch_html()
     except Exception as e:
         log.warning("C&B: Playwright fetch failed: %s", e)
         return []
 
-    try:
-        listings = _parse_cards(html)
-    except Exception as e:
-        log.warning("C&B: parse error: %s", e)
-        return []
-
+    listings = _parse_cards(html)
     log.info("C&B: returning %d active Porsche listings", len(listings))
     return listings
