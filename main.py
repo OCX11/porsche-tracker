@@ -322,7 +322,23 @@ def main():
     # iMessage alerts — new listing ping (every new car, no FMV threshold)
     try:
         with database.get_conn() as conn:
-            notify_imessage.notify_new_listings(conn, new_ids)
+            # Safety: only alert on listings created in the last 20 minutes.
+            # This prevents bulk re-ingestion events (cache clears, bootstrap,
+            # dedup changes) from firing hundreds of iMessage notifications.
+            from datetime import datetime, timedelta
+            cutoff = (datetime.now() - timedelta(minutes=20)).strftime("%Y-%m-%d %H:%M:%S")
+            if new_ids:
+                placeholders = ",".join("?" * len(new_ids))
+                fresh_ids = [r[0] for r in conn.execute(
+                    f"SELECT id FROM listings WHERE id IN ({placeholders}) AND created_at >= ?",
+                    (*new_ids, cutoff)
+                ).fetchall()]
+                if len(fresh_ids) != len(new_ids):
+                    log.info("Alert filter: %d new IDs, %d within 20min window — alerting only fresh",
+                             len(new_ids), len(fresh_ids))
+                notify_imessage.notify_new_listings(conn, fresh_ids)
+            else:
+                notify_imessage.notify_new_listings(conn, new_ids)
     except Exception as e:
         log.warning("iMessage new-listing alerts failed: %s", e)
 
