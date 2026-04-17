@@ -248,7 +248,7 @@ def _card(car: dict, fmv_score: dict) -> str:
     # Rewrite PCA Mart local cache paths for GitHub Pages
     if img and img.startswith("/static/img_cache/"):
         img = "img_cache/" + img.split("/")[-1]
-    created  = car.get("date_first_seen", "") or car.get("created_at", "")
+    created  = car.get("created_at", "") or car.get("date_first_seen", "")
     location = car.get("location", "") or ""
     trans    = car.get("transmission", "") or ""
     days          = car.get("days_on_site") or 0
