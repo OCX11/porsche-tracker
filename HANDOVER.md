@@ -234,3 +234,21 @@ Built by `new_dashboard.py` → `docs/index.html`, pushed every 2 min.
 | CA2/CB2/CC2 | Boxster/Cayman/718 | ≤2004=986, ≤2011=987, ≤2016=981, 2017+=718 |
 | AA0/AB0 | 964/993 | ≤1993=964, 1994+=993 |
 | JA0/JB0 | 930 Turbo | ≤1989=930 |
+
+---
+
+## 13. Future Sources (Mid Priority)
+
+Candidates to add — each needs a scraper built:
+
+| Source | URL | Notes |
+|---|---|---|
+| DuPont Registry | dupontregistry.com | Dealer + private, strong Porsche inventory |
+| Hagerty Marketplace | marketplace.hagerty.com | Collector-focused, air-cooled heavy |
+| CarGurus | cargurus.com | Large retail, good price history data |
+| Porsche NA Finder | porsche.com/usa/modelrange/finder | Factory/dealer CPO listings |
+| Hemmings | hemmings.com | Air-cooled / vintage Porsche |
+| iSeeCars | iseecars.com | Aggregator, may dedupe with existing |
+| Carfax Listings | carfax.com/cars-for-sale | Private + dealer |
+
+Build order recommendation: DuPont Registry first (high quality Porsche inventory), then Hagerty (air-cooled depth), then Porsche NA finder (CPO/factory).
