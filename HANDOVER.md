@@ -1,5 +1,5 @@
 # PTOX11 — Porsche Market Intelligence Platform
-*Last updated: April 18, 2026*
+*Last updated: April 18, 2026 (post-redesign)*
 
 ---
 
@@ -157,9 +157,17 @@ Source labels: BaT, C&B, BfB, DuPont, eBay, Cars.com, PCA Mart, AutoTrader, Renn
 Built by `new_dashboard.py` → `docs/index.html`, pushed every 2 min.  
 Auctions: `auction_dashboard.py` → `docs/auctions.html`
 
-**⚠️ REDESIGN PENDING** — Full visual overhaul approved. Prompt in Apple Note: "🎨 PTOX11 — Dashboard Redesign Prompt (Claude Code)". Design spec: /Users/claw/Downloads/ptox11_critique.html
-
-Nav after redesign: **Listings · Auctions · Comps · Market · Search** (no Live tab — live_feed.html killed)
+**⚠️ REDESIGN COMPLETE** — Full visual overhaul shipped April 18. Commit `cac351d44`.
+- Design system: PTOX logo, `--red #D6293E`, Syne + DM Mono + DM Sans fonts, `#0A0A0C` bg
+- Nav: Listings · Auctions · Comps · Market · Search (no Live tab — deleted)
+- Chip filters for Generation + Source (replaced dropdowns)
+- FMV progress bar on all listing cards (replaced emoji circles 🟢🟡🔴)
+- Image overlays: gen badge top-left, deal % badge top-right (≥10% below FMV)
+- Joined stats strip: Active / New Today / Auctions (yellow) / Comps / Deals (green)
+- Auction cards: horizontal layout, urgency red bar, DM Mono timer
+- Search: Spotlight-style frosted glass input, expands on focus
+- Year filter: 1986–2024 enforced in `_keep()` in new_dashboard.py
+- `docs/live_feed.html` deleted, Quick Links sidebar removed
 
 ---
 
@@ -171,21 +179,20 @@ Nav after redesign: **Listings · Auctions · Comps · Market · Search** (no Li
 | AutoTrader count fluctuates 8-49 | Low | Akamai blocks intermittent |
 | AutoTrader images 80% | Low | Some listings missing image_url |
 | Rennlist only 5-6 listings | Low | Low-volume source, scraper working correctly |
-| live_feed.html | Low | Deprecated — delete during redesign |
+| live_feed.html | — | Deleted during redesign ✅ |
 
 ---
 
 ## 9. Open Items / Roadmap
 
 ### Next up (approved)
-1. **Dashboard redesign** — Claude Code job. Prompt in Notes. Full visual overhaul per ptox11_critique.html
-2. **PWA push notifications** — replace iMessage with native iOS push, tap → listing URL
+1. **PWA push notifications** — replace iMessage with native iOS push, tap → listing URL
 
 ### Claude can do solo (queue)
-3. FMV audit — fix known-bad estimates
-4. Deal/watch alerts re-enable — 1 line in main.py
-5. AutoTrader image coverage improvement
-6. Sold comp backfill (more BaT history)
+2. FMV audit — fix known-bad estimates (GT2RS comp crossing, 1987 Carrera undervalued)
+3. Deal/watch alerts re-enable — 1 line in main.py when ready
+4. AutoTrader image coverage improvement (~80% currently)
+5. Sold comp backfill (more BaT history depth)
 
 ### Needs owner input
 7. New scrapers — owner researching which dealer-heavy sources are worth building
@@ -206,7 +213,15 @@ Nav after redesign: **Listings · Auctions · Comps · Market · Search** (no Li
 
 ## 11. Session Log
 
-### April 18, 2026
+### April 18, 2026 (evening)
+- Dashboard redesign shipped — full visual overhaul (commit cac351d44)
+  - PTOX logo, new color system, Syne/DM Mono/DM Sans fonts
+  - Chip filters, FMV progress bars, image overlays, horizontal auction cards
+  - Spotlight-style search, joined stats strip, year range 1986–2024
+  - live_feed.html deleted, Quick Links removed
+- Next: PWA push notifications
+
+### April 18, 2026 (daytime)
 - DuPont Registry scraper built (scraper_dupont.py) — direct API, ~889 listings, 100% images
 - DuPont URL format fixed (/autos/listing/{year}/porsche/{alias}/{id}), 900 DB records backfilled
 - DuPont upsert dedup hardened — car ID tail match survives future URL changes
