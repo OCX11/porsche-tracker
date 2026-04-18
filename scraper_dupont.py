@@ -89,10 +89,13 @@ def _parse_drivetrain(raw):
     return raw.strip()
 
 
-def _listing_url(car_id, model_alias):
-    """Build public listing URL from car ID and model alias."""
-    alias = (model_alias or "porsche").lower().replace(" ", "-")
-    return f"https://www.dupontregistry.com/autos/{alias}/{car_id}"
+def _listing_url(car_id, model_alias, year=None):
+    """Build public listing URL from car ID, model alias, and year.
+    Correct format: /autos/listing/{year}/porsche/{model-alias}/{id}
+    """
+    alias = (model_alias or "911").lower().strip()
+    yr = str(year) if year else "0"
+    return f"https://www.dupontregistry.com/autos/listing/{yr}/porsche/{alias}/{car_id}"
 
 
 def _parse_car(item):
@@ -152,7 +155,7 @@ def _parse_car(item):
     location = ", ".join(p for p in [city, state] if p) or None
 
     # Listing URL
-    url = _listing_url(car_id, model_alias)
+    url = _listing_url(car_id, model_alias, year=year)
 
     # Seller type
     is_private  = item.get("isPvtSeller", False)
