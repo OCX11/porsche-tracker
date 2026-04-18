@@ -204,29 +204,63 @@ def _short_trim(trim: str, maxlen: int = 50) -> str:
 
 
 
+# Short source labels for iMessage (keep messages compact)
+_SOURCE_LABELS = {
+    "bring a trailer":    "BaT",
+    "cars and bids":      "C&B",
+    "pcarmarket":         "pcarmarket",
+    "pca mart":           "PCA Mart",
+    "ebay motors":        "eBay",
+    "autotrader":         "AutoTrader",
+    "cars.com":           "Cars.com",
+    "rennlist":           "Rennlist",
+    "built for backroads":"BfB",
+    "dupont registry":    "DuPont",
+}
+_AUCTION_SOURCES = frozenset({"bring a trailer", "cars and bids", "pcarmarket"})
+
+
 def _format_new_listing(s):
-    """Format a new-listing alert — simpler than deal alert, no FMV."""
+    """Format a new-listing alert — consistent across all 10 sources."""
     year      = s.get("year", "?")
-    model     = s.get("model", "")
+    model     = s.get("model", "") or ""
     trim      = s.get("trim") or ""
     price     = s.get("price")
     mileage   = s.get("mileage")
     dealer    = s.get("dealer", "?")
     url       = s.get("listing_url", "")
     tier      = s.get("tier", "TIER2")
-    src_cat   = s.get("source_category", "")
 
-    tier_label = "GT/Collector" if tier == "TIER1" else "Standard"
-    price_str  = f"${price:,}" if price else "No Price"
-    miles_str  = f"{mileage:,} mi" if mileage else "—"
-    trim_disp  = _short_trim(trim)
+    # Remove model name prefix from trim if it duplicates
+    # e.g. model="Cayman", trim="Cayman GT4" → trim_disp="GT4"
+    import re as _re
+    trim_clean = trim
+    if trim and model:
+        trim_clean = _re.sub(r"^" + _re.escape(model) + r"\s+", "", trim, flags=_re.I).strip()
+    trim_disp = _short_trim(trim_clean)
+
+    # Title: "2022 Porsche 911 GT3" — never double model name
+    title_parts = [str(year), "Porsche", model]
+    if trim_disp and trim_disp.lower() != model.lower():
+        title_parts.append(trim_disp)
+    title = " ".join(p for p in title_parts if p)
+
+    tier_label = "GT/Collector 🔥" if tier == "TIER1" else "Standard"
+    price_str  = f"${price:,}" if price else "No Price Listed"
+    miles_str  = f"{mileage:,} mi" if mileage else "mileage TBD"
     url_clean  = _clean_url(url)
 
+    # Source label — short and clean
+    src_key   = dealer.lower().strip()
+    src_label = _SOURCE_LABELS.get(src_key, dealer)
+    is_auction = src_key in _AUCTION_SOURCES
+    src_type  = "AUCTION" if is_auction else "RETAIL"
+
     lines = [
-        (f"🆕 NEW: {year} Porsche {model} {trim_disp}").rstrip(),
+        f"🆕 {title}",
         f"💰 {price_str}",
         f"🛣️  {miles_str}",
-        f"📍 {dealer}  [{tier_label}]",
+        f"📍 {src_label} · {src_type} · {tier_label}",
         f"🔗 {url_clean}",
     ]
     return "\n".join(lines)

@@ -295,8 +295,6 @@ def _card(car: dict, fmv_score: dict) -> str:
     if tier == "TIER1":
         tier_html = '<span class="tier-badge">GT / Collector</span>'
 
-    # Price drop chip
-
     # Meta chips
     chips = []
     if trans:    chips.append(_h(trans))
