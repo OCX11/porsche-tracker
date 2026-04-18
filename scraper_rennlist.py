@@ -130,11 +130,31 @@ def _parse_title(title: str) -> dict:
 
             after = re.split(rf"\b{re.escape(tok)}\b", clean, maxsplit=1, flags=re.I)[-1]
             trim = re.sub(r"^\s*[-–—,]\s*", "", after).strip()
+            # Stop at first comma — Rennlist uses commas to separate trim from specs
+            trim = trim.split(",")[0].strip()
             trim = re.split(r"[—–|\$]|\d{1,3}(,\d{3})+\s*mi", trim)[0].strip()
             trim = re.sub(r"\s+\d{4,}(?:\s*mi(?:les?)?)?\s*$", "", trim, flags=re.I).strip()
-            # Cap trim at 60 chars — anything longer is a sentence bleed from title
-            if len(trim) > 60:
-                trim = trim[:60].rsplit(" ", 1)[0].strip()
+            # Strip leading slash/dash artifacts (e.g. "/ Carrara White")
+            trim = re.sub(r"^[/\\\-–—]+\s*", "", trim).strip()
+            # Strip mileage artifacts (e.g. "S 6MT 41k mi" -> "S 6MT")
+            trim = re.sub(r"\s+\d+k?\s*mi(?:les?)?.*$", "", trim, flags=re.I).strip()
+            # Strip slash-separated color/spec suffixes (e.g. "Carrera / Carrara White" -> "Carrera")
+            trim = trim.split(" / ")[0].strip()
+            # Strip generation codes at end (e.g. "S 991.1" -> "S", "S Cabriolet 992.1" -> "S Cabriolet")
+            trim = re.sub(r"\s+\d{3}\.\d+.*$", "", trim).strip()
+            # Cap trim at 40 chars
+            if len(trim) > 40:
+                trim = trim[:40].rsplit(" ", 1)[0].strip()
+            # If trim is just a color note with no real model info, drop it
+            trim = re.sub(r"\s*/\s*$", "", trim).strip()
+            # Known color/non-trim words — null out if that's all that's left
+            _COLOR_ONLY = re.compile(
+                r"^(?:white|black|red|blue|silver|grey|gray|green|yellow|orange|guards|carrara|"
+                r"agate|chalk|miami|lapis|aventurine|pts|paint to sample)\b",
+                re.I
+            )
+            if _COLOR_ONLY.match(trim):
+                trim = ""
             if trim:
                 result["trim"] = trim
             break
