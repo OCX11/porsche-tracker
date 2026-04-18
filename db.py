@@ -355,7 +355,7 @@ _AUCTION_NAMES = frozenset({
     "cars & bids", "carsandbids", "cars and bids", "classic.com",
 })
 _RETAIL_NAMES = frozenset({
-    "pca mart", "rennlist", "autotrader", "cars.com", "ebay",
+    "pca mart", "rennlist", "autotrader", "cars.com", "ebay", "dupont registry", "ebay motors",
     # rennlist already present; cars.com now also Distill-fed
 })
 

@@ -23,6 +23,7 @@ from scraper_ebay import scrape_ebay as _scrape_ebay_new
 from scraper_rennlist import scrape_rennlist as _scrape_rennlist_new
 from scraper_bfb import scrape_bfb as _scrape_bfb_new
 from scraper_cnb import scrape_cnb as _scrape_cnb_new
+from scraper_dupont import scrape_dupont as _scrape_dupont_new
 
 log = logging.getLogger(__name__)
 
@@ -2832,6 +2833,7 @@ DEALERS = [
     {"name": "Rennlist",                    "scrape": _scrape_rennlist_new},
     {"name": "Built for Backroads",         "scrape": _scrape_bfb_new},
     {"name": "Cars and Bids",               "scrape": _scrape_cnb_new},
+    {"name": "DuPont Registry",             "scrape": _scrape_dupont_new},
 
     # ── DISABLED — independent dealers (low volume, slow, pollute dashboard) ──
     # {"name": "Holt Motorsports",            "scrape": scrape_holtmotorsports},
