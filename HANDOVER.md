@@ -49,6 +49,7 @@ Small performance car dealership. All purchases are investments. Core range $70K
 | AutoTrader | 10 | curl_cffi + headless PW fallback (no headed) | ⚠️ 80% |
 | pcarmarket | 8 | Playwright | ✅ 100% |
 | Rennlist | 6 | curl_cffi (Cloudflare bypass) | ✅ 100% |
+| DuPont Registry | ~350 | Direct API (api.dupontregistry.com) | ✅ 100% |
 
 **All local — zero Distill dependency (cancelled April 15).**
 
@@ -186,6 +187,15 @@ Built by `new_dashboard.py` → `docs/index.html`, pushed every 2 min.
 ---
 
 ## 11. Session Log
+
+### April 18, 2026
+- scraper_dupont.py built — DuPont Registry via direct API (no Playwright needed)
+- API: POST api.dupontregistry.com/api/v1/en_US/car/list, carBrand=[14], currentPage pagination
+- ~1,681 Porsche listings across 63 pages, 100% image coverage
+- Model/trim correctly inferred from carModel.name (e.g. "Carrera 4S" → model=911, trim=Carrera 4S)
+- Wired into scraper.py DEALERS + db.py _RETAIL_NAMES
+- Tasks also completed: Rennlist trim fix, sold comp auto-expiry, AutoTrader junk record cleanup
+- Commit: d7ca82652
 
 ### April 17, 2026 — Evening
 - auction_dashboard.py built → docs/auctions.html (60 auctions, 4 sections)
