@@ -286,7 +286,7 @@ def _parse_html(html: str) -> list:
             "mileage":   mileage,
             "price":     price,
             "vin":       None,
-            "url":       url,
+            "listing_url": url,
             "image_url": image_url,
         })
 

@@ -1319,7 +1319,7 @@ def scrape_bat():
             if not year:
                 continue
             c = dict(year=year, make=make or "Porsche", model=model, trim=trim,
-                     mileage=mileage, price=price, vin=None, url=url, image_url=image_url,
+                     mileage=mileage, price=price, vin=None, listing_url=url, image_url=image_url,
                      auction_ends_at=auction_ends_at)
             if _is_valid_listing(c):
                 cars.append(c)
@@ -1379,7 +1379,7 @@ def scrape_pcamart():
             if not year:
                 continue
             c = dict(year=year, make=make, model=model, trim=trim,
-                     mileage=mileage, price=price, vin=None, url=url, image_url=image_url)
+                     mileage=mileage, price=price, vin=None, listing_url=url, image_url=image_url)
             if _is_valid_listing(c):
                 out.append(c)
         return out

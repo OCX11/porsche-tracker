@@ -43,7 +43,7 @@ import scraper as sc
 import dashboard as dash
 import new_dashboard as ndash
 import auction_dashboard as auc_dash
-import live_feed as lf
+# live_feed.py deleted — removed import
 import comp_scraper
 import report as rpt
 import daily_report
@@ -113,7 +113,7 @@ def run_snapshot(dealer_results: dict, today: str):
                         mileage=car.get("mileage"),
                         price=car.get("price"),
                         vin=car.get("vin"),
-                        url=car.get("url"),
+                        url=car.get("listing_url") or car.get("url"),
                         today=today,
                         image_url=car.get("image_url"),
                         location=car.get("location"),
@@ -185,16 +185,13 @@ def main():
 
     if args.dashboard:
         path = dash.generate()
-        lp = lf.generate()
         np = ndash.generate()
         print(f"\nDashboard: file://{path}")
         print(f"New Dashboard: file://{np}")
-        print(f"Live Feed: file://{lp}")
         return
 
     if args.live:
-        lp = lf.generate()
-        print(f"\nLive Feed: file://{lp}")
+        print("Live feed removed — see index.html")
         return
 
     if args.report:
@@ -282,13 +279,6 @@ def main():
         log.info("Auction page generated")
     except Exception as e:
         log.warning("Auction dashboard generation failed: %s", e)
-
-    try:
-        lp = lf.generate()
-        log.info("Live Feed: file://%s", lp)
-        print(f"Live Feed: file://{lp}")
-    except Exception as e:
-        log.warning("Live feed generation failed: %s", e)
 
     # Regenerate reports
     for label, fn in [

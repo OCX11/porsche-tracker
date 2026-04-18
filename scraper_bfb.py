@@ -177,7 +177,7 @@ def _parse_cards(html: str) -> list:
             "mileage": None,
             "price": price,
             "vin": None,
-            "url": url,
+            "listing_url": url,
             "image_url": image_url,
         })
 
