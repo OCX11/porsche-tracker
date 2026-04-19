@@ -119,6 +119,7 @@ _BADGE_CFG = {
     "pcarmarket":      ("#0A1F14", "#4ade80", "pcarmarket"),
     "cars & bids":     ("#1F0D03", "#fb923c", "C&B"),
     "carsandbids":     ("#1F0D03", "#fb923c", "C&B"),
+    "cars and bids":   ("#1F0D03", "#fb923c", "C&B"),
     "classic.com":     ("#1A0B2E", "#c084fc", "classic"),
     "rennlist":        ("#1F0A10", "#f472b6", "Rennlist"),
     "pca mart":        ("#051520", "#38bdf8", "PCA Mart"),
@@ -128,7 +129,7 @@ _BADGE_CFG = {
     "dupont registry": ("#1A0505", "#f87171", "DuPont"),
     "built for backroads": ("#0A1520", "#7dd3fc", "BfB"),
 }
-_AUCTION_SET = frozenset({"bring a trailer","bat","bringatrailer","pcarmarket","cars & bids","carsandbids","classic.com"})
+_AUCTION_SET = frozenset({"bring a trailer","bat","bringatrailer","pcarmarket","cars & bids","carsandbids","cars and bids","classic.com"})
 
 def _badge(dealer: str) -> str:
     k = (dealer or "").lower().strip()
@@ -407,7 +408,7 @@ def generate() -> str:
         def _keep(c):
             if (c.get("dealer") or "").lower() == "holt motorsports": return False
             yr = int(c.get("year") or 0)
-            if yr < 1986 or yr > 2024: return False
+            if yr < 1984 or yr > 2024: return False
             return True
         active = [c for c in active if _keep(c)]
         for c in active:

@@ -96,7 +96,9 @@ def run_snapshot(dealer_results: dict, today: str):
             active_keys = set()
             for car in cars:
                 vin = car.get("vin")
+                listing_url = car.get("listing_url") or car.get("url")
                 key = vin if vin else (
+                    listing_url or
                     f"{car.get('year')}|{car.get('make')}|"
                     f"{car.get('model')}|{car.get('mileage')}|{car.get('price')}"
                 )

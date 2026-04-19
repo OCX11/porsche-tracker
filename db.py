@@ -609,7 +609,7 @@ def mark_sold(conn, dealer, active_keys, today):
                 archived_at=COALESCE(archived_at, datetime('now')),
                 archive_reason=COALESCE(archive_reason,'sold')
             WHERE dealer=? AND status='active'
-            AND COALESCE(vin, year||'|'||make||'|'||model||'|'||mileage||'|'||price)
+            AND COALESCE(vin, listing_url, year||'|'||make||'|'||model||'|'||mileage||'|'||price)
             NOT IN ({placeholders})""",
         [today, dealer] + list(active_keys)
     )
