@@ -325,7 +325,7 @@ def main():
         log.warning("Sold comp scrape failed: %s", e)
 
 
-    # iMessage alerts — new listing ping (every new car, no FMV threshold)
+    # Push alerts — new listing ping (every new car, no FMV threshold)
     try:
         with database.get_conn() as conn:
             # Safety: only alert on listings created in the last 20 minutes.
@@ -348,10 +348,8 @@ def main():
     except Exception as e:
         log.warning("Push new-listing alerts failed: %s", e)
 
-    # iMessage deal alerts — TEMPORARILY DISABLED (re-enable when ready)
-    # notify_push.main()
 
-    # iMessage auction-ending alerts (3hr Tier1, 1hr Tier2)
+    # Push alerts — auction ending (Tier1 <3hr, Tier2 <1hr)
     try:
         with database.get_conn() as conn:
             notify_push.notify_auction_ending(conn)

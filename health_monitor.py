@@ -1,9 +1,9 @@
 """
-health_monitor.py — scraper health checks with iMessage alerts.
+health_monitor.py — scraper health checks with push notification alerts.
 
 Checks:
   1. For each active source in DEALERS: if the source returned 0 listings in
-     ALL of the last 3 consecutive scrape runs → send one iMessage alert.
+     ALL of the last 3 consecutive scrape runs → send one push alert.
   2. If today's scrape log hasn't been updated in over 30 minutes → alert
      (scheduler may be stuck).
 
@@ -13,7 +13,7 @@ Called at the end of each main.py scrape cycle.
 import json
 import logging
 import re
-import subprocess
+import requests
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
@@ -23,7 +23,9 @@ SCRIPT_DIR  = Path(__file__).parent
 DATA_DIR    = SCRIPT_DIR / "data"
 LOG_DIR     = SCRIPT_DIR / "data" / "logs"
 SEEN_FILE   = DATA_DIR / "health_monitor_seen.json"
-CONFIG_FILE = DATA_DIR / "imessage_config.json"
+
+PUSH_SERVER = "http://127.0.0.1:5055/send-push"
+DASHBOARD_URL = "https://ocx11.github.io/PTOX11/"
 
 # How many consecutive zero-result runs before alerting
 ZERO_RUN_THRESHOLD = 3
@@ -32,44 +34,24 @@ STALE_LOG_MINUTES  = 30
 
 
 # ---------------------------------------------------------------------------
-# iMessage delivery (same pattern as notify_imessage.py)
+# Push delivery
 # ---------------------------------------------------------------------------
 
-def _load_recipient():
-    """Return the iMessage recipient from imessage_config.json, or None."""
+def _send_push(title, body):
+    """Send a push notification via local push server. Returns True on success."""
     try:
-        with open(CONFIG_FILE) as f:
-            cfg = json.load(f)
-        return cfg.get("recipient")
-    except Exception as e:
-        log.warning("health_monitor: could not load imessage_config.json: %s", e)
-        return None
-
-
-def _send_imessage(recipient, text):
-    """Send an iMessage via AppleScript → Messages.app. Returns True on success."""
-    safe_text = text.replace("\\", "\\\\").replace('"', '\\"')
-    script = f'''
-tell application "Messages"
-    set targetService to first service whose service type is iMessage
-    set targetBuddy to buddy "{recipient}" of targetService
-    send "{safe_text}" to targetBuddy
-end tell
-'''
-    try:
-        result = subprocess.run(
-            ["osascript", "-e", script],
-            capture_output=True, text=True, timeout=30,
+        resp = requests.post(
+            PUSH_SERVER,
+            json={"title": title, "body": body, "url": DASHBOARD_URL},
+            timeout=10,
         )
-        if result.returncode != 0:
-            log.error("health_monitor: AppleScript error: %s", result.stderr.strip())
-            return False
-        return True
-    except subprocess.TimeoutExpired:
-        log.error("health_monitor: iMessage send timed out")
+        result = resp.json()
+        if result.get("sent", 0) > 0:
+            return True
+        log.warning("health_monitor: push sent=0 (no subscribers or delivery failed)")
         return False
     except Exception as e:
-        log.error("health_monitor: iMessage send failed: %s", e)
+        log.error("health_monitor: push failed: %s", e)
         return False
 
 
@@ -122,39 +104,30 @@ def _parse_scrape_blocks(log_path):
         return []
 
     runs = []
-    current_ts = None
-    current_counts = {}
+    current_run = None
 
     for line in text.splitlines():
-        # Header line: === Scrape 2026-04-01 12:34:56 ===
-        m = re.match(r"=== Scrape (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) ===", line.strip())
-        if m:
-            if current_ts is not None:
-                runs.append({"timestamp": current_ts, "counts": current_counts})
-            current_ts = datetime.strptime(m.group(1), "%Y-%m-%d %H:%M:%S")
-            current_counts = {}
+        # Detect start of a new scrape cycle
+        run_start = re.match(
+            r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d+ INFO\s+={10,}",
+            line,
+        )
+        if run_start:
+            if current_run:
+                runs.append(current_run)
+            ts = datetime.strptime(run_start.group(1), "%Y-%m-%d %H:%M:%S")
+            current_run = {"timestamp": ts, "counts": {}}
             continue
 
-        # Source line: "  Bring a Trailer                       47"
-        # Skip separator and TOTAL lines
-        if current_ts is None:
-            continue
-        stripped = line.strip()
-        if not stripped or stripped.startswith("---") or stripped.startswith("TOTAL"):
-            continue
-        # Last token is the count (integer); everything before is the source name
-        parts = stripped.rsplit(None, 1)
-        if len(parts) == 2:
-            source_name = parts[0].strip()
-            try:
-                count = int(parts[1])
-                current_counts[source_name] = count
-            except ValueError:
-                pass
+        # Detect per-source result lines, e.g. "  [BaT] 12 listings"
+        if current_run:
+            m = re.search(r"\[([^\]]+)\]\s+(\d+)\s+listing", line)
+            if m:
+                source, count = m.group(1), int(m.group(2))
+                current_run["counts"][source] = count
 
-    # Flush last block
-    if current_ts is not None:
-        runs.append({"timestamp": current_ts, "counts": current_counts})
+    if current_run:
+        runs.append(current_run)
 
     return runs
 
@@ -163,22 +136,15 @@ def _parse_scrape_blocks(log_path):
 # Health checks
 # ---------------------------------------------------------------------------
 
-def _check_zero_runs(runs, active_sources, seen, recipient):
-    """Alert for any source with 0 listings in the last N consecutive runs."""
+def _check_zero_runs(runs, active_sources, seen):
     if len(runs) < ZERO_RUN_THRESHOLD:
-        return  # Not enough history yet
+        return
 
-    recent = runs[-ZERO_RUN_THRESHOLD:]
+    recent_runs = runs[-ZERO_RUN_THRESHOLD:]
 
     for source in active_sources:
-        # Only alert for sources that appear in at least one of the recent runs
-        # (sources added later won't have history in earlier runs)
-        appeared_in = [r for r in recent if source in r["counts"]]
-        if not appeared_in:
-            continue
-
+        appeared_in = [r for r in recent_runs if source in r["counts"]]
         all_zero = all(r["counts"].get(source, 0) == 0 for r in appeared_in)
-        # Require the source to appear in all N recent runs and be zero each time
         if len(appeared_in) < ZERO_RUN_THRESHOLD:
             continue
         if not all_zero:
@@ -189,24 +155,20 @@ def _check_zero_runs(runs, active_sources, seen, recipient):
             log.info("health_monitor: %s zero-run alert already sent today", source)
             continue
 
-        msg = (
-            f"\u26a0\ufe0f {source} has returned 0 listings for "
-            f"{ZERO_RUN_THRESHOLD} consecutive runs \u2014 may be blocked"
-        )
+        msg = f"{source} returned 0 listings for {ZERO_RUN_THRESHOLD} consecutive runs — may be blocked"
         log.warning("health_monitor: %s", msg)
-        if recipient and _send_imessage(recipient, msg):
-            log.info("health_monitor: alert sent for %s", source)
+        if _send_push(f"⚠️ Scraper Down: {source}", msg):
+            log.info("health_monitor: push alert sent for %s", source)
             _mark_alerted(seen, key)
         else:
-            log.error("health_monitor: failed to send alert for %s", source)
+            log.error("health_monitor: failed to send push alert for %s", source)
 
 
-def _check_stale_log(log_path, seen, recipient):
+def _check_stale_log(log_path, seen):
     """Alert if the scrape log hasn't been written to in STALE_LOG_MINUTES."""
     try:
         mtime = datetime.fromtimestamp(log_path.stat().st_mtime)
     except Exception:
-        # Log doesn't exist yet — could be a new day, not an error
         return
 
     age_minutes = (datetime.now() - mtime).total_seconds() / 60
@@ -217,16 +179,13 @@ def _check_stale_log(log_path, seen, recipient):
     if _already_alerted(seen, key):
         return
 
-    msg = (
-        f"\u26a0\ufe0f Porsche tracker scrape log hasn't updated in "
-        f"{int(age_minutes)} minutes \u2014 scheduler may be stuck"
-    )
+    msg = f"Scrape log hasn't updated in {int(age_minutes)} min — scheduler may be stuck"
     log.warning("health_monitor: %s", msg)
-    if recipient and _send_imessage(recipient, msg):
-        log.info("health_monitor: stale-log alert sent")
+    if _send_push("⚠️ PTOX11 Scheduler Stuck", msg):
+        log.info("health_monitor: stale-log push alert sent")
         _mark_alerted(seen, key)
     else:
-        log.error("health_monitor: failed to send stale-log alert")
+        log.error("health_monitor: failed to send stale-log push alert")
 
 
 # ---------------------------------------------------------------------------
@@ -235,7 +194,6 @@ def _check_stale_log(log_path, seen, recipient):
 
 def main():
     """Run all health checks. Called at end of each main.py scrape cycle."""
-    # Import DEALERS at call time to avoid circular imports at module load
     try:
         from scraper import DEALERS as _DEALERS
         active_sources = [d["name"] for d in _DEALERS]
@@ -243,17 +201,16 @@ def main():
         log.warning("health_monitor: could not import DEALERS: %s", e)
         active_sources = []
 
-    log_path   = _today_log_path()
-    runs       = _parse_scrape_blocks(log_path)
-    seen       = _load_seen()
-    recipient  = _load_recipient()
+    log_path = _today_log_path()
+    runs     = _parse_scrape_blocks(log_path)
+    seen     = _load_seen()
 
     # Purge stale dedup entries from previous days
     today = date.today().isoformat()
     seen  = {k: v for k, v in seen.items() if v == today}
 
-    _check_zero_runs(runs, active_sources, seen, recipient)
-    _check_stale_log(log_path, seen, recipient)
+    _check_zero_runs(runs, active_sources, seen)
+    _check_stale_log(log_path, seen)
 
     _save_seen(seen)
 
