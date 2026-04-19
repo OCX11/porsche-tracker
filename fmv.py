@@ -85,6 +85,24 @@ def get_generation(year: Optional[int], model: str, trim: str = "") -> str:
 
 # Maps messy/variant trim strings to a canonical form for grouping
 _TRIM_ALIASES = {
+    # ── Singer / restomod / coachbuilt — never comparable to stock ───────────
+    # These are bespoke builds on 911 bodies. They sell for 5-20x stock prices
+    # and must not pollute standard trim FMV pools. Map to a sentinel that will
+    # score 0.0 against every real trim family.
+    "dls by singer":                        "_restomod_singer",
+    "carrera 4 coupe by singer":            "_restomod_singer",
+    "carrera coupe by singer":              "_restomod_singer",
+    "carrera targa by singer":              "_restomod_singer",
+    "by singer":                            "_restomod_singer",
+    "singer":                               "_restomod_singer",
+    "by gunther werks":                     "_restomod_gw",
+    "carrera by gunther werks":             "_restomod_gw",
+    "by dp motorsport":                     "_restomod_dp",
+    "slantnose conversion":                 "_restomod_slantnose",
+    "slant nose conversion":                "_restomod_slantnose",
+    "slant-nose conversion":                "_restomod_slantnose",
+    "gemballa":                             "_restomod_gemballa",
+
     # ── Air-cooled body-style preservation ──────────────────────────────────
     # For G-series (3.2), 964, 993 — coupe/cabriolet/targa have 30-40% price
     # gaps. Preserve body style in the canonical trim so they don't get pooled.
@@ -131,6 +149,7 @@ _TRIM_ALIASES = {
     "gt3":                      "GT3",
     # GT2 family
     "gt2 rs weissach":          "GT2 RS",
+    "gt2 rs clubsport":         "GT2 RS",
     "gt2 rs":                   "GT2 RS",
     "gt2":                      "GT2",
     # GT4 family
@@ -472,6 +491,34 @@ def _trim_match_score(target_trim: Optional[str], comp_trim: Optional[str]) -> f
     if t.lower() == c.lower():
         return 1.0   # exact
 
+    # Reject restomod sentinel — never comparable to stock
+    if t.startswith("_restomod") or c.startswith("_restomod"):
+        return 0.0
+
+    # Body-style variants of the same base trim score 0.9 (near-exact).
+    # BaT comps include body style ("Coupe", "Cabriolet", "Targa") in the trim
+    # field while dealer/scraper listings typically omit it.  A listing with
+    # trim="Carrera" is the same car as a BaT comp "Carrera Coupe G50" or
+    # "Carrera Cabriolet" — treat as near-exact so the exact_trim_comps
+    # narrowing fires and Singer/restomod comps don't pollute the pool.
+    _BODY_STYLE_VARIANTS = {
+        "Carrera":    {"Carrera Coupe", "Carrera Cabriolet", "Carrera Targa"},
+        "Carrera S":  {"Carrera S Coupe", "Carrera S Cabriolet"},
+        "Carrera 4":  {"Carrera 4 Coupe", "Carrera 4 Cabriolet"},
+        "Carrera 4S": {"Carrera 4S Coupe", "Carrera 4S Cabriolet"},
+        "Carrera GTS":{"Carrera GTS Coupe", "Carrera GTS Cabriolet"},
+        "Turbo":      {"Turbo Coupe", "Turbo Cabriolet", "Turbo Targa"},
+        "Turbo S":    {"Turbo S Coupe", "Turbo S Cabriolet"},
+        "GT3":        {"GT3 6-Speed"},
+        "GT3 Touring":{"GT3 Touring 6-Speed"},
+    }
+    # Check both directions: listing trim → comp body variant, and vice-versa
+    for base, variants in _BODY_STYLE_VARIANTS.items():
+        if (t == base and c in variants) or (c == base and t in variants):
+            return 0.9
+        if t in variants and c in variants:
+            return 0.9  # both are body-style variants of same base
+
     # Family matching — GT3/GT3 Touring/GT3 RS are related
     gt3_family = {"GT3", "GT3 Touring", "GT3 RS", "GT3 Cup"}
     gt2_family = {"GT2", "GT2 RS"}
@@ -597,9 +644,22 @@ def get_fmv(
     # Prefer exact generation comps. Only fall back to adjacent generation
     # if we have NO same-gen comps AND the target trim is unknown (None).
     # If we know the trim, cross-gen fallback produces misleading FMVs.
+    # EXCEPTION: GT variants (GT2, GT2 RS, GT3, GT3 RS, GT4, GT4 RS) share
+    # technology and pricing continuity across adjacent generations. When a
+    # new-gen GT car has < 3 same-gen sold comps, allow cross-gen fallback
+    # using only the same trim family — e.g. 992 GT2 RS falls back to 991
+    # GT2 RS comps rather than 992 gen-pool comps (which are 80% Carreras).
+    _GT_TRIMS = {"GT2", "GT2 RS", "GT3", "GT3 RS", "GT3 Touring",
+                 "GT4", "GT4 RS", "Spyder RS"}
     exact_gen = [(c, s) for c, s in scored if c.generation == target_gen]
     if exact_gen:
         use_comps = exact_gen
+    elif norm_trim in _GT_TRIMS and len(exact_gen) < 3:
+        # GT trim with thin same-gen coverage — cross-gen fallback restricted
+        # to the same trim family only (no dilution from unrelated gen comps)
+        cross_gen_gt = [(c, s) for c, s in scored
+                        if _trim_match_score(norm_trim, c.trim_normalized) >= 0.7]
+        use_comps = cross_gen_gt if cross_gen_gt else scored
     elif norm_trim is None:
         # No trim known — cross-gen fallback is acceptable
         use_comps = scored
