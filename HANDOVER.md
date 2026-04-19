@@ -213,6 +213,16 @@ Auctions: `auction_dashboard.py` → `docs/auctions.html`
 
 ## 11. Session Log
 
+### April 18, 2026 (late evening — PCA Mart + data layer fixes)
+- PCA Mart pagination fixed — f-string semicolon escaping bug in evaluate() calls caused only 11/85+ listings to be scraped. Rewrote all evaluate() calls to pass body as JS argument. Now returns 53+ listings across 39 pages.
+- PCA Mart false-sold fixed — partial scrape was triggering mark_sold on 74 cars. Added 50% threshold guard in persist_scrape: if scraped count < 50% of active count, skip sold-marking entirely. 74 listings restored to active.
+- 90-day archive rule — archive_stale_listings() added to db.py, wired into main.py after each scrape cycle. Listings with date_last_seen > 90 days ago → status=sold, archive_reason=stale_90d.
+- upsert_listing UPDATE now refreshes date_first_seen when scraper provides a newer date (for PCA Mart LASTUPDATED renewals).
+- PCA Mart LASTUPDATED date parsing fixed — CF format "April, 18 2026 14:32:00" now correctly parsed to ISO "2026-04-18". Existing malformed dates in DB corrected via one-time UPDATE.
+- _ALLOWED_MODELS expanded: 930, 964, 993, 996, 997, 991, 992, gt3, gt4, turbo added. Rennlist listings titled "1996 993 Cabriolet" now pass the filter.
+- Source chip filter fixed — cards now carry data-src-label matching badge label; JS does exact match on that instead of partial dealer name match. BaT/BfB chips now correctly filter.
+- Commit: 730882e61
+
 ### April 18, 2026 (evening — scraper fixes)
 - **CRITICAL BUG FIXED:** All scrapers (BaT, PCA Mart, BfB, Rennlist) were emitting `url=` instead of `listing_url=` in their listing dicts. `upsert_listing` couldn't match by URL, so new listings from these sources were never created as new DB records — they were silently absorbed into existing year/model matches. Fix: `scraper.py` (BaT + PCA Mart), `scraper_bfb.py`, `scraper_rennlist.py` all updated to emit `listing_url=`. `main.py` now reads `car.get("listing_url") or car.get("url")` as fallback for all scrapers.
 - **live_feed import crash fixed:** `main.py` was importing `live_feed as lf` (deleted file) — would have crashed next full scrape cycle. Removed import and all 3 call sites.
