@@ -56,6 +56,10 @@ VAPID = _load_vapid()
 VAPID_PUBLIC_KEY = VAPID["public_key"]
 VAPID_PRIVATE_KEY_PEM = VAPID["private_key_pem"]
 
+# Load private key object once at startup for manual JWT signing
+from cryptography.hazmat.primitives.serialization import load_pem_private_key as _load_pem
+_PRIVKEY = _load_pem(VAPID_PRIVATE_KEY_PEM.encode(), password=None)
+
 
 # ── Subscription store ─────────────────────────────────────────────────────────
 
@@ -170,8 +174,42 @@ def send_push():
 
 # ── Push delivery ──────────────────────────────────────────────────────────────
 
+def _make_vapid_jwt(endpoint: str) -> str:
+    """Build a VAPID JWT for the given push endpoint.
+    Apple Web Push requires compact JSON (no spaces) and aud = scheme://host.
+    """
+    import base64
+    import time as _time
+    from urllib.parse import urlparse
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
+
+    def b64url(data: bytes) -> str:
+        return base64.urlsafe_b64encode(data).rstrip(b"=").decode()
+
+    parsed = urlparse(endpoint)
+    aud = f"{parsed.scheme}://{parsed.netloc}"
+
+    # Compact JSON — NO spaces (Apple rejects pretty-printed JWT)
+    import json as _json
+    header  = b64url(_json.dumps({"typ":"JWT","alg":"ES256"}, separators=(",",":")).encode())
+    payload = b64url(_json.dumps({
+        "aud": aud,
+        "exp": int(_time.time()) + 86400,
+        "sub": "https://ocx11.github.io/PTOX11/",
+    }, separators=(",",":")).encode())
+
+    signing_input = f"{header}.{payload}".encode()
+    sig_der = _PRIVKEY.sign(signing_input, ec.ECDSA(hashes.SHA256()))
+    r, s = decode_dss_signature(sig_der)
+    sig_bytes = r.to_bytes(32, "big") + s.to_bytes(32, "big")
+    return f"{header}.{payload}.{b64url(sig_bytes)}"
+
+
 def _send_to_all(subs: dict, notification: dict) -> dict:
-    from pywebpush import webpush, WebPushException
+    import requests
+    from pywebpush import WebPusher
 
     sent = 0
     failed = 0
@@ -180,23 +218,34 @@ def _send_to_all(subs: dict, notification: dict) -> dict:
     for endpoint, entry in list(subs.items()):
         sub = entry["subscription"]
         try:
-            webpush(
-                subscription_info=sub,
-                data=json.dumps(notification),
-                vapid_private_key=VAPID_PRIVATE_KEY_PEM,
-                vapid_claims={"sub": "mailto:ptox11@localhost"},
-                ttl=86400,
+            # Encrypt payload
+            pusher = WebPusher(sub)
+            encoded = pusher.encode(json.dumps(notification), content_encoding="aes128gcm")
+            body = encoded.get("body") or encoded.get("Body")
+
+            # Build VAPID JWT with correct aud for this endpoint
+            token = _make_vapid_jwt(endpoint)
+            auth_header = f"vapid t={token},k={VAPID_PUBLIC_KEY}"
+
+            resp = requests.post(
+                endpoint,
+                data=body,
+                headers={
+                    "Authorization": auth_header,
+                    "Content-Type": "application/octet-stream",
+                    "TTL": "86400",
+                    "Content-Encoding": "aes128gcm",
+                },
+                timeout=15,
             )
-            sent += 1
-            log.debug("Push sent: %s", endpoint[:50])
-        except WebPushException as e:
-            status = getattr(e.response, "status_code", None) if e.response else None
-            if status in (404, 410):
-                # Subscription expired or revoked — remove it
-                log.info("Subscription expired (HTTP %s), removing: %s", status, endpoint[:50])
+            if resp.status_code in (200, 201, 202, 204):
+                sent += 1
+                log.debug("Push sent: %s", endpoint[:50])
+            elif resp.status_code in (404, 410):
+                log.info("Subscription expired (HTTP %s), removing: %s", resp.status_code, endpoint[:50])
                 expired.append(endpoint)
             else:
-                log.warning("Push failed (HTTP %s): %s — %s", status, endpoint[:50], str(e)[:120])
+                log.warning("Push failed (HTTP %s): %s — %s", resp.status_code, endpoint[:50], resp.text[:120])
                 failed += 1
         except Exception as e:
             log.warning("Push error: %s — %s", endpoint[:50], str(e)[:120])
