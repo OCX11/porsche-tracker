@@ -439,7 +439,27 @@ def generate() -> str:
 
         health     = _source_health()
         health_html = _health_pills(health)
-        all_cards  = "\n".join(_card(c, c["_fmv"]) for c in active_sorted)
+        import json as _json
+        card_items = []
+        card_html_parts = []
+        for c in active_sorted:
+            fmv_s = c["_fmv"]
+            html_c = _card(c, fmv_s)
+            card_html_parts.append(html_c)
+            pct = _fmv_pct(c.get("price"), fmv_s.get("fmv")) if fmv_s.get("confidence","NONE") != "NONE" else None
+            card_items.append({
+                "html": html_c,
+                "yr":   int(c.get("year") or 0),
+                "pr":   int(c.get("price") or 0),
+                "gen":  _gen(c.get("year"), c.get("model")),
+                "src":  _BADGE_CFG.get((c.get("dealer") or "").lower().strip(), (None,None,(c.get("dealer") or "")[:12]))[2],
+                "tier": c.get("tier") or "",
+                "deal": pct is not None and pct <= -10,
+                "txt":  ((str(c.get("year") or "") + " " + (c.get("model") or "") + " " +
+                          (c.get("dealer") or "") + " " + _gen(c.get("year"), c.get("model")))).lower(),
+            })
+        all_cards  = "\n".join(card_html_parts)
+        card_data_json = _json.dumps(card_items, ensure_ascii=False)
         comp_rows_html = "\n".join(_comp_row(c) for c in comps)
 
         # Chip data — unique generations and sources
@@ -479,7 +499,7 @@ def generate() -> str:
   --bg3:    #18181F;
   --border: #25252E;
   --text:   #F0F0F8;
-  --muted:  #6B6B7D;
+  --muted:  #8A8A9A;
   --green:  #22C55E;
   --yellow: #EAB308;
 }}
@@ -515,6 +535,8 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
 }}
 .nav-item:hover {{ color:var(--text); }}
 .nav-item.active {{ color:var(--text); border-bottom-color:var(--red); }}
+.nav-bell {{ padding:0 12px; opacity:0.6; }}
+.nav-bell:hover {{ opacity:1; color:var(--red); }}
 .topbar-right {{
   display:flex; align-items:center; gap:12px;
   font-family:'DM Mono',monospace; font-size:10px; color:var(--muted);
@@ -671,10 +693,10 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
 .card-top-row {{
   display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;
 }}
-.card-age {{ font-family:'DM Mono',monospace; font-size:9px; color:#4B4B5D; }}
+.card-age {{ font-family:'DM Mono',monospace; font-size:9px; color:#7A7A8E; }}
 .card-title {{
   font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500;
-  color:#D0D0E0; margin-bottom:4px; line-height:1.35;
+  color:#E8E8F4; margin-bottom:4px; line-height:1.35;
 }}
 .tier-badge {{
   display:inline-block; font-family:'DM Mono',monospace; font-size:9px; font-weight:500;
@@ -715,10 +737,10 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
 }}
 .fmv-bottom-row {{ display:flex; justify-content:space-between; font-family:'DM Mono',monospace; font-size:9px; }}
 .fmv-val-txt {{ color:var(--muted); }}
-.fmv-comps-txt {{ color:#3B3B4D; }}
+.fmv-comps-txt {{ color:#6B6B7D; }}
 .fmv-none {{
   display:flex; align-items:center; gap:5px;
-  font-family:'DM Mono',monospace; font-size:9px; color:#3B3B4D; margin-bottom:7px;
+  font-family:'DM Mono',monospace; font-size:9px; color:#6B6B7D; margin-bottom:7px;
 }}
 .fmv-none-dot {{ width:5px; height:5px; border-radius:50%; background:var(--border); flex-shrink:0; }}
 
@@ -726,8 +748,8 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
   font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); margin-bottom:5px;
 }}
 .countdown {{ color:var(--red); font-weight:500; }}
-.card-meta {{ font-family:'DM Mono',monospace; font-size:9px; color:#4B4B5D; }}
-.days-stale {{ color:#F87171; }}
+.card-meta {{ font-family:'DM Mono',monospace; font-size:9px; color:#7A7A8E; }}
+.days-stale {{ color:#F87171; font-weight:500; }}
 .badge {{ font-family:'DM Mono',monospace; font-size:9px; font-weight:500; padding:2px 6px; border-radius:3px; display:inline-block; }}
 
 /* ── Table view (comps) ── */
@@ -803,7 +825,7 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
   border-radius:16px 16px 0 0; z-index:201;
   padding:16px 20px 40px;
   transform:translateY(100%); transition:transform 0.25s ease;
-  max-height:85vh; overflow-y:auto;
+  max-height:92vh; overflow-y:auto;
 }}
 .filter-drawer.open {{ transform:translateY(0); }}
 .drawer-handle {{
@@ -811,37 +833,37 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
   border-radius:2px; margin:0 auto 16px; display:block;
 }}
 .drawer-title {{
-  font-family:'DM Mono',monospace; font-size:10px; font-weight:500;
-  color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:14px;
+  font-family:'DM Mono',monospace; font-size:12px; font-weight:600;
+  color:var(--text); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;
 }}
 .drawer-grid {{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }}
 .drawer-section {{ display:flex; flex-direction:column; gap:7px; }}
 .drawer-section-label {{
-  font-family:'DM Mono',monospace; font-size:9px; letter-spacing:1.5px;
-  text-transform:uppercase; color:var(--muted);
+  font-family:'DM Mono',monospace; font-size:10px; letter-spacing:1px;
+  text-transform:uppercase; color:var(--text); font-weight:500;
 }}
 .drawer-chips {{ display:flex; flex-wrap:wrap; gap:5px; }}
 .drawer-range {{ display:flex; gap:6px; }}
 .drawer-range input {{
-  width:100%; padding:9px 10px; border:1px solid var(--border); border-radius:6px;
-  font-family:'DM Mono',monospace; font-size:12px; color:var(--text);
-  background:var(--bg3); outline:none;
+  width:100%; padding:12px 12px; border:1px solid var(--border); border-radius:8px;
+  font-family:'DM Mono',monospace; font-size:14px; color:var(--text);
+  background:var(--bg2); outline:none;
 }}
 .drawer-range input:focus {{ border-color:var(--red); }}
-.drawer-checkboxes {{ display:flex; flex-direction:column; gap:10px; }}
+.drawer-checkboxes {{ display:flex; flex-direction:column; gap:14px; }}
 .drawer-checkboxes label {{
-  display:flex; align-items:center; gap:9px;
-  font-family:'DM Mono',monospace; font-size:12px; color:var(--muted);
+  display:flex; align-items:center; gap:12px;
+  font-family:'DM Mono',monospace; font-size:15px; color:var(--text);
 }}
-.drawer-checkboxes input[type=checkbox] {{ width:16px; height:16px; accent-color:var(--red); }}
+.drawer-checkboxes input[type=checkbox] {{ width:20px; height:20px; accent-color:var(--red); }}
 .drawer-actions {{ display:flex; gap:8px; margin-top:18px; }}
 .drawer-apply {{
-  flex:1; padding:13px; border-radius:8px; background:var(--red); color:#fff;
-  font-family:'DM Mono',monospace; font-size:12px; font-weight:500; border:none; cursor:pointer;
+  flex:1; padding:16px; border-radius:10px; background:var(--red); color:#fff;
+  font-family:'DM Mono',monospace; font-size:15px; font-weight:600; border:none; cursor:pointer;
 }}
 .drawer-reset {{
-  padding:13px 18px; border-radius:8px; background:var(--bg3); color:var(--muted);
-  font-family:'DM Mono',monospace; font-size:12px; border:1px solid var(--border); cursor:pointer;
+  padding:16px 20px; border-radius:10px; background:var(--bg3); color:var(--text);
+  font-family:'DM Mono',monospace; font-size:15px; border:1px solid var(--border); cursor:pointer;
 }}
 
 @media(max-width:768px) {{
@@ -865,6 +887,13 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
     <button class="nav-item" onclick="switchView('comps',this)">Comps</button>
     <button class="nav-item" onclick="switchView('market',this)">Market</button>
     <a class="nav-item" href="search.html">Search</a>
+    <a class="nav-item nav-bell" href="notify.html" title="Push Notifications">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        <line x1="3" y1="3" x2="21" y2="21" style="display:none"/>
+      </svg>
+    </a>
   </div>
   <div class="topbar-right">
     <div class="health-pills">{health_html}</div>
@@ -1096,11 +1125,11 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
 </div>
 
 <script>
-// ── Card pool ──────────────────────────────────────────────────────────────────
-var allCards = Array.from(document.querySelectorAll('#cards-grid .card'));
+// ── Card data (no DOM scanning — filter works on this array) ──────────────────
+var CARD_DATA = {card_data_json};
 var visibleCards = [];
 var renderedCount = 0;
-var PAGE = 60;
+var PAGE = 48;
 
 // ── Chip filter state ─────────────────────────────────────────────────────────
 var activeGens = [];
@@ -1123,7 +1152,7 @@ function toggleChip(btn, type) {{
   updateFabState();
 }}
 
-// ── Main filter ───────────────────────────────────────────────────────────────
+// ── Main filter — works on CARD_DATA array, not DOM ───────────────────────────
 function applyFilters() {{
   var q       = (document.getElementById('search-box').value || '').toLowerCase();
   var yMin    = parseInt(document.getElementById('f-year-min').value)  || 0;
@@ -1133,35 +1162,41 @@ function applyFilters() {{
   var dealsOnly = document.getElementById('f-deals').checked;
   var tier1Only = document.getElementById('f-tier1').checked;
 
-  visibleCards = [];
-  allCards.forEach(function(c) {{
-    var yr   = parseInt(c.dataset.year)  || 0;
-    var pr   = parseInt(c.dataset.price) || 0;
-    var gen  = c.dataset.gen      || '';
-    var src  = c.dataset.srcLabel || '';
-    var tier = c.dataset.tier     || '';
-    var txt  = (c.dataset.year+' '+c.dataset.model+' '+c.dataset.dealer+' '+c.dataset.gen).toLowerCase();
-
-    var ok = true;
-    if (q && txt.indexOf(q) === -1) ok = false;
-    if (yr < yMin || yr > yMax) ok = false;
-    if (pMin && pr < pMin) ok = false;
-    if (pMax < 999999999 && pr > pMax) ok = false;
-    if (activeGens.length && activeGens.indexOf(gen) === -1) ok = false;
-    if (activeSrcs.length && activeSrcs.indexOf(src) === -1) ok = false;
-    if (dealsOnly && !c.querySelector('.img-deal-badge')) ok = false;
-    if (tier1Only && tier !== 'TIER1') ok = false;
-
-    if (ok) visibleCards.push(c);
+  visibleCards = CARD_DATA.filter(function(d) {{
+    if (q && d.txt.indexOf(q) === -1) return false;
+    if (d.yr < yMin || d.yr > yMax) return false;
+    if (pMin && d.pr < pMin) return false;
+    if (pMax < 999999999 && d.pr > pMax) return false;
+    if (activeGens.length && activeGens.indexOf(d.gen) === -1) return false;
+    if (activeSrcs.length && activeSrcs.indexOf(d.src) === -1) return false;
+    if (dealsOnly && !d.deal) return false;
+    if (tier1Only && d.tier !== 'TIER1') return false;
+    return true;
   }});
 
-  // Virtual render: show only first PAGE, hide the rest
-  renderedCount = Math.min(PAGE, visibleCards.length);
-  allCards.forEach(function(c) {{ c.style.display = 'none'; }});
-  for (var i = 0; i < renderedCount; i++) visibleCards[i].style.display = '';
+  renderedCount = 0;
+  renderCards();
 
   var rc = document.getElementById('results-count');
   if (rc) rc.textContent = visibleCards.length + ' listing' + (visibleCards.length !== 1 ? 's' : '');
+}}
+
+function renderCards() {{
+  var grid = document.getElementById('cards-grid');
+  if (!grid) return;
+  var next = Math.min(renderedCount + PAGE, visibleCards.length);
+  var html = '';
+  for (var i = renderedCount; i < next; i++) {{
+    html += visibleCards[i].html;
+  }}
+  if (renderedCount === 0) {{
+    grid.innerHTML = html || '<div class="empty"><div class="empty-icon">&#x1F4ED;</div><div class="empty-text">No listings match</div></div>';
+  }} else {{
+    grid.insertAdjacentHTML('beforeend', html);
+  }}
+  renderedCount = next;
+  // Restart countdowns for newly inserted auction cards
+  startCountdowns();
 }}
 
 // ── Infinite scroll ───────────────────────────────────────────────────────────
@@ -1169,12 +1204,10 @@ var _ca = document.querySelector('.content-area');
 if (_ca) {{
   _ca.addEventListener('scroll', function() {{
     if (renderedCount >= visibleCards.length) return;
-    if (_ca.scrollTop + _ca.clientHeight >= _ca.scrollHeight - 400) {{
-      var next = Math.min(renderedCount + PAGE, visibleCards.length);
-      for (var i = renderedCount; i < next; i++) visibleCards[i].style.display = '';
-      renderedCount = next;
+    if (_ca.scrollTop + _ca.clientHeight >= _ca.scrollHeight - 600) {{
+      renderCards();
     }}
-  }});
+  }}, {{passive: true}});
 }}
 
 function resetFilters() {{
@@ -1192,7 +1225,7 @@ function resetFilters() {{
   updateFabState();
 }}
 
-// ── Drawer ────────────────────────────────────────────────────────────────────
+// ── Drawer sync ───────────────────────────────────────────────────────────────
 var _SYNC = [['d-year-min','f-year-min'],['d-year-max','f-year-max'],
              ['d-price-min','f-price-min'],['d-price-max','f-price-max'],
              ['d-deals','f-deals'],['d-tier1','f-tier1']];
@@ -1243,22 +1276,17 @@ function switchView(name, btn) {{
   if (btn) btn.classList.add('active');
 }}
 
-// ── Smart auto-refresh (preserves filter state, no hard reload) ───────────────
+// ── Smart auto-refresh (no reload, no filter wipe) ───────────────────────────
 function _autoRefresh() {{
   fetch(location.href + '?_nc=' + Date.now(), {{cache:'no-store'}})
     .then(function(r) {{ return r.text(); }})
     .then(function(html) {{
-      var m = html.match(/<div class="cards-grid" id="cards-grid">([\s\S]*?)<\/div>\s*<\/div>\s*<!--/);
+      var m = html.match(/var CARD_DATA = (\[[\s\S]*?\]);/);
       if (!m) return;
-      var grid = document.getElementById('cards-grid');
-      if (!grid) return;
-      var tmp = document.createElement('div');
-      tmp.innerHTML = m[1];
-      if (tmp.querySelectorAll('.card').length === allCards.length) return;
-      grid.innerHTML = m[1];
-      allCards = Array.from(grid.querySelectorAll('.card'));
+      var fresh = JSON.parse(m[1]);
+      if (fresh.length === CARD_DATA.length) return;
+      CARD_DATA = fresh;
       applyFilters();
-      startCountdowns();
     }}).catch(function() {{}});
 }}
 setInterval(_autoRefresh, 180000);
@@ -1266,6 +1294,8 @@ setInterval(_autoRefresh, 180000);
 // ── Auction countdown ─────────────────────────────────────────────────────────
 function startCountdowns() {{
   document.querySelectorAll('.countdown[data-ends]').forEach(function(el) {{
+    if (el._ticking) return;
+    el._ticking = true;
     function tick() {{
       var ends = new Date(el.dataset.ends.replace(' ','T') + 'Z');
       var diff = Math.max(0, ends - Date.now());
