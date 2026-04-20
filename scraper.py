@@ -2887,7 +2887,11 @@ DEALERS = [
 ]
 
 
-def run_all(dealers=None) -> dict:
+# Dealers that accept a max_pages parameter for tiered scrape cadence
+_PAGINATED_DEALERS = {"AutoTrader", "cars.com", "eBay Motors", "DuPont Registry"}
+
+
+def run_all(dealers=None, max_pages=None) -> dict:
     from db import classify_tier  # imported here to avoid circular imports at module load
     results = {}
     targets = dealers or DEALERS
@@ -2895,7 +2899,10 @@ def run_all(dealers=None) -> dict:
         name = d["name"]
         log.info("Scraping %s…", name)
         try:
-            raw = d["scrape"]()
+            if max_pages is not None and name in _PAGINATED_DEALERS:
+                raw = d["scrape"](max_pages=max_pages)
+            else:
+                raw = d["scrape"]()
             cars = [c for c in raw if _is_valid_listing(c)]
             for car in cars:
                 car["tier"] = classify_tier(car.get("model"), car.get("trim"), car.get("year"))

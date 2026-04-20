@@ -894,11 +894,16 @@ def _save_state(state):
 # ---------------------------------------------------------------------------
 # Main public function
 # ---------------------------------------------------------------------------
-def scrape_autotrader():
+def scrape_autotrader(max_pages=None):
     """
     Scrape AutoTrader for used Porsche listings (dealers + private sellers).
     Always runs through DataImpulse proxy — never falls back to direct IP.
     If proxy is unavailable, returns [] immediately (skips this cycle).
+
+    max_pages: maximum pages to fetch (overrides internal bootstrap logic when provided).
+      None (default) — 1 page after bootstrap, 10 pages on first run.
+      1              — 1 page only (fast-cycle mode).
+      3              — up to 3 pages (deep-cycle mode).
     """
     # Gate: refuse to run without proxy — naked Mac Mini IP gets blocked by Akamai
     if not _PROXY_URL or not _PROXY_CFG.get("enabled"):
@@ -908,15 +913,20 @@ def scrape_autotrader():
     state = _load_state()
     bootstrapped = state.get("bootstrapped", False)
 
-    if bootstrapped:
+    if max_pages is not None:
         num_records = 25
-        max_pages = 1
+        effective_max_pages = max_pages
+        log.info("AutoTrader: run (max_pages=%d, %d records/page)", effective_max_pages, num_records)
+    elif bootstrapped:
+        num_records = 25
+        effective_max_pages = 1
         log.info("AutoTrader: incremental run (1 page, %d records)", num_records)
     else:
         num_records = 100
-        max_pages = 10
+        effective_max_pages = 10
         log.info("AutoTrader: bootstrap run (up to %d pages, %d records each)",
-                 max_pages, num_records)
+                 effective_max_pages, num_records)
+    max_pages = effective_max_pages
 
     all_listings = []
     seen_keys = set()

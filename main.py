@@ -3,7 +3,9 @@
 Porsche Competitor Inventory Tracker — main entry point.
 
 Usage:
-  python main.py              # Run full scrape + snapshot + dashboard
+  python main.py              # Run full scrape + snapshot + dashboard (fast mode)
+  python main.py --mode fast  # Fast cycle: DuPont/eBay/cars.com/AutoTrader page 1 only
+  python main.py --mode deep  # Deep cycle: DuPont/eBay/cars.com/AutoTrader 3 pages
   python main.py --test       # Quick test: scrape LBI Limited, Road Scholars, Velocity Porsche
   python main.py --dashboard  # Regenerate dashboard only
   python main.py --report     # Regenerate market analysis report only
@@ -272,6 +274,9 @@ def main():
                         help="Scrape Hagerty valuations (run monthly)")
     parser.add_argument("--dealers", type=str, default="",
                         help="Comma-separated list of dealer names to scrape")
+    parser.add_argument("--mode", choices=["fast", "deep"], default="fast",
+                        help="Scrape depth: fast=page 1 only for high-volume sources, "
+                             "deep=3 pages (default: fast)")
     args = parser.parse_args()
 
     # Init DB
@@ -333,8 +338,12 @@ def main():
         dealers = sc.DEALERS
         log.info("Scraping all %d dealers…", len(dealers))
 
+    # Determine page depth for high-volume sources
+    max_pages = 1 if args.mode == "fast" else 3
+    log.info("Scrape mode: %s (max_pages=%d for paginated sources)", args.mode, max_pages)
+
     # Run scraper
-    results = sc.run_all(dealers)
+    results = sc.run_all(dealers, max_pages=max_pages)
 
     # Persist
     new_total, updated_total, sold_total, new_ids = run_snapshot(results, today)

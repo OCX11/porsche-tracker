@@ -212,9 +212,10 @@ def _fetch_page(session, page):
 # Public entry point
 # ---------------------------------------------------------------------------
 
-def scrape_dupont():
+def scrape_dupont(max_pages=3):
     """
     Scrape DuPont Registry for active Porsche listings.
+    max_pages: maximum pages to fetch (default 3; pass 1 for fast-cycle page-1-only).
     Returns list of standard listing dicts.
     """
     try:
@@ -223,15 +224,16 @@ def scrape_dupont():
         log.error("DuPont: curl_cffi not installed — skipping")
         return []
 
-    log.info("Scraping DuPont Registry...")
+    log.info("Scraping DuPont Registry (max_pages=%d)...", max_pages)
     session = cffi.Session()
 
     all_listings = []
     seen_ids     = set()
     filtered_out = 0
 
+    page_limit = min(max_pages, _MAX_PAGES)
     page = 1
-    while page <= _MAX_PAGES:
+    while page <= page_limit:
         items, total = _fetch_page(session, page)
 
         if not items:
@@ -285,7 +287,7 @@ if __name__ == "__main__":
         handlers=[logging.StreamHandler(sys.stdout)],
     )
     results = scrape_dupont()
-    print(f"\nTotal: {len(results)} listings")
+    print("\nTotal: {} listings".format(len(results)))
     for c in results[:5]:
         print(f"  {c['year']} {c['model']} {c.get('trim','')} | ${c['price']} | {c.get('mileage','?')} mi | {c['url'][-50:]}")
 

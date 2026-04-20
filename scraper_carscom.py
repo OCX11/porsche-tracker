@@ -667,9 +667,14 @@ def _get_known_vins():
         return set()
 
 
-def scrape_carscom():
+def scrape_carscom(max_pages=None):
     """
     Scrape Cars.com for used Porsche 911/Boxster/Cayman/718 listings.
+
+    max_pages: maximum pages per model slug (overrides internal logic when provided).
+      None (default) — 15 pages on first bootstrap run, 3 pages thereafter.
+      1              — page 1 only per slug (fast-cycle mode).
+      3              — up to 3 pages per slug (deep-cycle mode).
 
     Incremental mode (normal): fetches sorted by listed_at_desc.
     Paginates each slug until ALL VINs on a page are already in the DB
@@ -688,13 +693,18 @@ def scrape_carscom():
 
     # Load known VINs for incremental stop logic
     known_vins = _get_known_vins() if bootstrapped else set()
-    max_pages = 15 if not bootstrapped else 3  # 3-page cap on incremental (~60 listings/slug max)
 
-    if bootstrapped:
-        log.info("cars.com: incremental run (known VINs: %d, cap: %d pages/slug)",
-                 len(known_vins), max_pages)
+    if max_pages is not None:
+        effective_max_pages = max_pages
+        log.info("cars.com: run (max_pages=%d per slug)", effective_max_pages)
+    elif not bootstrapped:
+        effective_max_pages = 15
+        log.info("cars.com: bootstrap run (up to %d pages/slug)", effective_max_pages)
     else:
-        log.info("cars.com: bootstrap run (up to %d pages/slug)", max_pages)
+        effective_max_pages = 3
+        log.info("cars.com: incremental run (known VINs: %d, cap: %d pages/slug)",
+                 len(known_vins), effective_max_pages)
+    max_pages = effective_max_pages
 
     all_listings = []
     seen_keys = set()

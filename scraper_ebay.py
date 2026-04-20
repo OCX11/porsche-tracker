@@ -542,9 +542,14 @@ def _fetch_pages(token, max_pages):
     return all_listings
 
 
-def scrape_ebay():
+def scrape_ebay(max_pages=None):
     """
     Scrape eBay Motors for Porsche listings via the Browse API.
+
+    max_pages controls fetch depth:
+      None (default) — existing TTL-based cache strategy (incremental or full sweep).
+      1              — always incremental (page 0 only); fast-cycle mode.
+      3              — force a limited 3-page full sweep; deep-cycle mode.
 
     Cache strategy (solves mark_sold() inventory collapse):
       - Every cycle returns the FULL cached inventory so mark_sold() never
@@ -571,7 +576,20 @@ def scrape_ebay():
     cache_age_min = (time.time() - cache.get("ts", 0.0)) / 60.0
     cached_listings = cache.get("listings") or []
 
-    if cached_listings and cache_age_min < _CACHE_TTL_MINUTES:
+    # Determine whether to run incremental or full sweep.
+    # max_pages=1 → always incremental.
+    # max_pages=N (N>1) → force N-page full sweep (deep cycle, bypass TTL).
+    # max_pages=None → existing TTL logic.
+    force_incremental = (max_pages == 1)
+    force_full = (max_pages is not None and max_pages > 1)
+    pages_for_full = max_pages if force_full else _MAX_PAGES_FULL
+
+    do_incremental = (
+        force_incremental
+        or (not force_full and cached_listings and cache_age_min < _CACHE_TTL_MINUTES)
+    )
+
+    if do_incremental:
         # --- Incremental update ---
         log.info("eBay: incremental update (cache %.0f min old, %d cached listings)",
                  cache_age_min, len(cached_listings))
@@ -611,8 +629,8 @@ def scrape_ebay():
 
     else:
         # --- Full sweep ---
-        log.info("eBay: full sweep (cache %.0f min old — refreshing all pages)", cache_age_min)
-        listings = _fetch_pages(token, _MAX_PAGES_FULL)
+        log.info("eBay: full sweep (cache %.0f min old, pages=%d)", cache_age_min, pages_for_full)
+        listings = _fetch_pages(token, pages_for_full)
 
         if listings:
             _save_cache(listings)
