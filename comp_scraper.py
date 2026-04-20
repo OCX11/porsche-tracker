@@ -216,6 +216,10 @@ def scrape_bat_sold(max_pages=50):
                 # Simple validity for sold comps: need year and a Porsche model
                 if not year or not model:
                     continue
+                # Skip excluded models (SUVs, sedans, EVs — not relevant to FMV scoring)
+                EXCLUDED_MODELS = {'Cayenne', 'Panamera', 'Macan', 'Taycan'}
+                if model in EXCLUDED_MODELS:
+                    continue
                 # Skip non-car items (parts, go-karts, tool kits)
                 skip_keywords = ['go-kart', 'parts', 'tool kit', 'engine', 'wheels', 'collection']
                 if any(kw in title.lower() for kw in skip_keywords):

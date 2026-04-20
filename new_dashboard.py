@@ -906,7 +906,7 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
 <!-- ── Nav ── -->
 <header class="topbar">
   <div class="topbar-left">
-    <div class="logo">PTO<span>X</span></div>
+    <a class="logo" onclick="switchView('listings',document.querySelector('.nav-item'))" style="cursor:pointer;text-decoration:none;">PTO<span>X</span></a>
     <button class="nav-item active" onclick="switchView('listings',this)">Listings</button>
     <a class="nav-item" href="auctions.html">Auctions</a>
     <button class="nav-item" onclick="switchView('comps',this)">Comps</button>
