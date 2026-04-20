@@ -173,6 +173,7 @@ Auctions: `auction_dashboard.py` → `docs/auctions.html`
 - Days-on-market chip on each card (📅 Nd) + "Longest Listed" sort
 - Bell icon in nav → notify.html
 - Nav horizontally scrollable on mobile
+- Pull-to-refresh — swipe down from top of listings triggers smart data refresh, red→green progress bar indicator
 
 ---
 
@@ -230,6 +231,10 @@ Auctions: `auction_dashboard.py` → `docs/auctions.html`
 - Auction result auto-capture: final hammer price → sold_comps on auction close
 - FMV audit v2 P1/P2/P3 cleared (GT2 RS 992 fixed, Singer excluded, body-style scoring)
 - Full codebase cleanup — main.py dead comments removed
+- Pull-to-refresh added to PWA — swipe down from top triggers smart refresh without page reload
+- git_push_dashboard.sh fixed — was crashing every 2min due to deleted live_feed.html reference; now refreshes gh token on every run so credential expiry cannot freeze the dashboard again
+- FMV engine flagged as high priority — some estimates significantly off, full audit + rebuild queued
+- Tiered scrape cadence spec confirmed: DuPont/eBay/cars.com page 1 every 10min + 3-page deep pull every 4hr; AutoTrader page 1 every 15min + 3-page deep every 4hr
 
 ### April 18, 2026
 - DuPont Registry scraper built — direct API, ~922 listings, 100% images
