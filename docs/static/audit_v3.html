@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PTOX11 — Dashboard Audit v3</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+
+:root {
+  --red:    #D6293E;
+  --bg:     #0A0A0C;
+  --bg2:    #111116;
+  --bg3:    #18181F;
+  --border: #25252E;
+  --text:   #F0F0F8;
+  --muted:  #8A8A9A;
+  --green:  #22C55E;
+  --yellow: #EAB308;
+  --orange: #E87A30;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html,body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; line-height:1.6; }
+a { color:var(--red); text-decoration:none; }
+
+.topbar {
+  background:#0C0C12; border-bottom:1px solid var(--border);
+  padding:0 32px; height:52px; display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:50;
+}
+.logo { font-family:'Syne',sans-serif; font-size:14px; font-weight:800; letter-spacing:2px; }
+.logo span { color:var(--red); }
+.topbar-meta { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); }
+
+.container { max-width:1100px; margin:0 auto; padding:32px 24px 80px; }
+
+h1 { font-family:'Syne',sans-serif; font-size:26px; font-weight:800; margin-bottom:6px; }
+.audit-meta { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); margin-bottom:40px; }
+
+/* ── Scorecard ── */
+.scorecard {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+  background:var(--border); border:1px solid var(--border);
+  border-radius:6px; overflow:hidden; margin-bottom:40px;
+}
+.sc-cell { background:var(--bg2); padding:18px 20px; text-align:center; }
+.sc-num { font-family:'DM Mono',monospace; font-size:28px; font-weight:500; letter-spacing:-1px; line-height:1; }
+.sc-lbl { font-family:'DM Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-top:5px; }
+.sc-broken .sc-num { color:var(--red); }
+.sc-rough  .sc-num { color:var(--orange); }
+.sc-polish .sc-num { color:var(--yellow); }
+.sc-good   .sc-num { color:var(--green); }
+
+/* ── Sections ── */
+.section { margin-bottom:48px; }
+.section-title {
+  font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--text);
+  margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:10px;
+}
+.section-icon { font-size:1.1em; }
+
+/* ── Finding card ── */
+.finding {
+  background:var(--bg2); border:1px solid var(--border); border-radius:6px;
+  margin-bottom:10px; overflow:hidden; display:flex;
+}
+.finding-bar { width:4px; min-width:4px; flex-shrink:0; }
+.finding.broken .finding-bar  { background:var(--red); }
+.finding.rough  .finding-bar  { background:var(--orange); }
+.finding.polish .finding-bar  { background:var(--yellow); }
+.finding.good   .finding-bar  { background:var(--green); }
+.finding-body { padding:14px 16px; flex:1; }
+.finding-header { display:flex; align-items:center; gap:8px; margin-bottom:7px; flex-wrap:wrap; }
+.sev-badge {
+  font-family:'DM Mono',monospace; font-size:9px; font-weight:500; padding:2px 7px; border-radius:3px;
+  text-transform:uppercase; letter-spacing:0.5px; display:inline-block;
+}
+.sev-broken { background:#200508; color:var(--red); }
+.sev-rough  { background:#1F1000; color:var(--orange); }
+.sev-polish { background:#1A1400; color:var(--yellow); }
+.sev-good   { background:#052210; color:var(--green); }
+.page-badge {
+  font-family:'DM Mono',monospace; font-size:9px; padding:2px 7px; border-radius:3px;
+  background:var(--bg3); border:1px solid var(--border); color:var(--muted);
+}
+.finding-title { font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; color:var(--text); }
+.finding-loc {
+  font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); margin-bottom:6px;
+}
+.finding-what { font-size:13px; color:#C0C0D0; margin-bottom:6px; line-height:1.55; }
+.finding-fix { font-size:12px; color:#8A8A9E; font-style:italic; }
+.finding-fix strong { color:var(--muted); font-style:normal; }
+code {
+  font-family:'DM Mono',monospace; font-size:11px; background:var(--bg3);
+  padding:1px 5px; border-radius:3px; color:#C4B5FD;
+}
+
+/* ── Priority list ── */
+.priority-list { list-style:none; }
+.priority-list li {
+  display:flex; align-items:flex-start; gap:14px; padding:13px 0;
+  border-bottom:1px solid var(--border);
+}
+.priority-list li:last-child { border-bottom:none; }
+.p-num {
+  font-family:'DM Mono',monospace; font-size:14px; font-weight:500; color:var(--red);
+  min-width:24px; line-height:1.4;
+}
+.p-text { font-size:13px; color:#C0C0D0; line-height:1.5; }
+.p-text strong { color:var(--text); }
+
+@media(max-width:640px) {
+  .scorecard { grid-template-columns:1fr 1fr; }
+  .container { padding:20px 16px 60px; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo">PTO<span>X</span> <span style="font-size:11px;color:var(--muted);font-weight:400;letter-spacing:0px;margin-left:8px;font-family:'DM Mono',monospace;">AUDIT v3</span></div>
+  <div class="topbar-meta">Generated Apr 21, 2026 &nbsp;·&nbsp; Read-only &nbsp;·&nbsp; 3 pages audited</div>
+</header>
+
+<div class="container">
+
+<h1>PTOX11 Dashboard Audit</h1>
+<p class="audit-meta">
+  Pages: index.html &nbsp;·&nbsp; auctions.html &nbsp;·&nbsp; search.html &nbsp;·&nbsp; sw.js &nbsp;·&nbsp; manifest.json<br>
+  Scope: Broken/functional · Mobile responsiveness · Visual/design · Nav/UX · Performance · Cross-page consistency
+</p>
+
+<!-- Scorecard -->
+<div class="scorecard">
+  <div class="sc-cell sc-broken"><div class="sc-num">5</div><div class="sc-lbl">🔴 Broken</div></div>
+  <div class="sc-cell sc-rough" ><div class="sc-num">11</div><div class="sc-lbl">🟠 Rough</div></div>
+  <div class="sc-cell sc-polish"><div class="sc-num">9</div><div class="sc-lbl">🟡 Polish</div></div>
+  <div class="sc-cell sc-good"  ><div class="sc-num">6</div><div class="sc-lbl">🟢 Good</div></div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════ -->
+<div class="section">
+<div class="section-title"><span class="section-icon">🔴</span> BROKEN — Must Fix</div>
+
+<!-- F1 -->
+<div class="finding broken">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-broken">Broken</span>
+      <span class="page-badge">index / auctions / search</span>
+      <span class="finding-title">SVG fallback onerror handler has broken JS string — single quotes unescaped</span>
+    </div>
+    <div class="finding-loc">new_dashboard.py line 271–274 · all onerror= attributes in generated HTML</div>
+    <div class="finding-what">
+      The placeholder SVG URL is assigned in an onerror handler as:
+      <code>onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400'..."</code>
+      The SVG source contains literal unencoded single quotes (e.g. <code>xmlns='http://...'</code>, <code>width='400'</code>).
+      Because the JS string is delimited by <code>'</code>, these inner single quotes terminate the string,
+      producing a syntax error. Browsers parse this leniently and may still swap in a broken image,
+      but the fallback is not guaranteed. Affects every card (≈2,362 cards on index, 50 on auctions).
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> URL-encode the single quotes in the SVG source (<code>%27</code>),
+    or switch the <code>onerror</code> string delimiter to backtick / double-quote and use <code>&amp;#39;</code> for XML attributes inside. Simplest: replace <code>'</code> with <code>%27</code> in <code>placeholder_svg</code>.</div>
+  </div>
+</div>
+
+<!-- F2 -->
+<div class="finding broken">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-broken">Broken</span>
+      <span class="page-badge">index</span>
+      <span class="finding-title">PCA Mart image XHR: Referer is a forbidden header — images silently fail</span>
+    </div>
+    <div class="finding-loc">new_dashboard.py lines 279–287 · every PCA Mart card (~53 cards)</div>
+    <div class="finding-what">
+      Each PCA Mart card injects an inline <code>&lt;script&gt;</code> that does
+      <code>x.setRequestHeader("Referer","https://mart.pca.org/")</code> via XMLHttpRequest.
+      Per the Fetch/XHR spec, <code>Referer</code> is a "forbidden header name" — browsers silently ignore
+      the call. The CDN never sees the referer, the response is blocked by CORS or 403,
+      and the image stays as the placeholder SVG permanently.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Scrape and cache PCA Mart images server-side to
+    <code>docs/img_cache/</code> (other sources already do this). Alternatively, use the
+    <code>Referrer-Policy</code> meta tag and a <code>&lt;img referrerpolicy="origin"&gt;</code>
+    attribute — but this only works if the CDN serves permissive CORS headers.</div>
+  </div>
+</div>
+
+<!-- F3 -->
+<div class="finding broken">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-broken">Broken</span>
+      <span class="page-badge">search</span>
+      <span class="finding-title">Source dropdown "Cars and Bids" won't match DB dealer field "Cars &amp; Bids"</span>
+    </div>
+    <div class="finding-loc">search.html line 70 · doSearch() line 135</div>
+    <div class="finding-what">
+      The search page dropdown uses <code>option&gt;Cars and Bids</code>, which lowercases to
+      <code>"cars and bids"</code>. The filter is: <code>(l.dealer || '').toLowerCase() !== source</code>.
+      The DB dealer field for Cars &amp; Bids is likely <code>"Cars & Bids"</code> or <code>"Cars and Bids"</code>
+      depending on scraper. If it's stored as <code>"Cars &amp; Bids"</code>, the lowercase is
+      <code>"cars &amp; bids"</code> which doesn't match <code>"cars and bids"</code> → 0 results returned.
+      Similarly, the badge config uses key <code>"cars & bids"</code> confirming the DB key differs from the dropdown.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Normalize dropdown values to match the exact stored
+    <code>dealer</code> strings. Audit all 10 source names against DB values. Consider using a
+    <code>data-value</code> attribute with the canonical DB value.</div>
+  </div>
+</div>
+
+<!-- F4 -->
+<div class="finding broken">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-broken">Broken</span>
+      <span class="page-badge">search</span>
+      <span class="finding-title">XSS risk: listing_url, model, trim rendered unescaped into innerHTML template</span>
+    </div>
+    <div class="finding-loc">search.html lines 160, 163 · doSearch() innerHTML generation</div>
+    <div class="finding-what">
+      Three fields are interpolated directly into HTML without sanitization:
+      <code>onclick="openListing('${l.listing_url}')"</code>,
+      <code>${l.model}</code>, and <code>${l.trim}</code>.
+      A listing_url containing a single quote (e.g. from a scrape artifact) would break the onclick.
+      A model/trim field containing <code>&lt;script&gt;</code> or HTML tags would inject markup.
+      While the data comes from an internal JSON file, any scraper artifact or future XSS in
+      the upstream source could propagate here.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Escape all interpolated values with a helper:
+    <code>function esc(s){return String(s||'').replace(/&amp;/g,'&amp;amp;').replace(/&lt;/g,'&amp;lt;').replace(/'/g,'&amp;#39;')}</code>.
+    Wrap every interpolated field, especially <code>listing_url</code> in the onclick.</div>
+  </div>
+</div>
+
+<!-- F5 -->
+<div class="finding broken">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-broken">Broken</span>
+      <span class="page-badge">auctions</span>
+      <span class="finding-title">Comps nav link uses fragile 300ms setTimeout to trigger click on index.html</span>
+    </div>
+    <div class="finding-loc">auctions.html line 162</div>
+    <div class="finding-what">
+      The Comps tab in the auctions nav uses:
+      <code>onclick="event.preventDefault();window.location='index.html';setTimeout(function(){var b=document.querySelector('[onclick*=comps]');if(b)b.click();},300)"</code>.
+      On slow connections or low-end devices, index.html won't finish parsing in 300ms.
+      The <code>querySelector</code> runs before the target element exists, <code>b</code> is <code>null</code>,
+      the click never fires, and the user lands on index.html at Listings instead of Comps.
+      No error is shown.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Pass the target view as a URL hash
+    (<code>index.html#comps</code>) and read <code>window.location.hash</code> on page load in
+    index.html to call <code>switchView('comps',...)</code>. Deterministic, zero-timeout, works on any device.</div>
+  </div>
+</div>
+
+</div><!-- /section broken -->
+
+
+<!-- ════════════════════════════════════════════════════ -->
+<div class="section">
+<div class="section-title"><span class="section-icon">🟠</span> ROUGH — Should Fix Soon</div>
+
+<!-- R1 -->
+<div class="finding rough">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-rough">Rough</span>
+      <span class="page-badge">search</span>
+      <span class="finding-title">search.html is a completely different design system — looks like a different product</span>
+    </div>
+    <div class="finding-loc">search.html lines 1–48 · entire &lt;style&gt; block</div>
+    <div class="finding-what">
+      search.html uses: <code>background:#0f1117</code> (vs <code>#0A0A0C</code>), accent color
+      <code>#6366f1</code> (indigo, vs <code>#D6293E</code> red), system fonts (vs Syne/DM Mono/DM Sans),
+      card border-radius 10px (vs 6px), no sidebar/nav bar, no health pills, no logo click-home.
+      The card layout, badge styling, price color (<code>#a78bfa</code> purple), and button styles
+      are all unique to this page. Switching from index.html to search.html is a jarring visual break.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Rebuild search.html with the PTOX11 design system.
+    Add the shared topbar nav, import the same Google Fonts, use <code>--red</code> accent, and
+    style cards to match index.html's <code>.card</code> component.</div>
+  </div>
+</div>
+
+<!-- R2 -->
+<div class="finding rough">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-rough">Rough</span>
+      <span class="page-badge">auctions</span>
+      <span class="finding-title">auctions.html logo is a &lt;div&gt;, not a link — no home navigation from logo</span>
+    </div>
+    <div class="finding-loc">auctions.html line 159 · <code>&lt;div class="logo"&gt;PTO&lt;span&gt;X&lt;/span&gt;&lt;/div&gt;</code></div>
+    <div class="finding-what">
+      index.html wraps the logo in an <code>&lt;a&gt;</code> with onclick to <code>switchView('listings')</code>.
+      auctions.html uses a plain <code>&lt;div&gt;</code>. Clicking the logo on auctions has no effect.
+      Inconsistent with standard web convention (logo = home) and inconsistent with index.html.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Change to <code>&lt;a class="logo" href="index.html"&gt;</code>
+    in auction_dashboard.py's nav template.</div>
+  </div>
+</div>
+
+<!-- R3 -->
+<div class="finding rough">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-rough">Rough</span>
+      <span class="page-badge">auctions</span>
+      <span class="finding-title">auctions.html nav missing Market tab and Bell/notify icon — nav set is incomplete</span>
+    </div>
+    <div class="finding-loc">auctions.html lines 160–163 · nav items</div>
+    <div class="finding-what">
+      index.html nav: Listings · Auctions · Comps · Market · Search · 🔔.<br>
+      auctions.html nav: Listings · Auctions · Comps · Search — missing Market and Bell.
+      A user on the auctions page has no path to the Market tab or push notification settings
+      without going back to index.html first.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Add <code>&lt;a class="nav-item" href="index.html#market"&gt;Market&lt;/a&gt;</code>
+    and <code>&lt;a class="nav-item nav-bell" href="notify.html"&gt;</code> to the auctions nav template.</div>
+  </div>
+</div>
+
+<!-- R4 -->
+<div class="finding rough">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-rough">Rough</span>
+      <span class="page-badge">auctions</span>
+      <span class="finding-title">auctions.html topbar-left missing overflow-x:auto — nav wraps on mobile</span>
+    </div>
+    <div class="finding-loc">auctions.html line 37 · <code>.topbar-left</code> CSS rule</div>
+    <div class="finding-what">
+      index.html's <code>.topbar-left</code> has <code>overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;</code>
+      so the nav scrolls horizontally on small screens.
+      auctions.html's <code>.topbar-left</code> has only <code>display:flex; align-items:center; gap:4px;</code>.
+      On a 390px screen, the nav items would wrap or overflow, pushing layout below the topbar.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Add <code>overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;</code>
+    to <code>.topbar-left</code> in auctions.html CSS.</div>
+  </div>
+</div>
+
+<!-- R5 -->
+<div class="finding rough">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-rough">Rough</span>
+      <span class="page-badge">auctions</span>
+      <span class="finding-title">auctions.html uses &lt;meta http-equiv="refresh"&gt; — full page reload loses scroll position</span>
+    </div>
+    <div class="finding-loc">auctions.html line 6 · <code>&lt;meta http-equiv="refresh" content="120"&gt;</code></div>
+    <div class="finding-what">
+      index.html uses a smart JS auto-refresh every 3 minutes that re-renders from the embedded
+      <code>CARD_DATA</code> array without a page reload, preserving filter state.
+      auctions.html does a full hard page reload every 2 minutes, losing scroll position.
+      For a page watched during live auctions (a user may scroll down to a specific car),
+      a hard reload every 120s is disruptive.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Replace the meta-refresh with a JS interval that
+    reloads via <code>window.location.reload()</code> but saves and restores <code>window.scrollY</code>
+    via <code>sessionStorage</code>, or better, adopt the same smart CARD_DATA refresh pattern from index.html.</div>
+  </div>
+</div>
+
+<!-- R6 -->
+<div class="finding rough">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-rough">Rough</span>
+      <span class="page-badge">index</span>
+      <span class="finding-title">index.html auto-refresh re-renders from stale in-memory CARD_DATA — never fetches fresh data</span>
+    </div>
+    <div class="finding-loc">index.html ~line 78532 · <code>_autoRefresh()</code> / <code>setInterval(_autoRefresh, 180000)</code></div>
+    <div class="finding-what">
+      The smart auto-refresh re-renders cards from the in-memory <code>CARD_DATA</code> JS array,
+      which was baked into the HTML at generation time. After the 3-minute interval fires,
+      the displayed data is still the same snapshot from when the page first loaded.
+      Only a manual page reload picks up the latest scraper data. The topbar timestamp also
+      stays frozen from page load time — it never updates.
+      The health pill age labels (e.g. "3m ago") are also static baked strings.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> On each auto-refresh interval, <code>fetch('index.html?_='+Date.now())</code>,
+    parse the fresh <code>CARD_DATA</code> from the response, and swap. Alternatively, export
+    <code>CARD_DATA</code> as a separate <code>cards.json</code> endpoint (already partially done for
+    search_data.json) so the auto-refresh can fetch new data independently of a full HTML reload.</div>
+  </div>
+</div>
+
+<!-- R7 -->
+<div class="finding rough">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-rough">Rough</span>
+      <span class="page-badge">all</span>
+      <span class="finding-title">Service worker caches only index.html — auctions and search broken offline</span>
+    </div>
+    <div class="finding-loc">sw.js lines 5–8 · <code>ASSETS</code> array</div>
+    <div class="finding-what">
+      The SW precache list is:
+      <code>['/PTOX11/', '/PTOX11/index.html']</code>.
+      auctions.html, search.html, manifest.json, icons/, and Google Fonts CDN
+      are not precached. As a PWA, navigating to Auctions or Search while offline
+      shows a browser offline error page, breaking the PWA experience. The fetch handler
+      adds network responses to cache dynamically (network-first), but only for
+      <code>/PTOX11/</code> subpaths, so fonts (external CDN) are never cached.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Add <code>'/PTOX11/auctions.html'</code>,
+    <code>'/PTOX11/search.html'</code>, <code>'/PTOX11/manifest.json'</code>, and
+    <code>'/PTOX11/icons/icon-192.png'</code> to <code>ASSETS</code>. Consider caching font URLs
+    via a separate <code>caches.open('ptox11-fonts')</code>.</div>
+  </div>
+</div>
+
+<!-- R8 -->
+<div class="finding rough">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-rough">Rough</span>
+      <span class="page-badge">all</span>
+      <span class="finding-title">manifest.json: wrong name, wrong source count, theme_color mismatch</span>
+    </div>
+    <div class="finding-loc">manifest.json lines 2–4, 9–10</div>
+    <div class="finding-what">
+      Three issues:<br>
+      1. <code>"name":"Porsche Tracker"</code> / <code>"short_name":"PTracker"</code> — should be
+      <code>"PTOX11"</code> / <code>"PTOX"</code> to match the branding shown in the app.<br>
+      2. <code>"description":"…9 sources…"</code> — there are now 10 active sources.<br>
+      3. <code>"theme_color":"#0f1117"</code> / <code>"background_color":"#0f1117"</code> —
+      the app's actual background is <code>#0A0A0C</code> (set via <code>&lt;meta name="theme-color"&gt;</code>
+      on index.html). The manifest diverges, causing a flash of wrong color on some launchers.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Update <code>name</code>, <code>short_name</code>,
+    <code>description</code>, <code>theme_color</code>, and <code>background_color</code> to match the live app state.</div>
+  </div>
+</div>
+
+<!-- R9 -->
+<div class="finding rough">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-rough">Rough</span>
+      <span class="page-badge">index</span>
+      <span class="finding-title">Duplicate eBay listing: "2015 Porsche 911 Carrera GTS $114,900" appears twice</span>
+    </div>
+    <div class="finding-loc">index.html lines 667 and 703 · eBay items 236769121184 and 236769121180</div>
+    <div class="finding-what">
+      Two distinct eBay item IDs (different URL hashes) for the same year/model/price/trim.
+      Both appear in the initial rendered cards. This suggests the dedup logic is not catching
+      same-seller duplicate listings. For a dealer comparing prices, seeing the same car twice
+      distorts the inventory count and deal statistics.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Add price+year+model+trim+dealer tuple dedup
+    as a final pass in the dashboard query, or investigate the eBay scraper's seller sweep
+    for duplicates being inserted as distinct items.</div>
+  </div>
+</div>
+
+<!-- R10 -->
+<div class="finding rough">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-rough">Rough</span>
+      <span class="page-badge">index / auctions</span>
+      <span class="finding-title">Model name duplication in titles: "911 911 Carrera 4S" and "Boxster Boxster Spyder"</span>
+    </div>
+    <div class="finding-loc">index.html line 647 (Cars.com) · auctions.html line 1133 (pcarmarket)</div>
+    <div class="finding-what">
+      "2024 Porsche 911 911 Carrera 4S" (Cars.com) — model field is "911 911" or title assembly
+      adds "911" prefix to a title already containing "911".<br>
+      "2011 Porsche Boxster Boxster Spyder" (pcarmarket) — same pattern, "Boxster" duplicated.<br>
+      These titles look unprofessional and indicate a title-building bug in the scraper or DB.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> In <code>new_dashboard.py</code> and
+    <code>auction_dashboard.py</code> card title builder, deduplicate the model word from the
+    trim string before concatenating. e.g. if <code>model="911"</code> and trim starts with <code>"911"</code>,
+    strip the leading match from trim.</div>
+  </div>
+</div>
+
+<!-- R11 -->
+<div class="finding rough">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-rough">Rough</span>
+      <span class="page-badge">all</span>
+      <span class="finding-title">--muted color inconsistency: #8A8A9A (index) vs #6B6B7D (auctions/search) — visibly different</span>
+    </div>
+    <div class="finding-loc">index.html line 23 · auctions.html line 23 · search.html line 13</div>
+    <div class="finding-what">
+      index.html declares <code>--muted: #8A8A9A</code> (lighter).
+      auctions.html declares <code>--muted: #6B6B7D</code> (darker — closer to the border color).
+      search.html uses <code>#64748b</code> (Tailwind slate-500, completely different palette).
+      Any shared text that uses <code>var(--muted)</code> will appear at different brightness
+      across the three pages, making the product feel inconsistent.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Standardize on a single muted value across all pages.
+    Current index.html value <code>#8A8A9A</code> is the better choice (more readable). Update
+    auctions.html and the next search.html redesign accordingly.</div>
+  </div>
+</div>
+
+</div><!-- /section rough -->
+
+
+<!-- ════════════════════════════════════════════════════ -->
+<div class="section">
+<div class="section-title"><span class="section-icon">🟡</span> POLISH — Quality Improvements</div>
+
+<!-- P1 -->
+<div class="finding polish">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-polish">Polish</span>
+      <span class="page-badge">index</span>
+      <span class="finding-title">11.2MB HTML file — CARD_DATA JSON doubles payload; data sent twice per page load</span>
+    </div>
+    <div class="finding-loc">index.html total file size · CARD_DATA JSON array ~lines 78340+</div>
+    <div class="finding-what">
+      The page renders every card as static HTML (for initial display) AND again as a JSON array
+      (<code>var CARD_DATA = [...]</code>) for client-side filtering. With 2,362 listings, the
+      data is effectively duplicated, contributing to the 11.2MB payload.
+      GitHub's CDN caches this, but on first load or cache miss, mobile users download 11MB.
+      Initial LCP should still be fast (CSS inline, static HTML), but total transfer is high.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Render only <code>CARD_DATA</code> JSON + a skeleton loader,
+    then do the initial render via JS. This halves the HTML size to ~5MB. Or export
+    <code>cards.json</code> separately and load lazily after first paint.</div>
+  </div>
+</div>
+
+<!-- P2 -->
+<div class="finding polish">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-polish">Polish</span>
+      <span class="page-badge">index</span>
+      <span class="finding-title">FMV progress bar direction is counterintuitive — high fill = overpriced</span>
+    </div>
+    <div class="finding-loc">index.html CSS lines 246–255 · _fmv_bar_block() in new_dashboard.py</div>
+    <div class="finding-what">
+      The bar fill goes from left. A deal at 40% below FMV shows a small fill (30%), which
+      looks "incomplete/empty." An overpriced car at 37% above FMV shows 68% fill, which looks
+      "nearly complete/full." Users instinctively associate more fill with more positive progress.
+      The midline-at-50% concept requires understanding to interpret correctly.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Invert the bar so that below-FMV fills from the
+    right side (RTL fill), or redesign as a value-vs-FMV marker on a track (needle indicator).
+    Alternatively, keep current design but add a short axis label ("Cheap ← → Expensive") beneath the bar.</div>
+  </div>
+</div>
+
+<!-- P3 -->
+<div class="finding polish">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-polish">Polish</span>
+      <span class="page-badge">index</span>
+      <span class="finding-title">All card ages show "just now" — DOM chip not appearing for any listing</span>
+    </div>
+    <div class="finding-loc">index.html every .card-age span · new_dashboard.py _age_label()</div>
+    <div class="finding-what">
+      Every single card on index.html shows <code>just now</code> in the top-right corner,
+      and no DOM chip (📅 Nd) is visible in any card-meta. If this reflects real data
+      (all listings were first-seen within 1 minute of generation), it suggests
+      <code>date_first_seen</code> is being updated to "now" on every scrape pass rather than
+      preserved from first insertion. This makes the "days-on-market" feature invisible.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Verify the <code>upsert_listing</code> in db.py
+    preserves the original <code>date_first_seen</code> on update (only setting it on INSERT,
+    not UPDATE). Add a sample query: <code>SELECT date_first_seen, date_last_seen FROM listings
+    WHERE date_first_seen != date_last_seen LIMIT 5</code> to confirm.</div>
+  </div>
+</div>
+
+<!-- P4 -->
+<div class="finding polish">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-polish">Polish</span>
+      <span class="page-badge">index</span>
+      <span class="finding-title">FMV bar-good styling triggers at any negative pct — inconsistent with deal badge threshold</span>
+    </div>
+    <div class="finding-loc">new_dashboard.py line 175–176 · _fmv_bar_block()</div>
+    <div class="finding-what">
+      <code>bar-good</code> (green color) is applied for any <code>pct &lt; 0</code>, including -1% or -2%.
+      But the <code>img-deal-badge</code> (the overlay badge) only appears at <code>pct &lt;= -10</code>.
+      So a card at -3% below FMV shows green bar with "↓3% vs FMV" but no deal badge —
+      visually suggesting a deal when it's essentially at market. The bar styling and the
+      "Deals only (↓5% FMV)" filter checkbox are also inconsistent (filter uses 5%, bar uses 0%).
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Align thresholds: use <code>bar-neutral</code>
+    for -5% to +5% (at market), <code>bar-good</code> for -5% to -15%, and <code>bar-great</code>
+    for -15%+. Matches the deal badge threshold (5%/10%) more closely.</div>
+  </div>
+</div>
+
+<!-- P5 -->
+<div class="finding polish">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-polish">Polish</span>
+      <span class="page-badge">auctions</span>
+      <span class="finding-title">"Ending Soon" section renders with 0 count and empty state — redundant section when empty</span>
+    </div>
+    <div class="finding-loc">auctions.html lines 193–206 · "Ending Soon" section</div>
+    <div class="finding-what">
+      When no auctions are within 3 hours, the section still renders with a header
+      ("🔥 Ending Soon [0]"), subtitle ("Under 3 hours"), and empty state div.
+      The section count badge showing "0" is confusing — it could mean no auctions exist
+      at all, not just none within 3 hours. The section takes up vertical space when empty.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> In auction_dashboard.py, conditionally omit the
+    entire "Ending Soon" section HTML when <code>ending_soon_count == 0</code>, or add a
+    CSS class that collapses the section. Display a subtle contextual note instead.</div>
+  </div>
+</div>
+
+<!-- P6 -->
+<div class="finding polish">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-polish">Polish</span>
+      <span class="page-badge">index</span>
+      <span class="finding-title">Year filter max="2025" — should be 2024 to match YEAR_MAX system constant</span>
+    </div>
+    <div class="finding-loc">index.html lines 488–489 · Year range inputs</div>
+    <div class="finding-what">
+      Both year inputs have <code>max="2025"</code>. The system hard rule is <code>YEAR_MAX=2024</code>
+      (locked until Jan 1 2027). A user typing 2025 in the filter would see 0 results, which looks
+      like a bug. The max attribute should reflect what's actually in the database.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Set <code>max="2024"</code> on both year inputs,
+    or better, derive the max year dynamically from the DB's max year at generation time.</div>
+  </div>
+</div>
+
+<!-- P7 -->
+<div class="finding polish">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-polish">Polish</span>
+      <span class="page-badge">index</span>
+      <span class="finding-title">Many eBay cards have empty card-meta — no mileage, no dealer location shown</span>
+    </div>
+    <div class="finding-loc">index.html lines 675, 687, 700, 710, 723, 734, 747, 760, etc. · eBay cards</div>
+    <div class="finding-what">
+      Approximately 60% of eBay Motors cards render <code>&lt;div class="card-meta"&gt;&lt;/div&gt;</code>
+      (empty). No mileage, no location. This is a known ~80% image coverage issue extended to
+      mileage data. Cards without mileage are harder to evaluate. The empty div takes no space
+      but the missing context leaves cards looking skeletal compared to AutoTrader/Cars.com cards.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> In the eBay scraper, improve mileage extraction.
+    For the dashboard, add a fallback: if mileage is null, show "— mi" so the row is never fully empty.</div>
+  </div>
+</div>
+
+<!-- P8 -->
+<div class="finding polish">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-polish">Polish</span>
+      <span class="page-badge">auctions</span>
+      <span class="finding-title"><code>class="section "</code> has trailing whitespace — minor markup slop in 3 places</span>
+    </div>
+    <div class="finding-loc">auctions.html lines 207, 454, 1097</div>
+    <div class="finding-what">
+      Three section divs are rendered as <code>&lt;div class="section "&gt;</code> with a trailing
+      space in the class value. This is harmless in browsers but indicates the auction_dashboard.py
+      template is appending a conditional class that evaluates to an empty string in these cases.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> In auction_dashboard.py, strip the section class string:
+    <code>class="section{' ending-soon' if is_ending else ''}"</code> → use
+    <code>class="{' '.join(filter(None, ['section', ...]))}"</code>.</div>
+  </div>
+</div>
+
+<!-- P9 -->
+<div class="finding polish">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-polish">Polish</span>
+      <span class="page-badge">all</span>
+      <span class="finding-title">manifest.json icon "purpose": "any maskable" should be split into two separate icon entries</span>
+    </div>
+    <div class="finding-loc">manifest.json lines 13–24 · icons array</div>
+    <div class="finding-what">
+      Using <code>"purpose": "any maskable"</code> (space-separated) means a single icon serves
+      both purposes. Android/Chrome may render maskable icons cropped at safe-zone, but Apple
+      treats <code>any</code> differently. Best practice (per web.dev) is to have separate entries:
+      one with <code>"purpose":"any"</code> (full icon, safe area not guaranteed) and one with
+      <code>"purpose":"maskable"</code> (icon fills the shape). Using combined string can cause
+      distortion on some launchers.
+    </div>
+    <div class="finding-fix"><strong>Fix:</strong> Add a dedicated maskable icon (with safe-zone padding,
+    ~20% from each edge) at 192px and 512px. List each as a separate entry in the icons array with
+    their correct individual purpose values.</div>
+  </div>
+</div>
+
+</div><!-- /section polish -->
+
+
+<!-- ════════════════════════════════════════════════════ -->
+<div class="section">
+<div class="section-title"><span class="section-icon">🟢</span> GOOD — Working Correctly</div>
+
+<div class="finding good">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-good">Good</span>
+      <span class="page-badge">all</span>
+      <span class="finding-title">openListing() is present and correct on all 3 pages — PWA fix verified</span>
+    </div>
+    <div class="finding-loc">index.html ~line 78645 · auctions.html line 1191 · search.html line 189</div>
+    <div class="finding-what">
+      All three pages implement the PWA-safe openListing():
+      <code>if (window.navigator.standalone || matchMedia('(display-mode:standalone)').matches)</code>
+      → <code>window.location.href</code> (in-app, allows back nav).
+      Else → <code>window.open(url,'_blank')</code> (browser tab).
+      The fix is consistent and correctly handles both iOS standalone and non-standalone contexts.
+    </div>
+  </div>
+</div>
+
+<div class="finding good">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-good">Good</span>
+      <span class="page-badge">index</span>
+      <span class="finding-title">Health pills are dynamic (set from real log data at generation time) — not hardcoded stubs</span>
+    </div>
+    <div class="finding-loc">new_dashboard.py lines 37–83 · _source_health()</div>
+    <div class="finding-what">
+      Health pill states are computed at generation time by reading the last timestamp from
+      <code>scraper.log</code> and <code>archive_capture.log</code> and checking launchd PID.
+      The pill classes (pill-ok / pill-stale / pill-error) and age labels are all live data.
+      This is correct — the pills accurately reflect scraper state at the time the file was pushed.
+    </div>
+  </div>
+</div>
+
+<div class="finding good">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-good">Good</span>
+      <span class="page-badge">auctions</span>
+      <span class="finding-title">Countdown timers and "Ending &lt; 3hr" stat counter update correctly in real time</span>
+    </div>
+    <div class="finding-loc">auctions.html lines 1148–1188 · tickAll() / setInterval(tickAll, 1000)</div>
+    <div class="finding-what">
+      The <code>tickAll()</code> function runs every second, correctly calculates remaining time,
+      adds <code>urgent-tick</code> pulse animation for auctions under 1 hour,
+      updates the "Ending &lt; 3hr" stat cell via <code>id="stat-ending"</code>,
+      and marks ended auctions with <code>ENDED</code> text. Robust and correct.
+    </div>
+  </div>
+</div>
+
+<div class="finding good">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-good">Good</span>
+      <span class="page-badge">index</span>
+      <span class="finding-title">Mobile filter drawer — tap targets, 92vh height, open/close, chip sizing all correct</span>
+    </div>
+    <div class="finding-loc">index.html lines 331–408 · .filter-drawer · .drawer-chips .chip</div>
+    <div class="finding-what">
+      Drawer chips use 13px font with 9px/16px padding → ~38px height (close to 44px minimum).
+      The drawer-apply button is 16px padding → ~48px tap target. Overlay closes on backdrop tap.
+      Max-height 92vh with overflow-y:auto handles long filter lists on small screens.
+      The filter-fab FAB shows active state (red border) when any filter is active.
+    </div>
+  </div>
+</div>
+
+<div class="finding good">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-good">Good</span>
+      <span class="page-badge">all</span>
+      <span class="finding-title">All 10 source badges defined with distinct colors and correct labels</span>
+    </div>
+    <div class="finding-loc">new_dashboard.py lines 116–131 · _BADGE_CFG dict</div>
+    <div class="finding-what">
+      All 10 active sources have badge configs with unique bg/fg color pairs:
+      BaT (blue), pcarmarket (green), C&amp;B (orange), Rennlist (pink), PCA Mart (sky),
+      AutoTrader (amber), Cars.com (light green), eBay (orange), DuPont (red), BfB (light blue).
+      The fallback for unknown sources is a neutral grey. Source chip filter labels
+      match the badge labels correctly.
+    </div>
+  </div>
+</div>
+
+<div class="finding good">
+  <div class="finding-bar"></div>
+  <div class="finding-body">
+    <div class="finding-header">
+      <span class="sev-badge sev-good">Good</span>
+      <span class="page-badge">index</span>
+      <span class="finding-title">Service worker is network-first with cache fallback — correct strategy for a live data app</span>
+    </div>
+    <div class="finding-loc">sw.js lines 28–41 · fetch event handler</div>
+    <div class="finding-what">
+      Network-first is the correct strategy here: fresh data (updated every 2 min) is always
+      preferred, with cache as a fallback for offline. The SW also handles push notifications
+      and notification click-to-navigate correctly. <code>self.skipWaiting()</code> + <code>clients.claim()</code>
+      ensure the SW activates immediately on update.
+    </div>
+  </div>
+</div>
+
+</div><!-- /section good -->
+
+
+<!-- ════════════════════════════════════════════════════ -->
+<div class="section">
+<div class="section-title"><span class="section-icon">🏆</span> Priority List — Top 10 by Impact</div>
+
+<ol class="priority-list">
+  <li>
+    <span class="p-num">1</span>
+    <span class="p-text"><strong>SVG fallback broken JS string</strong> — Affects 2,400+ cards across all pages.
+    Image fallback fails silently in strict environments. Single-line fix in new_dashboard.py:
+    replace <code>'</code> with <code>%27</code> in <code>placeholder_svg</code>.</span>
+  </li>
+  <li>
+    <span class="p-num">2</span>
+    <span class="p-text"><strong>search.html design overhaul</strong> — The search page looks like a different product.
+    It's the highest-friction UX break for a user navigating the full dashboard.
+    Rebuild with shared topbar, PTOX11 colors, DM Mono/Syne fonts.</span>
+  </li>
+  <li>
+    <span class="p-num">3</span>
+    <span class="p-text"><strong>search.html XSS / listing_url injection</strong> — Internal data today, but
+    any scraper artifact with a quote in a URL or HTML in a trim field can corrupt the DOM.
+    Escape all interpolated fields in the search results innerHTML template.</span>
+  </li>
+  <li>
+    <span class="p-num">4</span>
+    <span class="p-text"><strong>PCA Mart images broken</strong> — ~53 cards always show placeholder.
+    The Referer XHR approach is a browser-forbidden operation. Cache images server-side
+    at scrape time to <code>docs/img_cache/</code> like the other sources.</span>
+  </li>
+  <li>
+    <span class="p-num">5</span>
+    <span class="p-text"><strong>auctions.html nav: logo not a link, missing Market + Bell tabs</strong> —
+    Three related nav issues. Easy fix in auction_dashboard.py template.
+    Breaks the "always home from logo" convention and leaves users unable to reach Market/notify.</span>
+  </li>
+  <li>
+    <span class="p-num">6</span>
+    <span class="p-text"><strong>Service worker: only caches index.html</strong> — auctions.html and search.html
+    return browser offline errors when accessed without network. Add both pages + icons to ASSETS array.</span>
+  </li>
+  <li>
+    <span class="p-num">7</span>
+    <span class="p-text"><strong>Comps nav on auctions.html: 300ms setTimeout hack</strong> — Replace with
+    hash-based navigation (<code>index.html#comps</code>) to fix reliably. Current approach
+    silently fails on slow devices.</span>
+  </li>
+  <li>
+    <span class="p-num">8</span>
+    <span class="p-text"><strong>Auto-refresh never fetches fresh data</strong> — Re-rendering from stale
+    in-memory CARD_DATA gives users confidence that the view is current when it isn't.
+    Export a separate <code>cards.json</code> and fetch it on each auto-refresh interval.</span>
+  </li>
+  <li>
+    <span class="p-num">9</span>
+    <span class="p-text"><strong>manifest.json branding/count/color errors</strong> — Update name,
+    short_name, description, theme_color, and background_color. Low-effort, high-polish fix
+    visible to anyone who installs the PWA.</span>
+  </li>
+  <li>
+    <span class="p-num">10</span>
+    <span class="p-text"><strong>Card age "just now" on all listings / DOM chip invisible</strong> —
+    Verify that <code>date_first_seen</code> is preserved on upsert (not reset to NOW).
+    The days-on-market feature was shipped but appears invisible in current data — high value
+    for the dealer use case if it works correctly.</span>
+  </li>
+</ol>
+</div>
+
+</div><!-- /container -->
+</body>
+</html>
