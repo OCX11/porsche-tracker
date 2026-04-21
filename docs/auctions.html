@@ -164,7 +164,7 @@ a { color:inherit; text-decoration:none; }
   </div>
   <div class="topbar-right">
     <span><span class="live-dot"></span>Live Countdown</span>
-    <span>Apr 21, 2026 13:08 UTC</span>
+    <span>Apr 21, 2026 13:16 UTC</span>
     <span>Auto-refresh 2 min</span>
   </div>
 </header>
@@ -1189,11 +1189,7 @@ setInterval(tickAll, 1000);
 
 // ── PWA-safe listing navigation ───────────────────────────────────────────────
 function openListing(url) {
-  if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
-    window.location.href = url;
-  } else {
-    window.open(url, '_blank');
-  }
+  window.open(url, '_blank');
 }
 
 window.addEventListener('pageshow', function(e) {

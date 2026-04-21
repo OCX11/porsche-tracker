@@ -187,12 +187,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); }
 loadData();
 
 function openListing(url) {
-  // In PWA standalone mode, navigate in-place so Done returns to the app
-  if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {
-    window.location.href = url;
-  } else {
-    window.open(url, '_blank');
-  }
+  window.open(url, '_blank');
 }
 
 window.addEventListener('pageshow', function(e) {

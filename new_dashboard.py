@@ -1480,12 +1480,11 @@ function sortComps(col) {{
 
 // ── PWA-safe listing navigation ───────────────────────────────────────────────
 function openListing(url) {{
-  // In PWA standalone mode, navigate in-place so Done returns to the app
-  if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {{
-    window.location.href = url;
-  }} else {{
-    window.open(url, '_blank');
-  }}
+  // Always open in a new window/tab. On iOS PWA standalone mode,
+  // this opens Safari as an overlay — closing it returns to the PWA.
+  // Do NOT use window.location.href — that replaces the PWA page
+  // and causes a white screen when navigating back.
+  window.open(url, '_blank');
 }}
 
 window.addEventListener('pageshow', function(e) {{

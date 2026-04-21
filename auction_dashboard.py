@@ -577,11 +577,7 @@ setInterval(tickAll, 1000);
 
 // ── PWA-safe listing navigation ───────────────────────────────────────────────
 function openListing(url) {{
-  if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) {{
-    window.location.href = url;
-  }} else {{
-    window.open(url, '_blank');
-  }}
+  window.open(url, '_blank');
 }}
 
 window.addEventListener('pageshow', function(e) {{
