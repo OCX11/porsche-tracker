@@ -285,3 +285,86 @@ def notify_auction_ending(conn):
             sent += 1
 
     log.info("Ending-soon push alerts: %d sent", sent)
+
+
+def notify_dom_alert(conn):
+    """Send push alerts for TIER1 listings that have been active >= 30 days.
+
+    Fires once per listing (keyed by listing_url). Prunes seen store entries
+    older than 90 days on each run.
+    """
+    if not NOTIFICATIONS_ENABLED:
+        return
+
+    dom_seen_file = SCRIPT_DIR / "data" / "seen_alerts_dom.json"
+
+    # Load + prune dedup store (90-day window)
+    seen = {}
+    if dom_seen_file.exists():
+        try:
+            raw = json.loads(dom_seen_file.read_text())
+        except Exception:
+            raw = {}
+        cutoff = (datetime.now() - timedelta(days=90)).isoformat()
+        seen = {k: v for k, v in raw.items()
+                if v.get("alerted_at", "") >= cutoff}
+        if len(seen) < len(raw):
+            log.info("seen_alerts_dom: pruned %d entries older than 90 days",
+                     len(raw) - len(seen))
+
+    rows = conn.execute("""
+        SELECT id, year, make, model, trim, price, mileage, dealer,
+               listing_url, tier, date_first_seen
+        FROM listings
+        WHERE tier = 'TIER1'
+          AND status = 'active'
+          AND date_first_seen IS NOT NULL
+          AND CAST(julianday('now') - julianday(date_first_seen) AS INTEGER) >= 30
+    """).fetchall()
+
+    sent = 0
+    for row in rows:
+        s = dict(row)
+        url = s.get("listing_url") or ""
+        seen_key = url if url else "id:{0}".format(s.get("id"))
+
+        if seen_key in seen:
+            continue
+
+        try:
+            dom_days = int(
+                conn.execute(
+                    "SELECT CAST(julianday('now') - julianday(date_first_seen) AS INTEGER) FROM listings WHERE id=?",
+                    (s["id"],)
+                ).fetchone()[0] or 0
+            )
+        except Exception:
+            dom_days = 30
+
+        year  = s.get("year", "?")
+        model = s.get("model", "") or ""
+        trim  = (s.get("trim") or "").strip()
+        price = s.get("price")
+
+        title_parts = [str(year), "Porsche", model]
+        if trim and trim.lower() != model.lower():
+            title_parts.append(trim)
+        title = " ".join(p for p in title_parts if p)
+
+        price_str = "${0:,}".format(price) if price else "No Price"
+
+        payload = {
+            "title": "\u23f3 Still Available \u2014 {0} days".format(dom_days),
+            "body":  "{0} \u00b7 {1}".format(title, price_str),
+            "url":   _clean_url(url),
+        }
+
+        ok = _send_push(payload)
+        if ok:
+            seen[seen_key] = {"alerted_at": datetime.now().isoformat(), "alerted": True}
+            dom_seen_file.parent.mkdir(exist_ok=True)
+            dom_seen_file.write_text(json.dumps(seen, indent=2))
+            sent += 1
+            log.info("DOM alert sent: %s (%d days)", title, dom_days)
+
+    log.info("Days-on-market push alerts: %d sent", sent)

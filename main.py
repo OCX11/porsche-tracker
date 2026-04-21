@@ -444,6 +444,13 @@ def main():
     except Exception as e:
         log.warning("Push auction-ending alerts failed: %s", e)
 
+    # Push alerts — days-on-market (TIER1 listings still active after 30 days)
+    try:
+        with database.get_conn() as conn:
+            notify_push.notify_dom_alert(conn)
+    except Exception as e:
+        log.warning("Push DOM alerts failed: %s", e)
+
     # Health monitor
     try:
         health_monitor.main()
