@@ -335,7 +335,7 @@ def _card(car: dict, fmv_score: dict) -> str:
         f'  <div class="card-body">\n'
         f'    <div class="card-top-row">'
         f'{_badge(dealer)}'
-        f'<span class="card-age">{age_str}</span>'
+        f'<span class="card-age" data-created="{_h(created)}"></span>'
         f'</div>\n'
         f'    <div class="card-title">{year} Porsche {_h(model)}{(" " + _h(trim)) if trim else ""}</div>\n'
         f'    {tier_html}\n'
@@ -1492,10 +1492,30 @@ window.addEventListener('pageshow', function(e) {{
   if (e.persisted) {{ /* page restored from bfcache — no action needed */ }}
 }});
 
+// ── Live timestamps (client-side, updates every 60s) ─────────────────────────
+function _fmtAge(isoStr) {{
+  if (!isoStr) return '';
+  var dt = new Date(isoStr.replace(' ', 'T'));
+  if (isNaN(dt)) return '';
+  var mins = Math.floor((Date.now() - dt) / 60000);
+  if (mins < 2)  return 'just now';
+  if (mins < 60) return mins + 'm ago';
+  var h = Math.floor(mins / 60);
+  if (h < 24)    return h + 'h ago';
+  return Math.floor(h / 24) + 'd ago';
+}}
+function updateTimestamps() {{
+  document.querySelectorAll('.card-age[data-created]').forEach(function(el) {{
+    el.textContent = _fmtAge(el.dataset.created);
+  }});
+}}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', function() {{
   applyFilters();
   startCountdowns();
+  updateTimestamps();
+  setInterval(updateTimestamps, 60000);
 }});
 </script>
 </html>"""
