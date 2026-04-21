@@ -77,6 +77,9 @@ def get_generation(year: Optional[int], model: str, trim: str = "") -> str:
     if model_lower == "914":  return "914"
     if model_lower == "912":  return "912"
     if model_lower == "356":  return "356"
+    if model_lower == "carrera gt" or "carrera gt" in model_lower:  return "carrera_gt"
+    if model_lower == "918 spyder" or "918" in model_lower:  return "918_spyder"
+    if model_lower == "944":  return "944"
 
     return model_lower or "unknown"
 
