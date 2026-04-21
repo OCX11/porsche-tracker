@@ -54,6 +54,8 @@ import weekly_report
 import monthly_report
 import notify_push
 import health_monitor
+import enrich_vin_trim
+import promote_auction_comps
 
 
 def write_scrape_summary(results: dict, today: str):
@@ -350,6 +352,30 @@ def main():
 
     # Per-source summary → console + data/logs/scrape_YYYY-MM-DD.log
     write_scrape_summary(results, today)
+
+    # ── Post-scrape enrichment ───────────────────────────────────────────
+    # VIN-based trim enrichment: fill missing trims on new listings
+    try:
+        with database.get_conn() as conn:
+            stats = enrich_vin_trim.enrich_missing_trims(conn)
+            if stats["enriched_local"] + stats["enriched_nhtsa"] > 0:
+                log.info("VIN enrichment: %d trims filled (%d local, %d NHTSA)",
+                         stats["enriched_local"] + stats["enriched_nhtsa"],
+                         stats["enriched_local"], stats["enriched_nhtsa"])
+            stats2 = enrich_vin_trim.enrich_all_vins_with_trims(conn)
+            if stats2["upgraded"] > 0:
+                log.info("VIN enrichment: %d uninformative trims upgraded", stats2["upgraded"])
+    except Exception as e:
+        log.warning("VIN trim enrichment failed: %s", e)
+
+    # Promote ended auction results to sold_comps
+    try:
+        with database.get_conn() as conn:
+            stats = promote_auction_comps.promote_ended_auctions(conn)
+            if stats["promoted"] > 0:
+                log.info("Auction comps: %d new sold comps promoted", stats["promoted"])
+    except Exception as e:
+        log.warning("Auction comp promotion failed: %s", e)
 
     # Regenerate dashboards
     path = dash.generate()
