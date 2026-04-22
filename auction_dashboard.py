@@ -524,7 +524,7 @@ a {{ color:inherit; text-decoration:none; }}
 .auc-body {{ padding:10px 12px; flex:1; display:flex; flex-direction:column; gap:0; min-width:0; }}
 .auc-top-row {{ display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }}
 .gen-label {{ font-family:'DM Mono',monospace; font-size:9px; color:#4B4B5D; }}
-.auc-title {{ font-family:'DM Sans',sans-serif; font-size:12px; color:#C0C0D0; margin-bottom:4px; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; max-width:100%; }}
+.auc-title {{ font-family:'DM Sans',sans-serif; font-size:12px; color:#C0C0D0; margin-bottom:4px; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; max-width:100%; min-height:1.3em; }}
 .tier-badge {{ display:inline-block; font-family:'DM Mono',monospace; font-size:8px; font-weight:500; background:#1A0A00; color:var(--yellow); padding:2px 6px; border-radius:3px; margin-bottom:4px; text-transform:uppercase; border:1px solid #3A2000; letter-spacing:0.5px; }}
 .auc-bid-row {{ display:flex; align-items:baseline; gap:7px; margin-bottom:4px; }}
 .bid-label {{ font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); }}
