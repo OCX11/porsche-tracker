@@ -107,9 +107,21 @@ def _parse_car(item):
     trans   = _parse_transmission(item.get("transmission"))
     drive   = _parse_drivetrain(item.get("driveTrain"))
 
-    # Price — 0 means "Call for Price"
+    # Price — 0 or call-for-price fields mean "Contact for Price"; set to None.
     price = item.get("price")
     if price is not None and price == 0:
+        price = None
+    # Some listings have an explicit boolean or label indicating call-for-price.
+    if price is not None:
+        call_flags = (
+            item.get("callForPrice")
+            or item.get("priceOnRequest")
+            or item.get("contactPrice")
+        )
+        if call_flags:
+            price = None
+    # Guard against suspiciously small sentinel values (< $1,000 on a Porsche listing)
+    if price is not None and price < 1000:
         price = None
 
     # Model variant — DuPont stores e.g. "Carrera 4S", "GT3 RS", "Boxster S"
