@@ -333,6 +333,26 @@ def _parse_ymmt(title: str):
     title = re.sub(r"\s*[-–—]\s*SOLD\s*$", "", title.strip(), flags=re.I).strip()
     title = re.sub(r"\s*\(#[^)]+\)", "", title).strip()
 
+    # Strip non-year prefixes that precede the model year.  Apply in a loop so
+    # stacked prefixes (e.g. "Original-Owner, 31k-Mile 2002 Porsche …") are all
+    # removed.  Patterns are checked in order; we repeat until stable.
+    _PREFIX_PATS = (
+        re.compile(r"^[\d,]+k?-(?:Mile|Kilometer)[,\s]+", re.I),   # 47k-Mile, 72k-Kilometer
+        re.compile(r"^\d+-Years?-\S+\s+", re.I),                    # 26-Years-Family-Owned
+        re.compile(r"^RoW\s+"),                                      # Rest-of-World tag
+        re.compile(r"^(?:Modified|Supercharged|Turbocharged|Widebody|\w+-Built|\w+-Owner)\b[,\s]+", re.I),
+    )
+    for _ in range(5):
+        prev = title
+        for pat in _PREFIX_PATS:
+            title = pat.sub("", title).strip()
+        if title == prev:
+            break
+    # Last-resort: strip up to 3 leading tokens (words) that precede the year,
+    # e.g. "Augie Pabst Jr.'s 2002 …" or "346-Mile Stone Gray 2024 …".
+    if not re.match(r"^\d{4}\s", title):
+        title = re.sub(r"^(?:\S+\s+){1,3}(?=\d{4}\s)", "", title).strip()
+
     m = re.match(r"^(\d{4})\s+(.+)$", title)
     if not m:
         return None, None, title, None
@@ -1253,87 +1273,76 @@ def scrape_grandprimotors():
 # ---------------------------------------------------------------------------
 
 def scrape_bat():
-    """bringatrailer.com/porsche/ — active auctions, Playwright required.
-    Cards: div.listing-card; title in h3>a; bid in span.bid-formatted."""
-    if not _playwright_available():
-        log.warning("BaT scraper requires Playwright")
-        return []
+    """bringatrailer.com/porsche/ — active auctions via direct requests.
+
+    BaT server-renders all listing cards in the initial HTML. Previously used
+    Playwright but BaT added JS pagination (data-pagesize=18) which collapsed
+    the DOM to ~18 visible cards, causing mark_sold() to wipe valid listings.
+    Direct requests gets all 100+ cards before JS runs.
+    """
+    import requests as _req
+
+    BAT_HEADERS = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        "Referer":    "https://www.google.com/",
+        "Accept":     "text/html,application/xhtml+xml",
+    }
     cars = []
     try:
-        from playwright.sync_api import sync_playwright
-        with sync_playwright() as p:
-            # BaT doesn't block headless — try without proxy first (faster, avoids
-            # proxy latency/timeouts); fall back to proxy only if first attempt fails.
-            proxy = _pw_proxy()
-            browser = p.chromium.launch(headless=True)
-            pg = _stealth_page(browser)
-            try:
-                pg.goto("https://bringatrailer.com/porsche/",
-                        wait_until="domcontentloaded", timeout=35000)
-                pg.wait_for_selector("div.listing-card", timeout=10000)
-            except Exception:
-                browser.close()
-                if proxy:
-                    log.debug("BaT: no-proxy attempt failed, retrying via proxy")
-                    browser = p.chromium.launch(headless=True, proxy=proxy)
-                    pg = _stealth_page(browser)
-                    pg.goto("https://bringatrailer.com/porsche/",
-                            wait_until="domcontentloaded", timeout=45000)
-                    try:
-                        pg.wait_for_selector("div.listing-card", timeout=10000)
-                    except Exception:
-                        pass
-                else:
-                    raise
-            html = pg.content()
-            browser.close()
-
-        soup = BeautifulSoup(html, "lxml")
-        for card in soup.select("div.listing-card"):
-            a = card.select_one("h3 > a") or card.select_one("h2 > a") or card.select_one("a[href]")
-            if not a:
-                continue
-            title = _clean(a.get_text()) or ""
-            url = a.get("href", "")
-            if url and not url.startswith("http"):
-                url = "https://bringatrailer.com" + url
-
-            # Parse mileage from "34k-Mile" or "34,123-Mile" prefix
-            mileage = None
-            mm = re.search(r"([\d,]+)(k)?-Mile", title, re.I)
-            if mm:
-                val = int(mm.group(1).replace(",", ""))
-                mileage = val * 1000 if mm.group(2) else val
-
-            # Strip mileage prefix before parsing YMMT
-            clean_title = re.sub(r"[\d,]+k?-Mile\s+", "", title, flags=re.I).strip()
-            year, make, model, trim = _parse_ymmt(clean_title)
-
-            bid_el = card.select_one("span.bid-formatted, [class*='bid-amount'], [class*='current-bid']")
-            price = _int(bid_el.get_text()) if bid_el else None
-
-            img = card.select_one("div.thumbnail img, .listing-thumbnail img, img[src]")
-            image_url = None
-            if img:
-                image_url = (img.get("src") or img.get("data-src") or "").split("?")[0] or None
-
-            auction_ends_at = None
-            ts_end = card.get("data-timestamp_end")
-            if ts_end:
-                try:
-                    auction_ends_at = _dt.utcfromtimestamp(int(ts_end)).strftime("%Y-%m-%dT%H:%M:%SZ")
-                except (ValueError, OSError):
-                    pass
-
-            if not year:
-                continue
-            c = dict(year=year, make=make or "Porsche", model=model, trim=trim,
-                     mileage=mileage, price=price, vin=None, listing_url=url, image_url=image_url,
-                     auction_ends_at=auction_ends_at)
-            if _is_valid_listing(c):
-                cars.append(c)
+        resp = _req.get("https://bringatrailer.com/porsche/",
+                        headers=BAT_HEADERS, timeout=30)
+        if resp.status_code != 200:
+            log.warning("BaT scraper: HTTP %d — returning []", resp.status_code)
+            return []
+        soup = BeautifulSoup(resp.text, "lxml")
     except Exception as e:
-        log.warning("BaT scraper error: %s", e)
+        log.warning("BaT scraper: request failed: %s", e)
+        return []
+
+    for card in soup.select("div.listing-card"):
+        a = card.select_one("h3 > a") or card.select_one("h2 > a") or card.select_one("a[href]")
+        if not a:
+            continue
+        title = _clean(a.get_text()) or ""
+        url = a.get("href", "")
+        if url and not url.startswith("http"):
+            url = "https://bringatrailer.com" + url
+
+        mileage = None
+        mm = re.search(r"([\d,]+)(k)?-Mile", title, re.I)
+        if mm:
+            val = int(mm.group(1).replace(",", ""))
+            mileage = val * 1000 if mm.group(2) else val
+
+        clean_title = re.sub(r"[\d,]+k?-Mile\s+", "", title, flags=re.I).strip()
+        year, make, model, trim = _parse_ymmt(clean_title)
+
+        bid_el = card.select_one("span.bid-formatted, [class*='bid-amount'], [class*='current-bid']")
+        price = _int(bid_el.get_text()) if bid_el else None
+
+        img = card.select_one("div.thumbnail img, .listing-thumbnail img, img[src]")
+        image_url = None
+        if img:
+            image_url = (img.get("src") or img.get("data-src") or "").split("?")[0] or None
+
+        auction_ends_at = None
+        ts_end = card.get("data-timestamp_end")
+        if ts_end:
+            try:
+                auction_ends_at = _dt.utcfromtimestamp(int(ts_end)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            except (ValueError, OSError):
+                pass
+
+        if not year:
+            continue
+        c = dict(year=year, make=make or "Porsche", model=model, trim=trim,
+                 mileage=mileage, price=price, vin=None, listing_url=url,
+                 image_url=image_url, auction_ends_at=auction_ends_at)
+        if _is_valid_listing(c):
+            cars.append(c)
+
+    log.info("BaT scraper: %d valid from %d cards",
+             len(cars), len(soup.select("div.listing-card")))
     return _dedupe(cars)
 
 
