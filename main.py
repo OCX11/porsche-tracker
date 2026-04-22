@@ -221,22 +221,27 @@ def run_snapshot(dealer_results: dict, today: str):
             # Auction guard: for BaT/C&B/pcarmarket, never allow mark_sold to wipe
             # a listing whose auction hasn't ended yet. This bulletproofs against
             # scraper truncation (site pagination changes, partial fetches, etc.).
-            # A listing is only eligible for mark_sold if its auction has actually ended.
+            # CRITICAL: must use COALESCE(vin, listing_url) — same key mark_sold uses —
+            # because VIN enrichment adds VINs to listings after scraping. If we only
+            # add listing_url to active_keys, listings with VINs get wiped anyway since
+            # mark_sold checks COALESCE(vin, listing_url, ...) against active_keys.
             _AUCTION_DEALERS = frozenset({"Bring a Trailer", "Cars and Bids", "pcarmarket"})
             if dealer_name in _AUCTION_DEALERS:
-                future_urls = set(
+                future_keys = set(
                     r[0] for r in conn.execute(
-                        """SELECT listing_url FROM listings
+                        """SELECT COALESCE(vin, listing_url)
+                           FROM listings
                            WHERE dealer=? AND status='active'
                            AND auction_ends_at > datetime('now')
-                           AND listing_url IS NOT NULL""",
+                           AND (vin IS NOT NULL OR listing_url IS NOT NULL)""",
                         (dealer_name,)
                     ).fetchall()
+                    if r[0]
                 )
-                if future_urls:
-                    active_keys |= future_urls
-                    log.debug("[%s] Auction guard: protecting %d future-ending listings",
-                              dealer_name, len(future_urls))
+                if future_keys:
+                    active_keys |= future_keys
+                    log.info("[%s] Auction guard: protecting %d future-ending listings",
+                             dealer_name, len(future_keys))
 
             database.mark_sold(conn, dealer_name, active_keys, today)
 
