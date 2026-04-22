@@ -307,6 +307,133 @@ def enrich_all_vins_with_trims(conn=None, dry_run=False):
     return stats
 
 
+# ── Title-keyword enrichment ─────────────────────────────────────────────────
+# Some scrapers store the full listing title in the trim field.
+# Keywords in the title can identify specific trims that VIN decoding can't.
+
+# Trims specific enough that no keyword pass is needed.
+_SPECIFIC_TRIMS = frozenset({
+    "GT3", "GT3 RS", "GT3 Touring", "GT3 Cup",
+    "GT2", "GT2 RS",
+    "GT4", "GT4 RS",
+    "Spyder RS", "Spyder",
+    "Turbo S", "Turbo S Exclusive",
+    "Speedster", "Sport Classic", "Safari",
+    "RS America", "America Roadster",
+    "Dakar", "S/T",
+    "Carrera GT", "918 Spyder",
+    "Boxster 25 Years",
+})
+
+
+def _detect_trim_from_keywords(year, model, trim_text):
+    # type: (Optional[int], str, Optional[str]) -> Optional[str]
+    """
+    Return a canonical trim detected from keywords in trim_text.
+    Returns None if no confident detection.
+    Requires model/year context for ambiguous cases (e.g. Weissach).
+    """
+    if not trim_text:
+        return None
+    text = trim_text.lower().strip()
+    model_lower = (model or "").lower()
+    is_911 = "911" in model_lower or model_lower == "911"
+    is_718 = "718" in model_lower or model_lower in ("cayman", "boxster")
+
+    # "exclusive series" → Turbo S Exclusive (991.2+ = 2017+)
+    if "exclusive series" in text:
+        if is_911 and year and year >= 2017:
+            return "Turbo S Exclusive"
+
+    # "weissach" as a standalone keyword (not prefixed by a specific trim)
+    # Weissach is an optional package only on GT2 RS, GT3 RS, GT4 RS, Spyder RS.
+    if "weissach" in text:
+        if is_911:
+            if "gt2" in text:
+                return "GT2 RS"
+            # Default to GT3 RS (more common Weissach car)
+            return "GT3 RS"
+        if is_718:
+            if "spyder" in text:
+                return "Spyder RS"
+            return "GT4 RS"
+
+    # "speedster" anywhere → Speedster
+    if "speedster" in text:
+        return "Speedster"
+
+    # "safari" → Safari special build
+    if "safari" in text:
+        return "Safari"
+
+    # "sport classic" → Sport Classic
+    if "sport classic" in text:
+        return "Sport Classic"
+
+    # "gt3 touring" or "gt3" + "touring" → GT3 Touring
+    if "gt3 touring" in text or ("gt3" in text and "touring" in text):
+        return "GT3 Touring"
+
+    # "rs america" → RS America (964-era)
+    if "rs america" in text:
+        return "RS America"
+
+    return None
+
+
+def enrich_title_keywords(conn=None, dry_run=False):
+    # type: (Optional[sqlite3.Connection], bool) -> dict
+    """
+    Keyword pass: detect more specific trim from keywords in the trim field.
+    Targets listings where the trim field contains a title/description rather
+    than a canonical trim. Only upgrades — never downgrades.
+    """
+    import sys
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from fmv import normalize_trim
+
+    close_conn = False
+    if conn is None:
+        conn = sqlite3.connect(str(DB_PATH))
+        close_conn = True
+
+    rows = conn.execute(
+        """SELECT id, year, model, trim, dealer
+           FROM listings
+           WHERE status='active'"""
+    ).fetchall()
+
+    stats = {"checked": len(rows), "enriched": 0}
+    updates = []
+
+    for lid, year, model, trim, dealer in rows:
+        # Skip if already a specific canonical trim
+        norm = normalize_trim(trim)
+        if norm in _SPECIFIC_TRIMS:
+            continue
+
+        detected = _detect_trim_from_keywords(year, model, trim)
+        if detected and detected != norm:
+            updates.append((detected, lid))
+            stats["enriched"] += 1
+            log.info("  [TITLE-KW] %s %s %s trim '%s' -> '%s'",
+                     dealer[:15] if dealer else "?", year, model,
+                     (trim or "NULL")[:40], detected)
+
+    if not dry_run and updates:
+        conn.executemany("UPDATE listings SET trim = ? WHERE id = ?", updates)
+        conn.commit()
+        log.info("Title keyword enrichment: updated %d listings", len(updates))
+    elif dry_run:
+        log.info("DRY RUN — would update %d listings", len(updates))
+
+    if close_conn:
+        conn.close()
+
+    return stats
+
+
 if __name__ == "__main__":
     import sys
     dry_run = "--dry-run" in sys.argv
@@ -323,5 +450,9 @@ if __name__ == "__main__":
     log.info("\n--- Pass 2: Upgrade uninformative trims ---")
     stats2 = enrich_all_vins_with_trims(dry_run=dry_run)
     log.info("Results: %d checked, %d upgraded" % (stats2["checked"], stats2["upgraded"]))
+
+    log.info("\n--- Pass 3: Title keyword enrichment ---")
+    stats3 = enrich_title_keywords(dry_run=dry_run)
+    log.info("Results: %d checked, %d enriched" % (stats3["checked"], stats3["enriched"]))
 
     log.info("\nDone!")
