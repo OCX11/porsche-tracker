@@ -20,6 +20,7 @@ import logging
 import re
 import time
 from pathlib import Path
+from urllib.parse import urlparse
 
 import requests
 
@@ -355,6 +356,15 @@ def _parse_item(item):
     url = item.get("itemWebUrl")
     if not url:
         return None
+
+    # Strip eBay session-specific tracking params (?_skw=...&hash=...).
+    # These change between scrape runs and break URL-based dedup in upsert_listing().
+    # Canonical form: scheme + netloc + path only (item ID is in the path).
+    try:
+        p = urlparse(url)
+        url = f"{p.scheme}://{p.netloc}{p.path}"
+    except Exception:
+        pass  # keep original url if parse fails
 
     return {
         "year":            _extract_year(title),

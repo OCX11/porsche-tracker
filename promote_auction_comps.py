@@ -58,17 +58,29 @@ def promote_ended_auctions(conn=None, dry_run=False):
         (lid, dealer, year, model, trim, mileage, price, url, image_url,
          vin, src_cat, tier, auction_ends_at, date_last_seen) = row
 
-        # Use auction_ends_at as sold_date if available, else date_last_seen
-        sold_date = None
+        # Use the EARLIEST of auction_ends_at, date_last_seen, and today.
+        # When auctions end early (Buy It Now / reserve met), auction_ends_at still
+        # holds the original scheduled end date (future). Using min() ensures
+        # sold_date is never in the future.
+        today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        candidates = [today_str]
         if auction_ends_at:
             try:
-                sold_date = auction_ends_at[:10]  # ISO date portion
+                candidates.append(auction_ends_at[:10])
             except (TypeError, IndexError):
                 pass
-        if not sold_date and date_last_seen:
-            sold_date = date_last_seen[:10]
-        if not sold_date:
-            sold_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        if date_last_seen:
+            try:
+                candidates.append(date_last_seen[:10])
+            except (TypeError, IndexError):
+                pass
+        sold_date = min(candidates)  # earliest date — never in the future
+
+        # Safety net: skip if sold_date is still somehow in the future
+        if sold_date > today_str:
+            log.warning("  SKIP future-dated comp: %s %s sold_date=%s", year, model, sold_date)
+            stats["skipped"] += 1
+            continue
 
         # Build title
         title = "%s %s %s" % (year, model, trim or "")
