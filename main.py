@@ -56,6 +56,7 @@ import notify_push
 import health_monitor
 import enrich_vin_trim
 import promote_auction_comps
+import enrich_from_archive
 
 
 def write_scrape_summary(results: dict, today: str):
@@ -367,6 +368,16 @@ def main():
                 log.info("VIN enrichment: %d uninformative trims upgraded", stats2["upgraded"])
     except Exception as e:
         log.warning("VIN trim enrichment failed: %s", e)
+
+    # Archive-based mileage + VIN enrichment (reads saved HTML files)
+    try:
+        with database.get_conn() as conn:
+            stats = enrich_from_archive.enrich_from_archives()
+            if stats["mileage_filled"] + stats["vin_filled"] > 0:
+                log.info("Archive enrichment: %d mileage, %d VIN filled",
+                         stats["mileage_filled"], stats["vin_filled"])
+    except Exception as e:
+        log.warning("Archive enrichment failed: %s", e)
 
     # Promote ended auction results to sold_comps
     try:
