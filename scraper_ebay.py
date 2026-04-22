@@ -685,15 +685,32 @@ def scrape_ebay(max_pages=None):
         log.info("eBay page 0: fetched %d items (API total: %d)", len(items), total)
 
         new_count = 0
-        # Merge new/updated listings into cache by URL
+        # Merge new/updated listings into cache by URL.
+        # Secondary VIN index catches the same car relisted under a new eBay item ID.
         cached_by_url = {l["url"]: l for l in cached_listings if l.get("url")}
+        cached_by_vin = {l["vin"]: l["url"] for l in cached_listings if l.get("vin")}
+
         for item in items:
             try:
                 car = _parse_item(item)
-                if car and car.get("url") and _local_valid(car):
-                    if car["url"] not in cached_by_url:
-                        new_count += 1
-                    cached_by_url[car["url"]] = car
+                if not (car and car.get("url") and _local_valid(car)):
+                    continue
+                vin = car.get("vin")
+                # If this VIN is already in cache under a different URL, it's the same
+                # car relisted — update the existing entry instead of adding a duplicate.
+                if vin and vin in cached_by_vin:
+                    old_url = cached_by_vin[vin]
+                    if old_url in cached_by_url and old_url != car["url"]:
+                        log.info("eBay: VIN dedup — %s relisted, merging into %s", vin, old_url[:60])
+                        cached_by_url[old_url].update(
+                            {k: v for k, v in car.items() if v is not None}
+                        )
+                        continue
+                if car["url"] not in cached_by_url:
+                    new_count += 1
+                cached_by_url[car["url"]] = car
+                if vin:
+                    cached_by_vin[vin] = car["url"]
             except Exception as e:
                 log.warning("eBay: parse error (%s): %s", item.get("itemId", "?"), e)
 
@@ -702,8 +719,16 @@ def scrape_ebay(max_pages=None):
             seller_listings = _search_seller(token, seller)
             s_added = 0
             for sl in seller_listings:
-                if sl.get("url") and sl["url"] not in cached_by_url:
-                    cached_by_url[sl["url"]] = sl
+                vin = sl.get("vin")
+                url = sl.get("url")
+                if not url:
+                    continue
+                if vin and vin in cached_by_vin:
+                    continue  # already in cache under another URL
+                if url not in cached_by_url:
+                    cached_by_url[url] = sl
+                    if vin:
+                        cached_by_vin[vin] = url
                     s_added += 1
                     new_count += 1
             if s_added:
