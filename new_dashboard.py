@@ -247,7 +247,40 @@ def _card(car: dict, fmv_score: dict) -> str:
     conf       = fmv_score.get("confidence", "NONE")
     comp_count = fmv_score.get("comp_count", 0)
     pct        = _fmv_pct(price, fmv_val) if conf != "NONE" else None
-    fmv_bar    = _fmv_bar_block(price, fmv_val, conf, comp_count)
+    # Auction FMV phasing: 3-phase approach (owner decision: 65% threshold)
+    # Phase 1 (>24hr): hide FMV, show 'Auction in progress'
+    # Phase 2 (<24hr): show FMV only if bid >65% of FMV
+    # Phase 3 (ended): full FMV comparison
+    _auction_fmv_hidden = False
+    if is_auc and auction_ends_at and fmv_val and conf != "NONE":
+        from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+        try:
+            _ends = _dt.fromisoformat(auction_ends_at.replace("Z", "+00:00"))
+            _now = _dt.now(_tz.utc)
+            _left = _ends - _now
+            if _left.total_seconds() > 0:  # still active
+                if _left > _td(hours=24):
+                    fmv_bar = ('<div class="fmv-none">'
+                               '<span class="fmv-none-dot" style="background:#555"></span>'
+                               'Auction in progress'
+                               '</div>')
+                    _auction_fmv_hidden = True
+                else:
+                    _bid_pct = (float(price) / float(fmv_val) * 100) if price and fmv_val else 0
+                    if _bid_pct >= 65:
+                        fmv_bar = _fmv_bar_block(price, fmv_val, conf, comp_count)
+                    else:
+                        fmv_bar = ('<div class="fmv-none">'
+                                   '<span class="fmv-none-dot" style="background:#555"></span>'
+                                   'Auction ending soon'
+                                   '</div>')
+                        _auction_fmv_hidden = True
+            else:
+                fmv_bar = _fmv_bar_block(price, fmv_val, conf, comp_count)
+        except Exception:
+            fmv_bar = _fmv_bar_block(price, fmv_val, conf, comp_count)
+    else:
+        fmv_bar = _fmv_bar_block(price, fmv_val, conf, comp_count)
     age_str    = _age_label(created)
     gen_str    = _gen(year, model)
     # Badge label used for source chip filtering
@@ -256,7 +289,7 @@ def _card(car: dict, fmv_score: dict) -> str:
 
     # Deal badge — only show if 10%+ below FMV
     deal_badge = ""
-    if pct is not None and pct <= -10:
+    if pct is not None and pct <= -10 and not _auction_fmv_hidden:
         deal_badge = f'<div class="img-deal-badge">{chr(8595)}{abs(pct):.0f}%</div>'
 
     # Gen badge on image
