@@ -357,9 +357,7 @@ def generate() -> str:
                float(r[1]) < float(fmv_by_id[r[0]]["fmv"]) * 0.90
         )
 
-        # Auction Completed — marked sold in last 48 hours, auction end time already passed.
-        # Use archived_at for the recency window (not auction_ends_at) so scraper-wiped
-        # active listings with future end dates never appear here.
+        # Recently Completed — archived in last 48h, auction end time already passed
         ended_rows = conn.execute(
             """SELECT * FROM listings
                WHERE source_category='AUCTION' AND status='sold'
@@ -384,8 +382,8 @@ def generate() -> str:
         c["_ends_dt"] = _parse_ends(c.get("auction_ends_at"))
 
     ending_soon = []
-    coming_up   = []
-    no_end_time = []
+    live_auction = []
+    no_end_time  = []
 
     one_day = now_utc + timedelta(hours=24)
 
@@ -397,27 +395,27 @@ def generate() -> str:
         elif ends_dt <= one_day:
             ending_soon.append(c)
         else:
-            coming_up.append(c)
+            live_auction.append(c)
 
     def _sort_key(c):
         d = c.get("_ends_dt")
         return d if d else datetime(9999, 12, 31, tzinfo=timezone.utc)
 
     ending_soon.sort(key=_sort_key)
-    coming_up.sort(key=_sort_key)
+    live_auction.sort(key=_sort_key)
 
     def _cards(lst, urgent=False):
         return "\n".join(_auction_card(c, c["_fmv"], urgent=urgent) for c in lst)
 
-    s_ending = _section("Ending Soon",     "24 hours or less",           _cards(ending_soon, urgent=True), "&#x1F525;", len(ending_soon), "ending-soon", hide_if_empty=True)
-    s_coming = _section("Ending This Week","Beyond 24 hours",            _cards(coming_up),                "&#x1F4C5;", len(coming_up))
-    s_noend  = _section("No End Time",     "Buy-now / end time unknown", _cards(no_end_time),              "&#x1F3F7;", len(no_end_time))
-    s_ended  = _section("Auction Completed", "Last 48 hours &mdash; final prices", _cards(ended_cars),    "&#x1F3C1;", len(ended_cars), "ended")
+    s_ending = _section("Ending Soon",   "Less than 24 hours",         _cards(ending_soon, urgent=True), "&#x1F525;", len(ending_soon),  "ending-soon", hide_if_empty=True)
+    s_live   = _section("Live Auctions", "Ending beyond 24 hours",     _cards(live_auction),             "&#x1F7E2;", len(live_auction))
+    s_noend  = _section("No End Time",   "Buy-now / end time unknown",  _cards(no_end_time),              "&#x1F3F7;", len(no_end_time))
+    s_ended  = _section("Recently Completed", "Last 48 hours &mdash; final prices", _cards(ended_cars),  "&#x1F3C1;", len(ended_cars), "ended")
 
     total   = len(cars)
     now_str = now_utc.strftime("%b %d, %Y %H:%M UTC")
 
-    html = _build_html(s_ending, s_coming, s_noend, s_ended, total, len(ending_soon), len(coming_up), len(ended_cars), now_str, n_listings_total, n_comps_total, n_new_today, n_deals)
+    html = _build_html(s_ending, s_live, s_noend, s_ended, total, len(ending_soon), len(live_auction), len(ended_cars), now_str, n_listings_total, n_comps_total, n_new_today, n_deals)
     OUT_PATH.write_text(html, encoding="utf-8")
     print(f"[auction_dashboard] wrote {OUT_PATH} ({total} auctions)")
     return html
@@ -425,7 +423,7 @@ def generate() -> str:
 
 # ── HTML template ─────────────────────────────────────────────────────────────
 
-def _build_html(s_ending, s_coming, s_noend, s_ended, total, n_ending, n_coming, n_ended, now_str, n_listings_total=0, n_comps_total=0, n_new_today=0, n_deals=0) -> str:
+def _build_html(s_ending, s_live, s_noend, s_ended, total, n_ending, n_live, n_ended, now_str, n_listings_total=0, n_comps_total=0, n_new_today=0, n_deals=0) -> str:
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -524,7 +522,7 @@ a {{ color:inherit; text-decoration:none; }}
 .auc-body {{ padding:10px 12px; flex:1; display:flex; flex-direction:column; gap:0; min-width:0; }}
 .auc-top-row {{ display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }}
 .gen-label {{ font-family:'DM Mono',monospace; font-size:9px; color:#4B4B5D; }}
-.auc-title {{ font-family:'DM Sans',sans-serif; font-size:12px; color:#C0C0D0; margin-bottom:4px; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; max-width:100%; min-height:1.3em; }}
+.auc-title {{ font-family:'DM Sans',sans-serif; font-size:12px; color:#C0C0D0; margin-bottom:4px; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-height:1.3em; }}
 .tier-badge {{ display:inline-block; font-family:'DM Mono',monospace; font-size:8px; font-weight:500; background:#1A0A00; color:var(--yellow); padding:2px 6px; border-radius:3px; margin-bottom:4px; text-transform:uppercase; border:1px solid #3A2000; letter-spacing:0.5px; }}
 .auc-bid-row {{ display:flex; align-items:baseline; gap:7px; margin-bottom:4px; }}
 .bid-label {{ font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); }}
@@ -631,8 +629,9 @@ a {{ color:inherit; text-decoration:none; }}
 
 <div class="page-body">
   {s_ending}
-  {s_coming}
+  {s_live}
   {s_noend}
+{s_ended}
 {s_ended}
 </div>
 
