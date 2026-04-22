@@ -369,6 +369,15 @@ def main():
     except Exception as e:
         log.warning("VIN trim enrichment failed: %s", e)
 
+    # Title-keyword trim enrichment: catch trims buried in listing titles
+    try:
+        with database.get_conn() as conn:
+            stats = enrich_vin_trim.enrich_title_keywords(conn)
+            if stats["enriched"] > 0:
+                log.info("Title keyword enrichment: %d trims detected", stats["enriched"])
+    except Exception as e:
+        log.warning("Title keyword enrichment failed: %s", e)
+
     # Archive-based mileage + VIN enrichment (reads saved HTML files)
     try:
         with database.get_conn() as conn:
