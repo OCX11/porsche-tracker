@@ -96,7 +96,7 @@ a { color:inherit; text-decoration:none; }
 .auc-body { padding:10px 12px; flex:1; display:flex; flex-direction:column; gap:0; min-width:0; }
 .auc-top-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
 .gen-label { font-family:'DM Mono',monospace; font-size:9px; color:#4B4B5D; }
-.auc-title { font-family:'DM Sans',sans-serif; font-size:12px; color:#C0C0D0; margin-bottom:4px; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; max-width:100%; }
+.auc-title { font-family:'DM Sans',sans-serif; font-size:12px; color:#C0C0D0; margin-bottom:4px; line-height:1.3; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
 .tier-badge { display:inline-block; font-family:'DM Mono',monospace; font-size:8px; font-weight:500; background:#1A0A00; color:var(--yellow); padding:2px 6px; border-radius:3px; margin-bottom:4px; text-transform:uppercase; border:1px solid #3A2000; letter-spacing:0.5px; }
 .auc-bid-row { display:flex; align-items:baseline; gap:7px; margin-bottom:4px; }
 .bid-label { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); }
@@ -166,23 +166,23 @@ a { color:inherit; text-decoration:none; }
 </header>
 <div class="stats-bar">
   <a class="stat-cell" href="index.html" style="text-decoration:none;color:inherit">
-    <div class="stat-number">2,514</div>
+    <div class="stat-number">2,503</div>
     <div class="stat-label">Active</div>
   </a>
   <a class="stat-cell" href="index.html" style="text-decoration:none;color:inherit">
-    <div class="stat-number">102</div>
+    <div class="stat-number">96</div>
     <div class="stat-label">New Today</div>
   </a>
   <div class="stat-cell active">
-    <div class="stat-number red">18</div>
+    <div class="stat-number red">3</div>
     <div class="stat-label">Auctions</div>
   </div>
   <a class="stat-cell" href="index.html#comps" style="text-decoration:none;color:inherit">
-    <div class="stat-number">4,591</div>
+    <div class="stat-number">4,601</div>
     <div class="stat-label">Comps</div>
   </a>
   <a class="stat-cell" href="index.html" style="text-decoration:none;color:inherit">
-    <div class="stat-number green">375</div>
+    <div class="stat-number green">363</div>
     <div class="stat-label">Deals</div>
   </a>
 </div>
@@ -202,301 +202,19 @@ a { color:inherit; text-decoration:none; }
 </div>
 
 <div class="page-body">
-  <div class="section ending-soon">
-  <div class="section-hdr">
-    <div style="display:flex;align-items:center;gap:10px">
-      <span class="section-icon">&#x1F525;</span>
-      <div>
-        <div class="section-title">Ending Soon <span class="section-count">4</span></div>
-        <div class="section-sub">24 hours or less</div>
-      </div>
-    </div>
-  </div>
-  <div class="cards-grid">
-    <div class="auc-card urgent" onclick="openListing('https://bringatrailer.com/listing/1989-porsche-911-carrera-targa-53/')">
-  <div class="img-col"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/1989_porsche_911-carrera-targa_img_5716-47449.jpeg" alt="1989 911" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"><div class="urgency-bar"></div></div>
-  <div class="auc-body">
-    <div class="auc-top-row">
-      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#0D1F35;color:#60a5fa">BaT</span><span class="gen-label">G-Series</span></div>
-      <span class="countdown-timer" data-ends="2026-04-22T17:31:00Z">…</span>
-    </div>
-    <div class="auc-title">1989 Porsche 911 Carrera Targa G50</div>
-    <span class="tier-badge">GT / Collector</span>
-    <div class="auc-bid-row">
-      <span class="bid-label">Current Bid</span>
-      <span class="bid-val">$42,000</span>
-      
-    </div>
-    <span style="color:#555;font-size:11px">Auction ending soon</span>
-    <div class="auc-meta">124,000 mi</div>
-  </div>
-</div>
-<div class="auc-card urgent" onclick="openListing('https://bringatrailer.com/listing/1996-porsche-911-turbo-208/')">
-  <div class="img-col"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/1996_porsche_911-turbo_1996_porsche_911-turbo_4f29a461-6ece-496c-8a50-ff3091f6329d-01vqx2-18936-33927.jpg" alt="1996 911" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"><div class="urgency-bar"></div></div>
-  <div class="auc-body">
-    <div class="auc-top-row">
-      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#0D1F35;color:#60a5fa">BaT</span><span class="gen-label">993</span></div>
-      <span class="countdown-timer" data-ends="2026-04-22T18:19:00Z">…</span>
-    </div>
-    <div class="auc-title">1996 Porsche 911 Turbo</div>
-    <span class="tier-badge">GT / Collector</span>
-    <div class="auc-bid-row">
-      <span class="bid-label">Current Bid</span>
-      <span class="bid-val">$196,000</span>
-      <span class="delta delta-great">&#x2193;27%</span>
-    </div>
-    <div class="fmv-line fmv-great">FMV $267K <span class="conf-high">HIGH</span> &middot; <strong>27% below</strong> &middot; <span class="fmv-range">$220K&ndash;$340K</span> &middot; <span class="fmv-comps">28 comps</span></div>
-    <div class="auc-meta"></div>
-  </div>
-</div>
-<div class="auc-card urgent" onclick="openListing('https://www.pcarmarket.com/auction/2001-porsche-911-carrera-16')">
-  <div class="img-col"><img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY0NzExIC0gMjAwMSBQb3JzY2hlIDkxMSBDYXJyZXJhIiwic2x1ZyI6IjY0NzExLTIwMDEtcG9yc2NoZS05MTEtY2FycmVyYS1kYTI0MDA3NCJ9/.thumbnails/6021fa27-4a0f-411a-a40c-8aa529c7e5c6.webp/6021fa27-4a0f-411a-a40c-8aa529c7e5c6-tiny-380x0.webp" alt="2001 911" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"><div class="urgency-bar"></div></div>
-  <div class="auc-body">
-    <div class="auc-top-row">
-      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#0A1F14;color:#4ade80">pcarmarket</span><span class="gen-label">996</span></div>
-      <span class="countdown-timer" data-ends="2026-04-22T19:09:16Z">…</span>
-    </div>
-    <div class="auc-title">2001 Porsche 911 Carrera Coupe Aerokit 6-Speed</div>
-    
-    <div class="auc-bid-row">
-      <span class="bid-label">Current Bid</span>
-      <span class="bid-val">$19,750</span>
-      <span class="delta delta-great">&#x2193;31%</span>
-    </div>
-    <div class="fmv-line fmv-great">FMV $29K <span class="conf-high">HIGH</span> &middot; <strong>31% below</strong> &middot; <span class="fmv-range">$24K&ndash;$35K</span> &middot; <span class="fmv-comps">166 comps</span></div>
-    <div class="auc-meta">45,625 mi</div>
-  </div>
-</div>
-<div class="auc-card urgent" onclick="openListing('https://bringatrailer.com/listing/1994-porsche-911-turbo-3-6-32/')">
-  <div class="img-col"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/1994_porsche_911-turbo-3.6_dsc08779-16262.jpg" alt="1994 911" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"><div class="urgency-bar"></div></div>
-  <div class="auc-body">
-    <div class="auc-top-row">
-      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#0D1F35;color:#60a5fa">BaT</span><span class="gen-label">964</span></div>
-      <span class="countdown-timer" data-ends="2026-04-23T17:00:00Z">…</span>
-    </div>
-    <div class="auc-title">1994 Porsche 911 Turbo 3.6</div>
-    <span class="tier-badge">GT / Collector</span>
-    <div class="auc-bid-row">
-      <span class="bid-label">Current Bid</span>
-      <span class="bid-val">$450,000</span>
-      <span class="delta delta-high">&#x2191;20%</span>
-    </div>
-    <div class="fmv-line fmv-high">FMV $375K <span class="conf-high">HIGH</span> &middot; <strong>20% above</strong> &middot; <span class="fmv-range">$235K&ndash;$432K</span> &middot; <span class="fmv-comps">16 comps</span></div>
-    <div class="auc-meta"></div>
-  </div>
-</div>
-  </div>
-</div>
+  
   <div class="section">
   <div class="section-hdr">
     <div style="display:flex;align-items:center;gap:10px">
       <span class="section-icon">&#x1F4C5;</span>
       <div>
-        <div class="section-title">Ending This Week <span class="section-count">14</span></div>
+        <div class="section-title">Ending This Week <span class="section-count">3</span></div>
         <div class="section-sub">Beyond 24 hours</div>
       </div>
     </div>
   </div>
   <div class="cards-grid">
-    <div class="auc-card" onclick="openListing('https://bringatrailer.com/listing/2006-porsche-911-carrera-s-coupe-103/')">
-  <div class="img-col"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/2006_porsche_911-carrera-s-coupe_porsche-911-racing-002-54320.jpg" alt="2006 911" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"></div>
-  <div class="auc-body">
-    <div class="auc-top-row">
-      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#0D1F35;color:#60a5fa">BaT</span><span class="gen-label">997.1</span></div>
-      <span class="countdown-timer" data-ends="2026-04-23T17:18:00Z">…</span>
-    </div>
-    <div class="auc-title">2006 Porsche 911 Carrera S Coupe Track Car 6-Speed</div>
-    
-    <div class="auc-bid-row">
-      <span class="bid-label">Current Bid</span>
-      <span class="bid-val">$10,500</span>
-      
-    </div>
-    <span style="color:#555;font-size:11px">Auction in progress</span>
-    <div class="auc-meta">5,200 mi</div>
-  </div>
-</div>
-<div class="auc-card" onclick="openListing('https://bringatrailer.com/listing/1995-porsche-911-carrera-cabriolet-186/')">
-  <div class="img-col"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/1995_porsche_911-carrera-cabriolet_1995_porsche_911-carrera-cabriolet_5c5b1ee8-a3a2-4de3-a0b8-1787d145870b-gjJHb4-45125-45125-scaled.jpg" alt="1995 911" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"></div>
-  <div class="auc-body">
-    <div class="auc-top-row">
-      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#0D1F35;color:#60a5fa">BaT</span><span class="gen-label">993</span></div>
-      <span class="countdown-timer" data-ends="2026-04-23T17:35:00Z">…</span>
-    </div>
-    <div class="auc-title">1995 Porsche 911 Carrera Cabriolet 6-Speed</div>
-    <span class="tier-badge">GT / Collector</span>
-    <div class="auc-bid-row">
-      <span class="bid-label">Current Bid</span>
-      <span class="bid-val">$14,000</span>
-      
-    </div>
-    <span style="color:#555;font-size:11px">Auction in progress</span>
-    <div class="auc-meta">500 mi</div>
-  </div>
-</div>
-<div class="auc-card" onclick="openListing('https://bringatrailer.com/listing/2002-porsche-911-turbo-coupe-97/')">
-  <div class="img-col"><img src="https://bringatrailer.com/wp-content/uploads/2026/03/2002_porsche_911-turbo-coupe_2002_porsche_911-turbo-coupe_4fdb0806-8863-4655-94c4-d7bc1e501d37-pbajt1-27942-63333.jpg" alt="2002 911" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"></div>
-  <div class="auc-body">
-    <div class="auc-top-row">
-      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#0D1F35;color:#60a5fa">BaT</span><span class="gen-label">996</span></div>
-      <span class="countdown-timer" data-ends="2026-04-23T17:44:00Z">…</span>
-    </div>
-    <div class="auc-title">2002 Porsche 911 Turbo Coupe X50 6-Speed</div>
-    
-    <div class="auc-bid-row">
-      <span class="bid-label">Current Bid</span>
-      <span class="bid-val">$101,000</span>
-      
-    </div>
-    <span style="color:#555;font-size:11px">Auction in progress</span>
-    <div class="auc-meta"></div>
-  </div>
-</div>
-<div class="auc-card" onclick="openListing('https://www.pcarmarket.com/auction/2003-porsche-911-carrera-4s-17')">
-  <div class="img-col"><img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY1MTk2IC0gMjAwMyBQb3JzY2hlIDkxMSBDYXJyZXJhIDRTIiwic2x1ZyI6IjY1MTk2LTIwMDMtcG9yc2NoZS05MTEtY2FycmVyYS00cy0zM2I0NjIwNiJ9/.thumbnails/1bb74160-6e3b-49c2-9245-7698559f2fa3.webp/1bb74160-6e3b-49c2-9245-7698559f2fa3-tiny-380x0.webp" alt="2003 911" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"></div>
-  <div class="auc-body">
-    <div class="auc-top-row">
-      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#0A1F14;color:#4ade80">pcarmarket</span><span class="gen-label">996</span></div>
-      <span class="countdown-timer" data-ends="2026-04-23T19:19:16Z">…</span>
-    </div>
-    <div class="auc-title">2003 Porsche 911 Carrera 4S Coupe 6-Speed</div>
-    
-    <div class="auc-bid-row">
-      <span class="bid-label">Current Bid</span>
-      <span class="bid-val">$52,500</span>
-      
-    </div>
-    <span style="color:#555;font-size:11px">Auction in progress</span>
-    <div class="auc-meta">19,340 mi</div>
-  </div>
-</div>
-<div class="auc-card" onclick="openListing('https://bringatrailer.com/listing/1991-porsche-911-carrera-4-coupe-16/')">
-  <div class="img-col"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/1991_porsche_911-carrera-4-coupe_dsc00629-52214.jpg" alt="1991 911" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"></div>
-  <div class="auc-body">
-    <div class="auc-top-row">
-      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#0D1F35;color:#60a5fa">BaT</span><span class="gen-label">964</span></div>
-      <span class="countdown-timer" data-ends="2026-04-24T18:37:00Z">…</span>
-    </div>
-    <div class="auc-title">1991 Porsche 911 Carrera 2 Coupe</div>
-    <span class="tier-badge">GT / Collector</span>
-    <div class="auc-bid-row">
-      <span class="bid-label">Current Bid</span>
-      <span class="bid-val">$35,550</span>
-      
-    </div>
-    <span style="color:#555;font-size:11px">Auction in progress</span>
-    <div class="auc-meta"></div>
-  </div>
-</div>
-<div class="auc-card" onclick="openListing('https://www.pcarmarket.com/auction/2002-porsche-911-carrera-4s-12')">
-  <div class="img-col"><img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY1MjE2IC0gMjAwMiBQb3JzY2hlIDkxMSBDYXJyZXJhIDRTIiwic2x1ZyI6IjY1MjE2LTIwMDItcG9yc2NoZS05MTEtY2FycmVyYS00cy1hMzZlYWU2MyJ9/.thumbnails/5acdd72b-8bfc-4964-9798-290c273bccb4.webp/5acdd72b-8bfc-4964-9798-290c273bccb4-tiny-380x0.webp" alt="2002 911" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"></div>
-  <div class="auc-body">
-    <div class="auc-top-row">
-      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#0A1F14;color:#4ade80">pcarmarket</span><span class="gen-label">996</span></div>
-      <span class="countdown-timer" data-ends="2026-04-24T19:19:16Z">…</span>
-    </div>
-    <div class="auc-title">2002 Porsche 911 Carrera 4S Coupe 6-Speed</div>
-    
-    <div class="auc-bid-row">
-      <span class="bid-label">Current Bid</span>
-      <span class="bid-val">$10,000</span>
-      
-    </div>
-    <span style="color:#555;font-size:11px">Auction in progress</span>
-    <div class="auc-meta">125,000 mi</div>
-  </div>
-</div>
-<div class="auc-card" onclick="openListing('https://www.pcarmarket.com/auction/2007-porsche-911-carrera-4s-2')">
-  <div class="img-col"><img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY1MTUzIC0gMjBrLU1pbGUgMjAwNyBQb3JzY2hlIDkxMSBDYXJyZXJhIDRTIENvdXBlIFg1MSA2LVNwZWVkIFZHVCIsInNsdWciOiI2NTE1My0yMGstbWlsZS0yMDA3LXBvcnNjaGUtOTExLWNhcnJlcmEtNHMtY291cGUteDUxLTYtc3BlZWQtdmd0LTA2OTY5MzQ5In0/.thumbnails/c2da241d-6ec0-44d2-ae24-d7c0a1e73350.webp/c2da241d-6ec0-44d2-ae24-d7c0a1e73350-tiny-380x0.webp" alt="2007 911" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"></div>
-  <div class="auc-body">
-    <div class="auc-top-row">
-      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#0A1F14;color:#4ade80">pcarmarket</span><span class="gen-label">997.1</span></div>
-      <span class="countdown-timer" data-ends="2026-04-24T19:39:16Z">…</span>
-    </div>
-    <div class="auc-title">2007 Porsche 911 Carrera 4S Coupe X51 6-Speed</div>
-    
-    <div class="auc-bid-row">
-      <span class="bid-label">Current Bid</span>
-      <span class="bid-val">$20,000</span>
-      
-    </div>
-    <span style="color:#555;font-size:11px">Auction in progress</span>
-    <div class="auc-meta">27,100 mi</div>
-  </div>
-</div>
-<div class="auc-card" onclick="openListing('https://bringatrailer.com/listing/2001-porsche-911-turbo-coupe-127/')">
-  <div class="img-col"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2001_porsche_911-turbo-coupe_2007_porsche_911-turbo-coupe_2007_porsche_911-turbo-coupe_b29b4d75-def6-44e2-8196-58e7d95fced6-peCQhO-12243-12243-scaled-87758.jpg" alt="2001 911" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"></div>
-  <div class="auc-body">
-    <div class="auc-top-row">
-      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#0D1F35;color:#60a5fa">BaT</span><span class="gen-label">996</span></div>
-      <span class="countdown-timer" data-ends="2026-04-25T18:26:00Z">…</span>
-    </div>
-    <div class="auc-title">2001 Porsche 911 Turbo Coupe 6-Speed</div>
-    
-    <div class="auc-bid-row">
-      <span class="bid-label">Current Bid</span>
-      <span class="bid-val">$50,996</span>
-      
-    </div>
-    <span style="color:#555;font-size:11px">Auction in progress</span>
-    <div class="auc-meta">31,000 mi</div>
-  </div>
-</div>
-<div class="auc-card" onclick="openListing('https://bringatrailer.com/listing/2015-porsche-911-turbo-s-cabriolet-32/')">
-  <div class="img-col"><img src="https://bringatrailer.com/wp-content/uploads/2026/02/2015_porsche_911-turbo-s-cabriolet_img_4069-65165.jpg" alt="2015 911" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"></div>
-  <div class="auc-body">
-    <div class="auc-top-row">
-      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#0D1F35;color:#60a5fa">BaT</span><span class="gen-label">991.1</span></div>
-      <span class="countdown-timer" data-ends="2026-04-25T18:39:00Z">…</span>
-    </div>
-    <div class="auc-title">2015 Porsche 911 Turbo S Cabriolet</div>
-    <span class="tier-badge">GT / Collector</span>
-    <div class="auc-bid-row">
-      <span class="bid-label">Current Bid</span>
-      <span class="bid-val">$92,500</span>
-      
-    </div>
-    <span style="color:#555;font-size:11px">Auction in progress</span>
-    <div class="auc-meta"></div>
-  </div>
-</div>
-<div class="auc-card" onclick="openListing('https://bringatrailer.com/listing/2001-porsche-boxster-s-205/')">
-  <div class="img-col"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2001_porsche_boxster-s_img_6433-41155.jpg" alt="2001 Boxster" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"></div>
-  <div class="auc-body">
-    <div class="auc-top-row">
-      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#0D1F35;color:#60a5fa">BaT</span><span class="gen-label">986</span></div>
-      <span class="countdown-timer" data-ends="2026-04-26T19:46:00Z">…</span>
-    </div>
-    <div class="auc-title">2001 Porsche Boxster S 6-Speed</div>
-    
-    <div class="auc-bid-row">
-      <span class="bid-label">Current Bid</span>
-      <span class="bid-val">$6,100</span>
-      
-    </div>
-    <span style="color:#555;font-size:11px">Auction in progress</span>
-    <div class="auc-meta"></div>
-  </div>
-</div>
-<div class="auc-card" onclick="openListing('https://www.pcarmarket.com/auction/1991-porsche-911-carrera-2-targa')">
-  <div class="img-col"><img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/.thumbnails/326cdc20-29ff-4fc1-8bf6-573653ee5ae2-Screenshot-2026-04-20-at-8.59.22-PM.webp/326cdc20-29ff-4fc1-8bf6-573653ee5ae2-Screenshot-2026-04-20-at-8.59.22-PM-tiny-380x0.webp" alt="1991 911" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"></div>
-  <div class="auc-body">
-    <div class="auc-top-row">
-      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#0A1F14;color:#4ade80">pcarmarket</span><span class="gen-label">964</span></div>
-      <span class="countdown-timer" data-ends="2026-04-27T18:49:26Z">…</span>
-    </div>
-    <div class="auc-title">1991 Porsche 911 Carrera 2 Targa 3.8L 5-Speed by Red Square Design</div>
-    <span class="tier-badge">GT / Collector</span>
-    <div class="auc-bid-row">
-      <span class="bid-label">Current Bid</span>
-      <span class="bid-val">$40,000</span>
-      
-    </div>
-    <span style="color:#555;font-size:11px">Auction in progress</span>
-    <div class="auc-meta">1 mi</div>
-  </div>
-</div>
-<div class="auc-card" onclick="openListing('https://bringatrailer.com/listing/2014-porsche-911-gt3-cup-991-1/')">
+    <div class="auc-card" onclick="openListing('https://bringatrailer.com/listing/2014-porsche-911-gt3-cup-991-1/')">
   <div class="img-col"><img src="https://bringatrailer.com/wp-content/uploads/2026/04/2014_porsche_911-gt3-cup-991.1_36a7508-67098.jpg" alt="2014 911" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"></div>
   <div class="auc-body">
     <div class="auc-top-row">
@@ -514,22 +232,22 @@ a { color:inherit; text-decoration:none; }
     <div class="auc-meta">725 mi</div>
   </div>
 </div>
-<div class="auc-card" onclick="openListing('https://www.pcarmarket.com/auction/2011-porsche-911-carrera-gts-10')">
-  <div class="img-col"><img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY1MjcyIC0gMjAxMSBQb3JzY2hlIDkxMSBHVFMgQ291cGUiLCJzbHVnIjoiNjUyNzItMjAxMS1wb3JzY2hlLTkxMS1ndHMtY291cGUtOTA1MTk4NjQifQ/.thumbnails/fb5f333c-45a7-45fb-afdd-91fc12f8e8b6.webp/fb5f333c-45a7-45fb-afdd-91fc12f8e8b6-tiny-380x0.webp" alt="2011 911" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"></div>
+<div class="auc-card" onclick="openListing('https://carsandbids.com/auctions/rjq8VmXw/2021-porsche-718-cayman-gt4')">
+  <div class="img-col"><img src="https://media.carsandbids.com/cdn-cgi/image/width=768,quality=70/9004500a220bf3a3d455d15ee052cf8c332606f8/photos/rxXB57PV-hn-Lot_/edit/_uLNh.jpg?t=177648601948" alt="2021 718" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='400' height='200' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'"></div>
   <div class="auc-body">
     <div class="auc-top-row">
-      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#0A1F14;color:#4ade80">pcarmarket</span><span class="gen-label">997.2</span></div>
-      <span class="countdown-timer" data-ends="2026-04-28T19:19:26Z">…</span>
+      <div style="display:flex;align-items:center;gap:6px"><span class="badge" style="background:#1F0D03;color:#fb923c">C&amp;B</span><span class="gen-label">718</span></div>
+      <span class="countdown-timer" data-ends="2026-04-29T17:17:55Z">…</span>
     </div>
-    <div class="auc-title">2011 Porsche 911 Carrera GTS Coupe</div>
-    
+    <div class="auc-title">2021 Porsche 718 Cayman GT4</div>
+    <span class="tier-badge">GT / Collector</span>
     <div class="auc-bid-row">
       <span class="bid-label">Current Bid</span>
-      <span class="bid-val">$250</span>
+      <span class="bid-val">$20,000</span>
       
     </div>
     <span style="color:#555;font-size:11px">Auction in progress</span>
-    <div class="auc-meta">2,737 mi</div>
+    <div class="auc-meta">13,400 mi</div>
   </div>
 </div>
 <div class="auc-card" onclick="openListing('https://bringatrailer.com/listing/2008-porsche-boxster-57/')">
