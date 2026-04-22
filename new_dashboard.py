@@ -89,6 +89,19 @@ def _p(v) -> str:
     try:    return f"${float(v):,.0f}"
     except: return "—"
 
+def _p_short(v) -> str:
+    if v is None: return "—"
+    try:
+        n = float(v)
+        if n >= 1_000_000:
+            m = n / 1_000_000
+            return f"${m:.1f}M" if m != int(m) else f"${int(m)}M"
+        if n >= 1_000:
+            return f"${int(round(n / 1000))}K"
+        return f"${int(n):,}"
+    except Exception:
+        return "—"
+
 def _m(v) -> str:
     if v is None: return "—"
     try:    return f"{int(v):,}"
@@ -166,15 +179,19 @@ def _delta_badge(pct):
     else:               cls, txt = "delta-mid",   f"&#x2191;{pct:.0f}%"
     return f'<span class="delta {cls}">{txt}</span>'
 
-def _fmv_bar_block(price, fmv_val, conf, comp_count) -> str:
+def _fmv_bar_block(price, fmv_val, conf, comp_count, price_low=None, price_high=None) -> str:
     """FMV progress bar block shown on every card."""
     if not fmv_val or conf == "NONE":
         return ('<div class="fmv-none">'
                 '<span class="fmv-none-dot"></span>No FMV &mdash; insufficient comps'
                 '</div>')
     pct = _fmv_pct(price, fmv_val)
-    fmv_str = _p(fmv_val)
+    fmv_str = _p_short(fmv_val)
     comp_str = f"{comp_count} comp{'s' if comp_count != 1 else ''}"
+    if conf in ("HIGH", "MEDIUM") and price_low and price_high:
+        right_str = f"{_p_short(price_low)}&ndash;{_p_short(price_high)} &middot; {comp_str}"
+    else:
+        right_str = comp_str
 
     if pct is None:
         bar_w = 50; bar_cls = "bar-neutral"; delta_str = ""
@@ -202,7 +219,7 @@ def _fmv_bar_block(price, fmv_val, conf, comp_count) -> str:
             f'</div>'
             f'<div class="fmv-bottom-row">'
             f'<span class="fmv-val-txt">FMV {fmv_str}</span>'
-            f'<span class="fmv-comps-txt">{comp_str}</span>'
+            f'<span class="fmv-comps-txt">{right_str}</span>'
             f'</div>'
             f'</div>')
 
@@ -254,6 +271,8 @@ def _card(car: dict, fmv_score: dict) -> str:
     fmv_val    = fmv_score.get("fmv")
     conf       = fmv_score.get("confidence", "NONE")
     comp_count = fmv_score.get("comp_count", 0)
+    price_low  = fmv_score.get("price_low")
+    price_high = fmv_score.get("price_high")
     pct        = _fmv_pct(price, fmv_val) if conf != "NONE" else None
     # Auction FMV phasing: 3-phase approach (owner decision: 65% threshold)
     # Phase 1 (>24hr): hide FMV, show 'Auction in progress'
@@ -276,7 +295,7 @@ def _card(car: dict, fmv_score: dict) -> str:
                 else:
                     _bid_pct = (float(price) / float(fmv_val) * 100) if price and fmv_val else 0
                     if _bid_pct >= 65:
-                        fmv_bar = _fmv_bar_block(price, fmv_val, conf, comp_count)
+                        fmv_bar = _fmv_bar_block(price, fmv_val, conf, comp_count, price_low, price_high)
                     else:
                         fmv_bar = ('<div class="fmv-none">'
                                    '<span class="fmv-none-dot" style="background:#555"></span>'
@@ -288,7 +307,7 @@ def _card(car: dict, fmv_score: dict) -> str:
         except Exception:
             fmv_bar = _fmv_bar_block(price, fmv_val, conf, comp_count)
     else:
-        fmv_bar = _fmv_bar_block(price, fmv_val, conf, comp_count)
+        fmv_bar = _fmv_bar_block(price, fmv_val, conf, comp_count, price_low, price_high)
     age_str    = _age_label(created)
     gen_str    = _gen(year, model)
     # Badge label used for source chip filtering
@@ -430,9 +449,11 @@ def generate() -> str:
                     "fmv":        getattr(fmv_obj, "weighted_median", None),
                     "confidence": getattr(fmv_obj, "confidence", "NONE"),
                     "comp_count": getattr(fmv_obj, "comp_count", 0),
+                    "price_low":  getattr(fmv_obj, "price_low", None),
+                    "price_high": getattr(fmv_obj, "price_high", None),
                 }
             else:
-                fmv_by_id[row["id"]] = {"fmv": None, "confidence": "NONE", "comp_count": 0}
+                fmv_by_id[row["id"]] = {"fmv": None, "confidence": "NONE", "comp_count": 0, "price_low": None, "price_high": None}
 
         active = d["active"]
         def _keep(c):
@@ -565,11 +586,18 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
   color:var(--text); letter-spacing:2px; margin-right:16px; white-space:nowrap; flex-shrink:0;
 }}
 .logo span {{ color:var(--red); }}
-.pill-group {{ display:flex; gap:4px; flex:1; justify-content:center; }}
-.pill {{ padding:6px 0; min-width:78px; border-radius:14px; font-size:13px; font-weight:600; color:#666; background:transparent; border:1px solid transparent; text-align:center; display:flex; flex-direction:column; align-items:center; gap:1px; text-decoration:none; cursor:pointer; transition:all 0.15s; }}
-.pill.active {{ color:var(--text); background:#222; border-color:#444; }}
-.pill .pill-count {{ font-size:10px; font-weight:500; color:#555; }}
-.pill.active .pill-count {{ color:#999; }}
+.stats-bar {{ display:flex; gap:1px; margin:0 12px 8px; background:#1a1a1a; border-radius:14px; overflow:hidden; border:1px solid #2a2a2a; }}
+.stat-cell {{ flex:1; padding:12px 8px 10px; text-align:center; background:#141414; cursor:pointer; transition:background 0.15s; position:relative; }}
+.stat-cell:first-child {{ border-radius:13px 0 0 13px; }}
+.stat-cell:last-child {{ border-radius:0 13px 13px 0; }}
+.stat-cell:hover {{ background:#1c1c1c; }}
+.stat-cell.active {{ background:#1e1e1e; }}
+.stat-cell.active::after {{ content:''; position:absolute; bottom:0; left:20%; right:20%; height:2px; background:var(--red); border-radius:1px; }}
+.stat-cell + .stat-cell {{ border-left:1px solid #2a2a2a; }}
+.stat-number {{ font-size:22px; font-weight:700; letter-spacing:-0.5px; line-height:1.1; color:var(--text); }}
+.stat-number.green {{ color:var(--green); }}
+.stat-number.red {{ color:var(--red); }}
+.stat-label {{ font-size:9px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#666; margin-top:3px; }}
 .more-btn {{ padding:7px 11px; border-radius:14px; font-size:11px; font-weight:500; color:#666; background:transparent; border:1px solid #333; display:flex; align-items:center; gap:3px; cursor:pointer; flex-shrink:0; }}
 .more-btn:hover {{ border-color:#555; color:#aaa; }}
 .dropdown-overlay {{ display:none; }}
@@ -924,7 +952,9 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
   .search-input {{ width:150px; }}
   .search-input:focus {{ width:190px; }}
   .logo {{ margin-right:6px; font-size:13px; }}
-  .topbar {{ padding:0 12px; }}
+  .topbar {{ padding:8px 12px; }}
+  .stats-bar {{ margin:0 8px 8px; }}
+  .stat-number {{ font-size:18px; }}
   .pill {{ min-width:60px; font-size:12px; }}
 }}
 </style>
@@ -934,27 +964,31 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
 
 <!-- ── Nav ── -->
 <header class="topbar">
-  <a class="logo" onclick="switchView('listings',document.querySelector('.pill-group .pill'))" style="cursor:pointer;text-decoration:none;">PTO<span>X</span></a>
-  <div class="pill-group">
-    <button class="pill active" onclick="switchView('listings',this)">
-      <span class="pill-label">Listings</span>
-      <span class="pill-count">{n_active:,} active</span>
-    </button>
-    <a class="pill" href="auctions.html">
-      <span class="pill-label">Auctions</span>
-      <span class="pill-count">{n_auctions:,} active</span>
-    </a>
-    <button id="pill-comps" class="pill" onclick="switchView('comps',this)">
-      <span class="pill-label">Comps</span>
-      <span class="pill-count">{n_comps:,} total</span>
-    </button>
-  </div>
+  <a class="logo" href="index.html" style="cursor:pointer;text-decoration:none;">PTOX<span>11</span></a>
   <button class="more-btn" onclick="toggleDropdown()">More &#x25BE;</button>
-  <div class="topbar-right">
-    <div class="health-pills">{health_html}</div>
-    <span>{now_str}</span>
-  </div>
 </header>
+<div class="stats-bar">
+  <div class="stat-cell active" onclick="switchView('listings',this)">
+    <div class="stat-number">{n_active:,}</div>
+    <div class="stat-label">Active</div>
+  </div>
+  <div class="stat-cell" onclick="switchView('listings',this);filterToday()">
+    <div class="stat-number">{n_new}</div>
+    <div class="stat-label">New Today</div>
+  </div>
+  <a class="stat-cell" href="auctions.html" style="text-decoration:none;color:inherit">
+    <div class="stat-number red">{n_auctions}</div>
+    <div class="stat-label">Auctions</div>
+  </a>
+  <div class="stat-cell" onclick="switchView('comps',this)">
+    <div class="stat-number">{n_comps:,}</div>
+    <div class="stat-label">Comps</div>
+  </div>
+  <div class="stat-cell" onclick="switchView('listings',this);filterDeals()">
+    <div class="stat-number green">{n_deals}</div>
+    <div class="stat-label">Deals</div>
+  </div>
+</div>
 <div class="dropdown-overlay" id="dd-overlay">
   <div class="dd-backdrop" onclick="closeDropdown()"></div>
   <div class="dropdown">
@@ -1395,6 +1429,12 @@ function switchView(name, btn) {{
   if (name === 'listings') startCountdowns();
 }}
 
+function filterToday() {{
+  // TODO: filter cards to today's listings
+}}
+function filterDeals() {{
+  // TODO: filter cards to deals only (10%+ below FMV)
+}}
 function toggleDropdown() {{
   document.getElementById('dd-overlay').classList.toggle('show');
 }}

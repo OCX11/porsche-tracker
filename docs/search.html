@@ -14,13 +14,20 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
 .topbar{height:52px;background:#141414;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;position:sticky;top:0;z-index:100;}
-.logo{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--text);letter-spacing:2px;margin-right:16px;white-space:nowrap;flex-shrink:0;text-decoration:none;}
+.logo{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--text);letter-spacing:6px; text-transform:uppercase;margin-right:16px;white-space:nowrap;flex-shrink:0;text-decoration:none;}
 .logo span{color:var(--red);}
-.pill-group{display:flex;gap:4px;flex:1;justify-content:center;}
-.pill{padding:6px 0;min-width:78px;border-radius:14px;font-size:13px;font-weight:600;color:#666;background:transparent;border:1px solid transparent;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1px;text-decoration:none;cursor:pointer;transition:all 0.15s;}
-.pill.active{color:var(--text);background:#222;border-color:#444;}
-.pill .pill-count{font-size:10px;font-weight:500;color:#555;}
-.pill.active .pill-count{color:#999;}
+.stats-bar { display:flex; gap:1px; margin:0 12px 8px; background:#1a1a1a; border-radius:14px; overflow:hidden; border:1px solid #2a2a2a; }
+.stat-cell { flex:1; padding:12px 8px 10px; text-align:center; background:#141414; cursor:pointer; transition:background 0.15s; position:relative; text-decoration:none; color:inherit; }
+.stat-cell:first-child { border-radius:13px 0 0 13px; }
+.stat-cell:last-child { border-radius:0 13px 13px 0; }
+.stat-cell:hover { background:#1c1c1c; }
+.stat-cell.active { background:#1e1e1e; }
+.stat-cell.active::after { content:""; position:absolute; bottom:0; left:20%; right:20%; height:2px; background:#c0392b; border-radius:1px; }
+.stat-cell + .stat-cell { border-left:1px solid #2a2a2a; }
+.stat-number { font-size:22px; font-weight:700; letter-spacing:-0.5px; line-height:1.1; color:#e8e4df; }
+.stat-number.green { color:#4ade80; }
+.stat-number.red { color:#c0392b; }
+.stat-label { font-size:9px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#666; margin-top:3px; }
 .more-btn{padding:7px 11px;border-radius:14px;font-size:11px;font-weight:500;color:#666;background:transparent;border:1px solid #333;display:flex;align-items:center;gap:3px;cursor:pointer;flex-shrink:0;}
 .more-btn:hover{border-color:#555;color:#aaa;}
 .dropdown-overlay{display:none;}
@@ -66,21 +73,31 @@ button{padding:8px 18px;border:none;border-radius:6px;font-size:13px;font-weight
 </head>
 <body>
 <header class="topbar">
-  <a class="logo" href="index.html">PTO<span>X</span></a>
-  <div class="pill-group">
-    <a class="pill" href="index.html">
-      <span class="pill-label">Listings</span>
-    </a>
-    <a class="pill" href="auctions.html">
-      <span class="pill-label">Auctions</span>
-    </a>
-    <a class="pill" href="index.html#comps">
-      <span class="pill-label">Comps</span>
-    </a>
-  </div>
+  <a class="logo" href="index.html" style="cursor:pointer;text-decoration:none;">PTOX<span>11</span></a>
   <button class="more-btn" onclick="toggleDropdown()">More &#x25BE;</button>
-  <span id="db-count" style="font-size:11px;color:var(--muted);flex-shrink:0"></span>
 </header>
+<div class="stats-bar">
+  <a class="stat-cell" href="index.html" style="text-decoration:none;color:inherit">
+    <div class="stat-number">—</div>
+    <div class="stat-label">Active</div>
+  </a>
+  <div class="stat-cell">
+    <div class="stat-number">—</div>
+    <div class="stat-label">New Today</div>
+  </div>
+  <a class="stat-cell" href="auctions.html" style="text-decoration:none;color:inherit">
+    <div class="stat-number red">—</div>
+    <div class="stat-label">Auctions</div>
+  </a>
+  <a class="stat-cell" href="index.html#comps" style="text-decoration:none;color:inherit">
+    <div class="stat-number">—</div>
+    <div class="stat-label">Comps</div>
+  </a>
+  <div class="stat-cell">
+    <div class="stat-number green">—</div>
+    <div class="stat-label">Deals</div>
+  </div>
+</div>
 <div class="dropdown-overlay" id="dd-overlay">
   <div class="dd-backdrop" onclick="closeDropdown()"></div>
   <div class="dropdown">

@@ -34,6 +34,19 @@ def _p(v) -> str:
     try:    return f"${float(v):,.0f}"
     except: return "—"
 
+def _p_short(v) -> str:
+    if v is None: return "—"
+    try:
+        n = float(v)
+        if n >= 1_000_000:
+            m = n / 1_000_000
+            return f"${m:.1f}M" if m != int(m) else f"${int(m)}M"
+        if n >= 1_000:
+            return f"${int(round(n / 1000))}K"
+        return f"${int(n):,}"
+    except Exception:
+        return "—"
+
 def _m(v) -> str:
     if v is None: return "—"
     try:    return f"{int(v):,}"
@@ -101,11 +114,11 @@ def _delta_badge(pct):
     else:               cls, txt = "delta-mid",   f"&#x2191;{pct:.0f}%"
     return f'<span class="delta {cls}">{txt}</span>'
 
-def _fmv_line(price, fmv_val, conf, comp_count) -> str:
+def _fmv_line(price, fmv_val, conf, comp_count, price_low=None, price_high=None) -> str:
     if not fmv_val or conf == "NONE":
         return '<div class="fmv-none"><span class="fmv-none-dot"></span>No FMV &mdash; insufficient comps</div>'
     pct = _fmv_pct(price, fmv_val)
-    fmv_str  = _p(fmv_val)
+    fmv_str  = _p_short(fmv_val)
     comp_str = f"{comp_count} comp{'s' if comp_count != 1 else ''}"
     if pct is None:       rel = ""; cls = "fmv-neutral"
     elif abs(pct) < 2:    rel = "at market"; cls = "fmv-neutral"
@@ -116,9 +129,13 @@ def _fmv_line(price, fmv_val, conf, comp_count) -> str:
     conf_span = {"HIGH": '<span class="conf-high">HIGH</span>',
                  "MEDIUM": '<span class="conf-med">MED</span>',
                  "LOW": '<span class="conf-low">LOW</span>'}.get(conf, "")
+    range_str = ""
+    if conf in ("HIGH", "MEDIUM") and price_low and price_high:
+        range_str = f' &middot; <span class="fmv-range">{_p_short(price_low)}&ndash;{_p_short(price_high)}</span>'
     return (f'<div class="fmv-line {cls}">'
             f'FMV {fmv_str} {conf_span}'
             f'{(" &middot; " + rel) if rel else ""}'
+            f'{range_str}'
             f' &middot; <span class="fmv-comps">{comp_str}</span>'
             f'</div>')
 
@@ -148,6 +165,8 @@ def _auction_card(car: dict, fmv_score: dict, urgent: bool = False) -> str:
     fmv_val    = fmv_score.get("fmv")
     conf       = fmv_score.get("confidence", "NONE")
     comp_count = fmv_score.get("comp_count", 0)
+    price_low  = fmv_score.get("price_low")
+    price_high = fmv_score.get("price_high")
     pct        = _fmv_pct(price, fmv_val) if conf != "NONE" else None
 
     gen_str    = _gen(year, model)
@@ -169,20 +188,20 @@ def _auction_card(car: dict, fmv_score: dict, urgent: bool = False) -> str:
                     _bid_pct = (float(price) / float(fmv_val) * 100) if price and fmv_val else 0
                     if _bid_pct >= 65:
                         delta_html = _delta_badge(pct)
-                        fmv_html = _fmv_line(price, fmv_val, conf, comp_count)
+                        fmv_html = _fmv_line(price, fmv_val, conf, comp_count, price_low, price_high)
                     else:
                         delta_html = ""
                         fmv_html = '<span style="color:#555;font-size:11px">Auction ending soon</span>'
                         _fmv_hidden = True
             else:
                 delta_html = _delta_badge(pct)
-                fmv_html = _fmv_line(price, fmv_val, conf, comp_count)
+                fmv_html = _fmv_line(price, fmv_val, conf, comp_count, price_low, price_high)
         except Exception:
             delta_html = _delta_badge(pct)
-            fmv_html = _fmv_line(price, fmv_val, conf, comp_count)
+            fmv_html = _fmv_line(price, fmv_val, conf, comp_count, price_low, price_high)
     else:
         delta_html = _delta_badge(pct)
-        fmv_html = _fmv_line(price, fmv_val, conf, comp_count)
+        fmv_html = _fmv_line(price, fmv_val, conf, comp_count, price_low, price_high)
 
     # Tier badge
     tier_html = ""
@@ -308,9 +327,11 @@ def generate() -> str:
                     "fmv":        getattr(fmv_obj, "weighted_median", None),
                     "confidence": getattr(fmv_obj, "confidence", "NONE"),
                     "comp_count": getattr(fmv_obj, "comp_count", 0),
+                    "price_low":  getattr(fmv_obj, "price_low", None),
+                    "price_high": getattr(fmv_obj, "price_high", None),
                 }
             else:
-                fmv_by_id[row["id"]] = {"fmv": None, "confidence": "NONE", "comp_count": 0}
+                fmv_by_id[row["id"]] = {"fmv": None, "confidence": "NONE", "comp_count": 0, "price_low": None, "price_high": None}
 
         rows = conn.execute(
             "SELECT * FROM listings WHERE source_category='AUCTION' AND status='active'"
@@ -434,13 +455,20 @@ a {{ color:inherit; text-decoration:none; }}
   padding:0 24px; position:sticky; top:0; z-index:50;
 }}
 .topbar-left {{ display:flex; align-items:center; gap:4px; }}
-.logo {{ font-family:'Syne',sans-serif; font-size:14px; font-weight:800; color:var(--text); letter-spacing:2px; margin-right:16px; white-space:nowrap; flex-shrink:0; }}
+.logo {{ font-family:'Syne',sans-serif; font-size:14px; font-weight:800; color:var(--text); letter-spacing:6px; text-transform:uppercase; margin-right:16px; white-space:nowrap; flex-shrink:0; }}
 .logo span {{ color:var(--red); }}
-.pill-group {{ display:flex; gap:4px; flex:1; justify-content:center; }}
-.pill {{ padding:6px 0; min-width:78px; border-radius:14px; font-size:13px; font-weight:600; color:#666; background:transparent; border:1px solid transparent; text-align:center; display:flex; flex-direction:column; align-items:center; gap:1px; text-decoration:none; cursor:pointer; transition:all 0.15s; }}
-.pill.active {{ color:var(--text); background:#222; border-color:#444; }}
-.pill .pill-count {{ font-size:10px; font-weight:500; color:#555; }}
-.pill.active .pill-count {{ color:#999; }}
+.stats-bar {{ display:flex; gap:1px; margin:0 12px 8px; background:#1a1a1a; border-radius:14px; overflow:hidden; border:1px solid #2a2a2a; }}
+.stat-cell {{ flex:1; padding:12px 8px 10px; text-align:center; background:#141414; cursor:pointer; transition:background 0.15s; position:relative; text-decoration:none; color:inherit; }}
+.stat-cell:first-child {{ border-radius:13px 0 0 13px; }}
+.stat-cell:last-child {{ border-radius:0 13px 13px 0; }}
+.stat-cell:hover {{ background:#1c1c1c; }}
+.stat-cell.active {{ background:#1e1e1e; }}
+.stat-cell.active::after {{ content:''; position:absolute; bottom:0; left:20%; right:20%; height:2px; background:#c0392b; border-radius:1px; }}
+.stat-cell + .stat-cell {{ border-left:1px solid #2a2a2a; }}
+.stat-number {{ font-size:22px; font-weight:700; letter-spacing:-0.5px; line-height:1.1; color:#e8e4df; }}
+.stat-number.green {{ color:#4ade80; }}
+.stat-number.red {{ color:#c0392b; }}
+.stat-label {{ font-size:9px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:#666; margin-top:3px; }}
 .more-btn {{ padding:7px 11px; border-radius:14px; font-size:11px; font-weight:500; color:#666; background:transparent; border:1px solid #333; display:flex; align-items:center; gap:3px; cursor:pointer; flex-shrink:0; }}
 .more-btn:hover {{ border-color:#555; color:#aaa; }}
 .dropdown-overlay {{ display:none; }}
@@ -457,7 +485,7 @@ a {{ color:inherit; text-decoration:none; }}
 
 /* ── Stats strip ── */
 .stats-strip {{ display:flex; gap:1px; background:var(--border); border-bottom:1px solid var(--border); }}
-.stat-cell {{ flex:1; background:var(--bg2); padding:12px 16px; text-align:center; }}
+
 .stat-num {{ font-family:'DM Mono',monospace; font-size:20px; font-weight:500; color:var(--text); letter-spacing:-1px; line-height:1; }}
 .stat-num.red {{ color:var(--red); }}
 .stat-num.yellow {{ color:var(--yellow); }}
@@ -561,28 +589,31 @@ a {{ color:inherit; text-decoration:none; }}
 <body>
 
 <header class="topbar">
-  <a class="logo" href="index.html" style="text-decoration:none;">PTO<span>X</span></a>
-  <div class="pill-group">
-    <a class="pill" href="index.html">
-      <span class="pill-label">Listings</span>
-      <span class="pill-count">{n_listings_total:,} active</span>
-    </a>
-    <span class="pill active">
-      <span class="pill-label">Auctions</span>
-      <span class="pill-count">{total:,} active</span>
-    </span>
-    <a class="pill" href="index.html#comps">
-      <span class="pill-label">Comps</span>
-      <span class="pill-count">{n_comps_total:,} total</span>
-    </a>
-  </div>
+  <a class="logo" href="index.html" style="cursor:pointer;text-decoration:none;">PTOX<span>11</span></a>
   <button class="more-btn" onclick="toggleDropdown()">More &#x25BE;</button>
-  <div class="topbar-right">
-    <span><span class="live-dot"></span>Live Countdown</span>
-    <span>{now_str}</span>
-    <span>Auto-refresh 2 min</span>
-  </div>
 </header>
+<div class="stats-bar">
+  <a class="stat-cell" href="index.html" style="text-decoration:none;color:inherit">
+    <div class="stat-number">{n_listings_total:,}</div>
+    <div class="stat-label">Active</div>
+  </a>
+  <div class="stat-cell">
+    <div class="stat-number">—</div>
+    <div class="stat-label">New Today</div>
+  </div>
+  <div class="stat-cell active">
+    <div class="stat-number red">{total}</div>
+    <div class="stat-label">Auctions</div>
+  </div>
+  <a class="stat-cell" href="index.html#comps" style="text-decoration:none;color:inherit">
+    <div class="stat-number">{n_comps_total:,}</div>
+    <div class="stat-label">Comps</div>
+  </a>
+  <div class="stat-cell">
+    <div class="stat-number green">—</div>
+    <div class="stat-label">Deals</div>
+  </div>
+</div>
 <div class="dropdown-overlay" id="dd-overlay">
   <div class="dd-backdrop" onclick="closeDropdown()"></div>
   <div class="dropdown">
