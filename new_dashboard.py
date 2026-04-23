@@ -507,27 +507,47 @@ def generate() -> str:
         health_html = _health_pills(health)
         import json as _json
         card_items = []
-        card_html_parts = []
         for c in active_sorted:
             fmv_s = c["_fmv"]
-            html_c = _card(c, fmv_s)
-            card_html_parts.append(html_c)
             pct = _fmv_pct(c.get("price"), fmv_s.get("fmv")) if fmv_s.get("confidence","NONE") != "NONE" else None
+            dealer_k = (c.get("dealer") or "").lower().strip()
+            badge_cfg = _BADGE_CFG.get(dealer_k, (None, None, (c.get("dealer") or "")[:12]))
             card_items.append({
-                "html": html_c,
+                # --- filter/sort keys ---
                 "yr":   int(c.get("year") or 0),
                 "pr":   int(c.get("price") or 0),
                 "gen":  _gen(c.get("year"), c.get("model")),
-                "src":  _BADGE_CFG.get((c.get("dealer") or "").lower().strip(), (None,None,(c.get("dealer") or "")[:12]))[2],
+                "src":  badge_cfg[2],
                 "tier": c.get("tier") or "",
                 "deal": pct is not None and pct <= -10,
                 "nt":   c["id"] in new_today_ids,
-                "cool": ("air" if (int(c.get("year") or 0) <= 1998 and "911" in (c.get("model") or "").lower()) else ("water" if (int(c.get("year") or 0) >= 1999 and "911" in (c.get("model") or "").lower()) else None)),
+                "cool": ("air" if (int(c.get("year") or 0) <= 1998 and "911" in (c.get("model") or "").lower())
+                         else ("water" if (int(c.get("year") or 0) >= 1999 and "911" in (c.get("model") or "").lower())
+                         else None)),
                 "dom":  c.get("days_on_market") or 0,
                 "txt":  ((str(c.get("year") or "") + " " + (c.get("model") or "") + " " +
                           (c.get("dealer") or "") + " " + _gen(c.get("year"), c.get("model")))).lower(),
+                # --- raw data for client-side rendering ---
+                "url":  c.get("listing_url") or "#",
+                "img":  c.get("image_url") or "",
+                "model": c.get("model") or "",
+                "trim":  c.get("trim") or "",
+                "dlr":  c.get("dealer") or "",
+                "badge_label": badge_cfg[0] or "",
+                "badge_color": badge_cfg[1] or "",
+                "created": c.get("created_at") or c.get("date_first_seen") or "",
+                "loc":   c.get("location") or "",
+                "trans": c.get("transmission") or "",
+                "mi":    int(c.get("mileage") or 0),
+                "is_auc": _is_auction(c.get("dealer") or ""),
+                "ends":  c.get("auction_ends_at") or "",
+                "fmv":   int(fmv_s.get("fmv") or 0),
+                "fmv_conf": fmv_s.get("confidence") or "NONE",
+                "fmv_cc": int(fmv_s.get("comp_count") or 0),
+                "fmv_lo": int(fmv_s.get("price_low") or 0),
+                "fmv_hi": int(fmv_s.get("price_high") or 0),
+                "fmv_pct": int(pct) if pct is not None else None,
             })
-        all_cards  = "\n".join(card_html_parts)
         card_data_json = _json.dumps(card_items, ensure_ascii=False)
         comp_rows_html = "\n".join(_comp_row(c) for c in comps)
 
@@ -1078,7 +1098,6 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
         </div>
       </div>
       <div class="cards-grid" id="cards-grid">
-        {all_cards if all_cards else '<div class="empty"><div class="empty-icon">&#x1F4ED;</div><div class="empty-text">No listings found</div></div>'}
       </div>
     </div>
 
@@ -1297,13 +1316,147 @@ function applyFilters() {{
   if (rc) rc.textContent = visibleCards.length + ' listing' + (visibleCards.length !== 1 ? 's' : '');
 }}
 
+var PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27400%27 height=%27165%27%3E%3Crect width=%27400%27 height=%27165%27 fill=%27%2318181F%27/%3E%3Ctext x=%2750%25%27 y=%2750%25%27 dominant-baseline=%27middle%27 text-anchor=%27middle%27 font-family=%27monospace%27 font-size=%2712%27 fill=%27%2325252E%27%3ENo photo%3C/text%3E%3C/svg%3E";
+
+function fmtPrice(n) {{
+  if (!n) return '\u2014';
+  if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return '$' + Math.round(n/1000) + 'K';
+  return '$' + n.toLocaleString();
+}}
+function fmtMiles(n) {{
+  if (!n) return '';
+  if (n >= 1000) return Math.round(n/1000) + 'K mi';
+  return n + ' mi';
+}}
+function ageLabel(created) {{
+  if (!created) return '';
+  var d = new Date(created.replace(' ','T') + (created.includes('T') ? '' : 'Z'));
+  if (isNaN(d)) return '';
+  var diff = Math.floor((Date.now() - d) / 60000);
+  if (diff < 2) return 'Just now';
+  if (diff < 60) return diff + 'm ago';
+  var h = Math.floor(diff/60);
+  if (h < 24) return h + 'h ago';
+  var days = Math.floor(h/24);
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return days + 'd ago';
+  return d.toLocaleDateString('en-US',{{month:'short',day:'numeric'}});
+}}
+
+function buildFmvBar(d) {{
+  if (!d.fmv || d.fmv_conf === 'NONE') return '';
+  var pct = d.fmv_pct;
+  var pctStr = pct !== null ? (pct > 0 ? '+' : '') + pct + '%' : '';
+  var cls = pct !== null ? (pct <= -10 ? 'fmv-deal' : pct <= 0 ? 'fmv-fair' : 'fmv-over') : '';
+  var confLabel = d.fmv_conf === 'HIGH' ? 'HIGH' : d.fmv_conf === 'MEDIUM' ? 'MED' : 'LOW';
+  var rangeStr = (d.fmv_lo && d.fmv_hi && d.fmv_cc >= 6)
+    ? ' &middot; ' + fmtPrice(d.fmv_lo) + '\u2013' + fmtPrice(d.fmv_hi) : '';
+  var ccStr = d.fmv_cc ? ' &middot; ' + d.fmv_cc + ' comps' : '';
+  return '<div class="fmv-bar-block">'
+    + '<div class="fmv-label-row">'
+    + '<span class="fmv-label">FMV ' + fmtPrice(d.fmv) + '</span>'
+    + '<span class="fmv-conf ' + cls + '">' + (pctStr ? pctStr + ' &middot; ' : '') + confLabel + rangeStr + ccStr + '</span>'
+    + '</div></div>';
+}}
+
+function renderCard(d) {{
+  var isAuc = d.is_auc;
+  var priceLbl = isAuc ? 'Bid' : 'Ask';
+  var priceCls = isAuc ? 'price-auction' : 'price-ask';
+
+  var genBadge = d.gen ? '<div class="img-gen-badge">' + d.gen + '</div>' : '';
+
+  var dealBadge = '';
+  if (d.fmv_pct !== null && d.fmv_pct <= -10) {{
+    dealBadge = '<div class="img-deal-badge">\u2193' + Math.abs(d.fmv_pct) + '%</div>';
+  }}
+
+  var imgSrc = d.img || PLACEHOLDER;
+  var imgHtml = '<div class="card-img-wrap">'
+    + '<img src="' + imgSrc + '" alt="' + d.yr + ' ' + d.model + '" class="card-img" loading="lazy" onerror="this.src=PLACEHOLDER">'
+    + genBadge + dealBadge + '</div>';
+
+  var badgeHtml = '';
+  if (d.badge_label) {{
+    badgeHtml = '<span class="source-badge badge-' + d.badge_color + '">' + d.badge_label + '</span>';
+    if (d.gen) badgeHtml += '<span class="gen-badge">' + d.gen + '</span>';
+  }}
+
+  var ageHtml = '<span class="card-age" data-created="' + (d.created||'') + '">' + ageLabel(d.created) + '</span>';
+
+  var tierHtml = d.tier === 'TIER1' ? '<span class="tier-badge">GT / Collector</span>' : '';
+
+  var titleStr = d.trim ? d.model + ' ' + d.trim : d.model;
+  titleStr = titleStr.replace(new RegExp('^' + d.model + '\\s+' + d.model + '\\s*', 'i'), d.model + ' ');
+  var titleHtml = '<div class="card-title">' + d.yr + ' Porsche ' + titleStr + '</div>';
+
+  var fmvHtml = '';
+  if (isAuc && d.ends && d.fmv && d.fmv_conf !== 'NONE') {{
+    var endsMs = new Date(d.ends.replace('Z','+00:00')).getTime();
+    var leftMs = endsMs - Date.now();
+    if (leftMs > 0) {{
+      if (leftMs > 86400000) {{
+        fmvHtml = '<div class="fmv-none"><span class="fmv-none-dot" style="background:#555"></span>Auction in progress</div>';
+      }} else {{
+        var bidPct = d.pr && d.fmv ? (d.pr / d.fmv * 100) : 0;
+        if (bidPct >= 65) {{
+          fmvHtml = buildFmvBar(d);
+        }} else {{
+          fmvHtml = '<div class="fmv-none"><span class="fmv-none-dot" style="background:#555"></span>Auction ending soon</div>';
+        }}
+      }}
+    }} else {{
+      fmvHtml = buildFmvBar(d);
+    }}
+  }} else if (d.fmv && d.fmv_conf !== 'NONE') {{
+    fmvHtml = buildFmvBar(d);
+  }} else {{
+    fmvHtml = '<div class="fmv-none"><span class="fmv-none-dot"></span>No FMV \u2014 insufficient comps</div>';
+  }}
+
+  var endsHtml = '';
+  if (isAuc && d.ends) {{
+    endsHtml = '<div class="auction-ends">Ends <span class="countdown" data-ends="' + d.ends + '">\u2026</span></div>';
+  }}
+
+  var chips = [];
+  if (d.trans) chips.push(d.trans);
+  if (d.mi)    chips.push(fmtMiles(d.mi));
+  if (d.loc)   chips.push(d.loc.substring(0,22));
+  if (d.dom > 0) chips.push('<span class="dom-chip">\u23f1' + d.dom + 'd</span>');
+  var metaHtml = '<div class="card-meta">' + chips.join(' &middot; ') + '</div>';
+
+  return '<div class="card"'
+    + ' data-dealer="' + d.dlr + '"'
+    + ' data-year="' + d.yr + '"'
+    + ' data-model="' + d.model + '"'
+    + ' data-gen="' + d.gen + '"'
+    + ' data-tier="' + d.tier + '"'
+    + ' data-price="' + (d.pr||0) + '"'
+    + ' data-src-label="' + d.src + '"'
+    + ' data-source-type="' + (isAuc?'auction':'retail') + '"'
+    + ' onclick="openListing(\'' + d.url + '\')">'
+    + imgHtml
+    + '<div class="card-body">'
+    + '<div class="card-top-row">' + badgeHtml + ageHtml + '</div>'
+    + titleHtml
+    + tierHtml
+    + '<div class="card-price-row"><span class="price-lbl">' + priceLbl + '</span>'
+    + '<span class="' + priceCls + '">' + fmtPrice(d.pr) + '</span></div>'
+    + fmvHtml
+    + endsHtml
+    + metaHtml
+    + '</div></div>';
+}}
+
 function renderCards() {{
   var grid = document.getElementById('cards-grid');
   if (!grid) return;
   var next = Math.min(renderedCount + PAGE, visibleCards.length);
   var html = '';
   for (var i = renderedCount; i < next; i++) {{
-    html += visibleCards[i].html;
+    html += renderCard(visibleCards[i]);
   }}
   if (renderedCount === 0) {{
     grid.innerHTML = html || '<div class="empty"><div class="empty-icon">&#x1F4ED;</div><div class="empty-text">No listings match</div></div>';
