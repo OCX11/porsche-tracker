@@ -837,10 +837,10 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
 .fmv-label {{ color:var(--muted); }}
 .fmv-wrap {{ cursor:pointer; position:relative; border-radius:4px; transition:background 0.15s; }}
 .fmv-wrap:hover {{ background:rgba(255,255,255,0.03); }}
+.fmv-comps-link {{ color:var(--muted); cursor:pointer; border-bottom:1px dotted var(--muted); transition:color 0.15s, border-color 0.15s; }}
+.fmv-comps-link:hover {{ color:var(--text); border-color:var(--text); }}
 .fmv-wrap:hover .fmv-edit-hint {{ opacity:1; }}
-.fmv-edit-hint {{ position:absolute; right:22px; top:0; font-size:9px; color:var(--muted); opacity:0; transition:opacity 0.15s; pointer-events:none; font-family:'DM Mono',monospace; }}
-.fmv-comps-btn {{ position:absolute; right:2px; top:0; font-size:9px; color:var(--muted); opacity:0; transition:opacity 0.15s; cursor:pointer; font-family:'DM Mono',monospace; padding:1px 3px; }}
-.fmv-wrap:hover .fmv-comps-btn {{ opacity:1; }}
+.fmv-edit-hint {{ position:absolute; right:4px; top:0; font-size:9px; color:var(--muted); opacity:0; transition:opacity 0.15s; pointer-events:none; font-family:'DM Mono',monospace; }}
 .fmv-modal-overlay {{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:500; align-items:center; justify-content:center; padding:16px; }}
 .fmv-modal-overlay.open {{ display:flex; }}
 .fmv-modal {{ background:var(--bg2); border:1px solid var(--border); border-radius:12px; width:100%; max-width:480px; max-height:80vh; overflow:hidden; display:flex; flex-direction:column; }}
@@ -1441,7 +1441,10 @@ function buildFmvBar(d) {{
   var confLabel = d.fmv_conf === 'HIGH' ? 'HIGH' : d.fmv_conf === 'MEDIUM' ? 'MED' : 'LOW';
   var rangeStr = (d.fmv_lo && d.fmv_hi && d.fmv_cc >= 6)
     ? ' &middot; ' + fmtPrice(d.fmv_lo) + '\u2013' + fmtPrice(d.fmv_hi) : '';
-  var ccStr = d.fmv_cc ? ' &middot; ' + d.fmv_cc + ' comps' : '';
+  // Comp count is always-visible and clickable — opens the drill-down modal
+  var ccStr = d.fmv_cc
+    ? ' &middot; <span class="fmv-comps-link" data-has-comps="1" title="View ' + d.fmv_cc + ' sold comps">' + d.fmv_cc + ' comp' + (d.fmv_cc !== 1 ? 's' : '') + '</span>'
+    : '';
   return '<div class="fmv-bar-block">'
     + '<div class="fmv-label-row">'
     + '<span class="fmv-label">FMV ' + fmtPrice(d.fmv) + '</span>'
@@ -1534,8 +1537,7 @@ function renderCard(d) {{
     + '<div class="card-price-row"><span class="price-lbl">' + priceLbl + '</span>'
     + '<span class="' + priceCls + '">' + fmtPrice(d.pr) + '</span></div>'
     + '<div class="fmv-wrap" data-url="' + d.url + '" data-year="' + d.yr + '" data-model="' + (d.model||'').replace(/"/g,'&quot;') + '" data-trim="' + (d.trim||'').replace(/"/g,'&quot;') + '" data-price="' + (d.pr||0) + '" onclick="openFmvInput(event,this)">'
-    + '<span class="fmv-edit-hint">&#x270F;&#xFE0F;</span>'
-    + (d.fmv && d.fmv_conf !== 'NONE' ? '<span class="fmv-comps-btn" onclick="event.stopPropagation();showFmvComps(this.closest(\\'.fmv-wrap\\'))" title="View comps">&#x1F4CA;</span>' : '')
+    + '<span class="fmv-edit-hint">&#x270F;&#xFE0F; edit FMV</span>'
     + fmvHtml
     + '<input class="fmv-override-input" type="text" placeholder="e.g. 187 or 187000" onclick="event.stopPropagation()" onblur="commitFmvInput(this)" onkeydown="fmvKeydown(event,this)" />'
     + '</div>'
@@ -1748,6 +1750,15 @@ function filterDeals() {{
   applyFilters(); updateFabState();
 }}
 // ── FMV comp drill-down modal ─────────────────────────────────────────────────
+// Delegated click handler for fmv-comps-link (avoids quote-escaping in template strings)
+document.addEventListener('click', function(e) {{
+  var link = e.target.closest('.fmv-comps-link');
+  if (!link) return;
+  e.stopPropagation();
+  var wrap = link.closest('.fmv-wrap');
+  if (wrap) showFmvComps(wrap);
+}});
+
 function showFmvComps(wrap) {{
   var year  = parseInt(wrap.dataset.year  || 0);
   var model = wrap.dataset.model || '';
