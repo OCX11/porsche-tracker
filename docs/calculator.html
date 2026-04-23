@@ -96,6 +96,13 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .tier-btn.active.tier-good{background:#0d1a0d;border-color:#22C55E;color:#22C55E;}
 .condition-adj{font-size:11px;color:var(--muted);margin-top:8px;min-height:16px;}
 .mileage-note{font-size:12px;color:var(--muted);margin-top:8px;font-style:italic;}
+.velocity-block{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+.velocity-label{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.velocity-row{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.velocity-stat{text-align:center;flex:1;}
+.velocity-num{font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--text);line-height:1;}
+.velocity-sublabel{font-size:9px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:0.5px;}
+.velocity-fast{color:#22C55E;}.velocity-med{color:#EAB308;}.velocity-slow{color:#F97316;}
 .badges-row{display:flex;justify-content:center;gap:8px;margin-top:16px;flex-wrap:wrap;}
 .badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;}
 .badge-high{background:#052210;color:#4ade80;border:1px solid #1a4a2e;}
@@ -436,6 +443,22 @@ function applyCondition() {
   var adjEl = document.querySelector('.condition-adj');
   if (adjEl) adjEl.textContent = tier.id === 'good' ? '' : tier.note;
 }
+function buildVelocityBlock(model, gen) {
+  if (!DATA || !DATA.velocity) return '';
+  var key = model + '|' + gen;
+  var v = DATA.velocity[key];
+  if (!v || !v.avg_dom) return '';
+  var avgCls = v.avg_dom <= 10 ? 'velocity-fast' : v.avg_dom <= 20 ? 'velocity-med' : 'velocity-slow';
+  var speed = v.avg_dom <= 10 ? 'Fast market' : v.avg_dom <= 20 ? 'Active market' : 'Patient market';
+  return '<div class="velocity-block">'
+    + '<div class="velocity-label">Market Velocity &mdash; ' + esc(gen) + ' ' + esc(model) + '</div>'
+    + '<div class="velocity-row">'
+    + '<div class="velocity-stat"><div class="velocity-num ' + avgCls + '">' + v.avg_dom + 'd</div><div class="velocity-sublabel">Avg on market</div></div>'
+    + '<div class="velocity-stat"><div class="velocity-num">' + v.n + '</div><div class="velocity-sublabel">Sold (data)</div></div>'
+    + '<div class="velocity-stat"><div class="velocity-num ' + avgCls + '">' + speed + '</div><div class="velocity-sublabel">&nbsp;</div></div>'
+    + '</div></div>';
+}
+
 function buildConditionKnob() {
   var current = getCondition();
   var btns = CONDITION_TIERS.map(function(t) {
@@ -566,6 +589,7 @@ function calculate() {
           '<span class="badge badge-muted">' + g.count + ' comp' + (g.count !== 1 ? 's' : '') + '</span>' +
           '<span class="badge badge-muted">' + esc(genLabel) + '</span>' +
         '</div>' +
+        buildVelocityBlock(model, gen) +
         buildConditionKnob() +
       '</div>' +
       (compRows ? '<div class="comps-header">Recent Sold Comps</div>' + compRows : '') +

@@ -112,12 +112,56 @@ def build() -> Path:
             ],
         }
 
+    # ── Market velocity: avg days-on-market by model+gen ────────────────────
+    velocity_rows = conn.execute("""
+        SELECT
+            model,
+            CASE
+                WHEN year <= 1989 THEN 'G-Series'
+                WHEN year <= 1994 THEN '964'
+                WHEN year <= 1998 THEN '993'
+                WHEN year <= 2004 THEN '996'
+                WHEN year <= 2008 THEN '997.1'
+                WHEN year <= 2012 THEN '997.2'
+                WHEN year <= 2016 THEN '991.1'
+                WHEN year <= 2019 THEN '991.2'
+                ELSE '992'
+            END as gen,
+            COUNT(*) as n,
+            ROUND(AVG(julianday(archived_at) - julianday(date_first_seen))) as avg_dom,
+            ROUND(MIN(julianday(archived_at) - julianday(date_first_seen))) as min_dom,
+            ROUND(MAX(julianday(archived_at) - julianday(date_first_seen))) as max_dom
+        FROM listings
+        WHERE status = 'sold'
+          AND archived_at IS NOT NULL
+          AND date_first_seen IS NOT NULL
+          AND model IN ('911', 'Cayman', 'Boxster', '718')
+          AND julianday(archived_at) - julianday(date_first_seen) >= 0
+          AND julianday(archived_at) - julianday(date_first_seen) < 365
+        GROUP BY model, gen
+        HAVING COUNT(*) >= 5
+        ORDER BY model, avg_dom
+    """).fetchall()
+
+    velocity = {}
+    for r in velocity_rows:
+        key = f"{r['model']}|{r['gen']}"
+        velocity[key] = {
+            "model":   r["model"],
+            "gen":     r["gen"],
+            "n":       r["n"],
+            "avg_dom": int(r["avg_dom"] or 0),
+            "min_dom": int(r["min_dom"] or 0),
+            "max_dom": int(r["max_dom"] or 0),
+        }
+
     conn.close()
 
     out = {
-        "generated": today.isoformat(),
-        "total_comps": len(rows),
+        "generated":    today.isoformat(),
+        "total_comps":  len(rows),
         "by_generation": by_generation,
+        "velocity":     velocity,
     }
 
     out_path = BASE_DIR / "docs" / "calculator_data.json"
