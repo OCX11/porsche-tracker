@@ -77,6 +77,10 @@ def _badge(dealer: str) -> str:
     bg, fg, label = _BADGE_CFG.get(k, ("#18181F", "#6B6B7D", (dealer or "?")[:14]))
     return f'<span class="badge" style="background:{bg};color:{fg}">{_h(label)}</span>'
 
+def _badge_label(dealer: str) -> str:
+    k = (dealer or "").lower().strip()
+    return _BADGE_CFG.get(k, ("#18181F", "#6B6B7D", (dealer or "?")[:14]))[2]
+
 def _gen(year, model):
     if not year: return "Unknown"
     y = int(year); m = (model or "").lower()
@@ -257,9 +261,16 @@ def _auction_card(car: dict, fmv_score: dict, urgent: bool = False) -> str:
         timer_html = '<span class="no-end">No end time</span>'
 
     urgent_cls = " urgent" if urgent else ""
+    src_label  = _badge_label(dealer)
 
     return (
-        f'<div class="auc-card{urgent_cls}" onclick="openListing(\'{_h(url)}\')">\n'
+        f'<div class="auc-card{urgent_cls}"'
+        f' data-gen="{_h(gen_str)}"'
+        f' data-src="{_h(src_label)}"'
+        f' data-tier="{_h(tier)}"'
+        f' data-price="{price or 0}"'
+        f' data-ends="{_h(ends_at)}"'
+        f' onclick="openListing(\'{_h(url)}\')">\n'
         f'  {img_html}\n'
         f'  <div class="auc-body">\n'
         f'    <div class="auc-top-row">\n'
@@ -390,12 +401,26 @@ def generate() -> str:
     for c in cars:
         ends_dt = _parse_ends(c.get("auction_ends_at"))
         c["_ends_dt"] = ends_dt
+        c["_gen"] = _gen(c.get("year"), c.get("model"))
+        c["_src"] = _badge_label(c.get("dealer", ""))
         if ends_dt is None or ends_dt <= now_utc:
             no_end_time.append(c)
         elif ends_dt <= one_day:
             ending_soon.append(c)
         else:
             live_auction.append(c)
+
+    # Unique generations and sources for filter chips
+    all_gens = sorted(set(c["_gen"] for c in cars if c["_gen"] and c["_gen"] != "Unknown"))
+    all_srcs = sorted(set(c["_src"] for c in cars if c["_src"]))
+    gen_chips_html = "".join(
+        f'<button class="auc-chip" data-val="{_h(g)}" data-filter="gen" onclick="toggleAucChip(this)">{_h(g)}</button>'
+        for g in all_gens
+    )
+    src_chips_html = "".join(
+        f'<button class="auc-chip" data-val="{_h(s)}" data-filter="src" onclick="toggleAucChip(this)">{_h(s)}</button>'
+        for s in all_srcs
+    )
 
     def _sort_key(c):
         d = c.get("_ends_dt")
@@ -415,7 +440,7 @@ def generate() -> str:
     total   = len(cars)
     now_str = now_utc.strftime("%b %d, %Y %H:%M UTC")
 
-    html = _build_html(s_ending, s_live, s_noend, s_ended, total, len(ending_soon), len(live_auction), len(ended_cars), now_str, n_listings_total, n_comps_total, n_new_today, n_deals)
+    html = _build_html(s_ending, s_live, s_noend, s_ended, total, len(ending_soon), len(live_auction), len(ended_cars), now_str, n_listings_total, n_comps_total, n_new_today, n_deals, gen_chips_html, src_chips_html)
     OUT_PATH.write_text(html, encoding="utf-8")
     print(f"[auction_dashboard] wrote {OUT_PATH} ({total} auctions)")
     return html
@@ -423,7 +448,7 @@ def generate() -> str:
 
 # ── HTML template ─────────────────────────────────────────────────────────────
 
-def _build_html(s_ending, s_live, s_noend, s_ended, total, n_ending, n_live, n_ended, now_str, n_listings_total=0, n_comps_total=0, n_new_today=0, n_deals=0) -> str:
+def _build_html(s_ending, s_live, s_noend, s_ended, total, n_ending, n_live, n_ended, now_str, n_listings_total=0, n_comps_total=0, n_new_today=0, n_deals=0, gen_chips_html="", src_chips_html="") -> str:
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -491,6 +516,14 @@ a {{ color:inherit; text-decoration:none; }}
 .dd-divider {{ height:1px; background:#333; margin:4px 10px; }}
 .dd-backdrop {{ position:fixed; inset:0; z-index:199; }}
 .topbar-right {{ font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); display:flex; align-items:center; gap:16px; }}
+.filter-bar {{ background:var(--bg2); border-bottom:1px solid var(--border); padding:10px 16px; display:flex; flex-wrap:wrap; align-items:center; gap:8px; }}
+.filter-bar-group {{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; flex:1; }}
+.auc-chip {{ padding:4px 10px; border-radius:12px; border:1px solid var(--border); background:var(--bg3); color:var(--muted); font-family:'DM Mono',monospace; font-size:10px; font-weight:600; cursor:pointer; transition:all 0.15s; white-space:nowrap; }}
+.auc-chip:hover {{ color:var(--text); border-color:#555; }}
+.auc-chip.active {{ background:#1A0810; border-color:var(--red); color:var(--red); }}
+.sort-select {{ padding:4px 8px; border:1px solid var(--border); border-radius:6px; background:var(--bg3); color:var(--muted); font-family:'DM Mono',monospace; font-size:10px; cursor:pointer; outline:none; }}
+.sort-select:focus {{ border-color:var(--red); }}
+.filter-count {{ font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); margin-left:auto; white-space:nowrap; }}
 .live-dot {{ display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--green); margin-right:5px; animation:pulse 1.5s infinite; }}
 @keyframes pulse {{ 0%,100% {{ opacity:1; }} 50% {{ opacity:0.4; }} }}
 
@@ -633,7 +666,24 @@ a {{ color:inherit; text-decoration:none; }}
   </div>
 </div>
 
-<div class="page-body">
+<div class="filter-bar">
+  <div class="filter-bar-group" id="gen-chips">
+    {gen_chips_html}
+  </div>
+  <div class="filter-bar-group" id="src-chips">
+    {src_chips_html}
+  </div>
+  <select class="sort-select" id="auc-sort" onchange="applyAucFilters()">
+    <option value="ends_asc">Ending Soonest</option>
+    <option value="ends_desc">Ending Latest</option>
+    <option value="price_asc">Price Low→High</option>
+    <option value="price_desc">Price High→Low</option>
+    <option value="new_first">Newest Listed</option>
+  </select>
+  <span class="filter-count" id="auc-filter-count"></span>
+</div>
+
+<div class="page-body" id="page-body">
   {s_ending}
   {s_live}
   {s_noend}
@@ -695,6 +745,60 @@ function toggleDropdown() {{
 }}
 function closeDropdown() {{
   document.getElementById('dd-overlay').classList.remove('show');
+}}
+
+// ── Auction filter + sort ────────────────────────────────────────────────────
+var _aucActiveGens = [];
+var _aucActiveSrcs = [];
+
+function toggleAucChip(btn) {{
+  var filter = btn.dataset.filter;
+  var val    = btn.dataset.val;
+  btn.classList.toggle('active');
+  if (filter === 'gen') {{
+    if (_aucActiveGens.includes(val)) _aucActiveGens = _aucActiveGens.filter(function(x){{ return x !== val; }});
+    else _aucActiveGens.push(val);
+  }} else {{
+    if (_aucActiveSrcs.includes(val)) _aucActiveSrcs = _aucActiveSrcs.filter(function(x){{ return x !== val; }});
+    else _aucActiveSrcs.push(val);
+  }}
+  applyAucFilters();
+}}
+
+function applyAucFilters() {{
+  var cards = Array.from(document.querySelectorAll('.auc-card'));
+  var sortVal = (document.getElementById('auc-sort') || {{}}).value || 'ends_asc';
+  var visible = 0;
+
+  cards.forEach(function(card) {{
+    var gen   = card.dataset.gen   || '';
+    var src   = card.dataset.src   || '';
+    var genOk = _aucActiveGens.length === 0 || _aucActiveGens.includes(gen);
+    var srcOk = _aucActiveSrcs.length === 0 || _aucActiveSrcs.includes(src);
+    var show  = genOk && srcOk;
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  }});
+
+  // Sort within each section grid
+  document.querySelectorAll('.cards-grid').forEach(function(grid) {{
+    var visCards = Array.from(grid.querySelectorAll('.auc-card')).filter(function(c){{ return c.style.display !== 'none'; }});
+    visCards.sort(function(a, b) {{
+      if (sortVal === 'ends_asc')   return (a.dataset.ends || 'z') < (b.dataset.ends || 'z') ? -1 : 1;
+      if (sortVal === 'ends_desc')  return (a.dataset.ends || '') > (b.dataset.ends || '') ? -1 : 1;
+      if (sortVal === 'price_asc')  return parseInt(a.dataset.price||0) - parseInt(b.dataset.price||0);
+      if (sortVal === 'price_desc') return parseInt(b.dataset.price||0) - parseInt(a.dataset.price||0);
+      return 0;
+    }});
+    visCards.forEach(function(c){{ grid.appendChild(c); }});
+  }});
+
+  var countEl = document.getElementById('auc-filter-count');
+  if (countEl && (_aucActiveGens.length > 0 || _aucActiveSrcs.length > 0)) {{
+    countEl.textContent = visible + ' shown';
+  }} else if (countEl) {{
+    countEl.textContent = '';
+  }}
 }}
 </script>
 </body>
