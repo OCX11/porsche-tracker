@@ -265,6 +265,60 @@ def _send_to_all(subs: dict, notification: dict) -> dict:
     return {"sent": sent, "failed": failed, "removed": len(expired)}
 
 
+# ── FMV comp drill-down ───────────────────────────────────────────────────────
+
+@app.route("/fmv-comps", methods=["GET"])
+def fmv_comps():
+    """Return the sold comps that drove the FMV estimate for a given car.
+    Query params: year, model, trim
+    """
+    try:
+        year  = int(request.args.get("year", 0))
+        model = request.args.get("model", "").strip()
+        trim  = request.args.get("trim", "").strip()
+    except (ValueError, TypeError):
+        abort(400, "year must be integer")
+
+    if not year or not model:
+        abort(400, "year and model are required")
+
+    try:
+        import sys
+        sys.path.insert(0, str(SCRIPT_DIR))
+        import db as _db
+        import fmv as _fmv
+
+        _db.init_db()
+        with _db.get_conn() as conn:
+            result = _fmv.get_fmv(conn, year=year, model=model, trim=trim or None)
+
+        comp_list = []
+        for c in (result.comps or []):
+            comp_list.append({
+                "year":        c.year,
+                "model":       c.model,
+                "trim":        c.trim,
+                "sold_price":  c.sold_price,
+                "sold_date":   c.sold_date,
+                "mileage":     c.mileage,
+                "source":      c.source,
+                "listing_url": c.listing_url,
+            })
+
+        return jsonify({
+            "year":       year,
+            "model":      model,
+            "trim":       trim,
+            "fmv":        result.weighted_median,
+            "confidence": result.confidence,
+            "comp_count": result.comp_count,
+            "comps":      comp_list,
+        })
+    except Exception as e:
+        log.error("fmv-comps error: %s", e)
+        abort(500, str(e))
+
+
 # ── Personal FMV comps ───────────────────────────────────────────────────────────
 
 USER_COMPS_FILE = SCRIPT_DIR / "data" / "user_comps.json"

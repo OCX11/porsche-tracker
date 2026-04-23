@@ -838,7 +838,25 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
 .fmv-wrap {{ cursor:pointer; position:relative; border-radius:4px; transition:background 0.15s; }}
 .fmv-wrap:hover {{ background:rgba(255,255,255,0.03); }}
 .fmv-wrap:hover .fmv-edit-hint {{ opacity:1; }}
-.fmv-edit-hint {{ position:absolute; right:2px; top:0; font-size:9px; color:var(--muted); opacity:0; transition:opacity 0.15s; pointer-events:none; font-family:'DM Mono',monospace; }}
+.fmv-edit-hint {{ position:absolute; right:22px; top:0; font-size:9px; color:var(--muted); opacity:0; transition:opacity 0.15s; pointer-events:none; font-family:'DM Mono',monospace; }}
+.fmv-comps-btn {{ position:absolute; right:2px; top:0; font-size:9px; color:var(--muted); opacity:0; transition:opacity 0.15s; cursor:pointer; font-family:'DM Mono',monospace; padding:1px 3px; }}
+.fmv-wrap:hover .fmv-comps-btn {{ opacity:1; }}
+.fmv-modal-overlay {{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:500; align-items:center; justify-content:center; padding:16px; }}
+.fmv-modal-overlay.open {{ display:flex; }}
+.fmv-modal {{ background:var(--bg2); border:1px solid var(--border); border-radius:12px; width:100%; max-width:480px; max-height:80vh; overflow:hidden; display:flex; flex-direction:column; }}
+.fmv-modal-header {{ padding:16px 20px 12px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }}
+.fmv-modal-title {{ font-size:13px; font-weight:700; color:#fff; }}
+.fmv-modal-close {{ background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; padding:0 4px; line-height:1; }}
+.fmv-modal-body {{ overflow-y:auto; padding:0; flex:1; }}
+.fmv-comp-row {{ display:flex; align-items:center; justify-content:space-between; padding:10px 20px; border-bottom:1px solid var(--border); gap:8px; }}
+.fmv-comp-row:last-child {{ border-bottom:none; }}
+.fmv-comp-info {{ flex:1; min-width:0; }}
+.fmv-comp-name {{ font-size:12px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
+.fmv-comp-meta {{ font-size:10px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:2px; }}
+.fmv-comp-price {{ font-family:'DM Mono',monospace; font-size:13px; font-weight:700; color:#fff; white-space:nowrap; }}
+.fmv-comp-link {{ font-size:11px; color:var(--muted); text-decoration:none; margin-left:6px; }}
+.fmv-comp-link:hover {{ color:var(--text); }}
+.fmv-modal-loading {{ padding:32px; text-align:center; color:var(--muted); font-size:12px; font-family:'DM Mono',monospace; }}
 .fmv-override-input {{ display:none; width:140px; background:var(--bg3); border:1px solid var(--red); border-radius:4px; color:var(--text); font-family:'DM Mono',monospace; font-size:12px; padding:4px 8px; margin-top:4px; outline:none; }}
 .fmv-override-input.visible {{ display:block; }}
 .fmv-user-label {{ font-size:9px; color:#60A5FA; font-family:'DM Mono',monospace; letter-spacing:0.5px; text-transform:uppercase; margin-bottom:2px; }}
@@ -1235,6 +1253,19 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
   </div><!-- /content-area -->
 </main>
 </div><!-- /body-area -->
+
+<!-- FMV comp drill-down modal -->
+<div class="fmv-modal-overlay" id="fmv-modal-overlay" onclick="if(event.target===this)closeFmvModal()">
+  <div class="fmv-modal">
+    <div class="fmv-modal-header">
+      <span class="fmv-modal-title" id="fmv-modal-title">Sold Comps</span>
+      <button class="fmv-modal-close" onclick="closeFmvModal()">&#x2715;</button>
+    </div>
+    <div class="fmv-modal-body" id="fmv-modal-body">
+      <div class="fmv-modal-loading">Loading comps…</div>
+    </div>
+  </div>
+</div>
 </div><!-- /app -->
 
 <!-- ── Mobile filter drawer ── -->
@@ -1503,9 +1534,10 @@ function renderCard(d) {{
     + '<div class="card-price-row"><span class="price-lbl">' + priceLbl + '</span>'
     + '<span class="' + priceCls + '">' + fmtPrice(d.pr) + '</span></div>'
     + '<div class="fmv-wrap" data-url="' + d.url + '" data-year="' + d.yr + '" data-model="' + (d.model||'').replace(/"/g,'&quot;') + '" data-trim="' + (d.trim||'').replace(/"/g,'&quot;') + '" data-price="' + (d.pr||0) + '" onclick="openFmvInput(event,this)">'
-    + '<span class="fmv-edit-hint">✏️</span>'
+    + '<span class="fmv-edit-hint">&#x270F;&#xFE0F;</span>'
+    + (d.fmv && d.fmv_conf !== 'NONE' ? '<span class="fmv-comps-btn" onclick="event.stopPropagation();showFmvComps(this.closest(\\'.fmv-wrap\\'))" title="View comps">&#x1F4CA;</span>' : '')
     + fmvHtml
-    + '<input class="fmv-override-input" type="text" placeholder="e.g. 187 or 187000" onclick="event.stopPropagation()" onblur="commitFmvInput(this)" onkeydown="if(event.key===\'Enter\')this.blur();if(event.key===\'Escape\')this.classList.remove(\'visible\')" />'
+    + '<input class="fmv-override-input" type="text" placeholder="e.g. 187 or 187000" onclick="event.stopPropagation()" onblur="commitFmvInput(this)" onkeydown="fmvKeydown(event,this)" />'
     + '</div>'
     + endsHtml
     + metaHtml
@@ -1515,6 +1547,10 @@ function renderCard(d) {{
 // ── Personal FMV override ────────────────────────────────────────────────────
 var PUSH_SERVER = 'https://ptox11-push.openclawx1.workers.dev';
 
+function fmvKeydown(e, input) {{
+  if (e.key === 'Enter') input.blur();
+  if (e.key === 'Escape') input.classList.remove('visible');
+}}
 function openFmvInput(e, wrap) {{
   if (e.target.classList.contains('fmv-override-input')) return;
   e.stopPropagation();
@@ -1711,6 +1747,65 @@ function filterDeals() {{
   var dd = document.getElementById('d-deals'); if (dd) dd.checked = true;
   applyFilters(); updateFabState();
 }}
+// ── FMV comp drill-down modal ─────────────────────────────────────────────────
+function showFmvComps(wrap) {{
+  var year  = parseInt(wrap.dataset.year  || 0);
+  var model = wrap.dataset.model || '';
+  var trim  = wrap.dataset.trim  || '';
+  var overlay = document.getElementById('fmv-modal-overlay');
+  var title   = document.getElementById('fmv-modal-title');
+  var body    = document.getElementById('fmv-modal-body');
+  title.textContent = year + ' Porsche ' + model + (trim ? ' ' + trim : '') + ' — Sold Comps';
+  body.innerHTML = '<div class="fmv-modal-loading">Loading comps…</div>';
+  overlay.classList.add('open');
+
+  var url = PUSH_SERVER + '/fmv-comps?year=' + year
+    + '&model=' + encodeURIComponent(model)
+    + '&trim=' + encodeURIComponent(trim || '');
+
+  fetch(url)
+    .then(function(r) {{ return r.json(); }})
+    .then(function(data) {{
+      if (!data.comps || data.comps.length === 0) {{
+        body.innerHTML = '<div class="fmv-modal-loading">No comps found.</div>';
+        return;
+      }}
+      var html = '';
+      data.comps.forEach(function(c) {{
+        var meta = [
+          c.mileage ? (Math.round(c.mileage/1000) + 'K mi') : '',
+          c.source || '',
+          c.sold_date ? c.sold_date.substring(0,7) : '',
+        ].filter(Boolean).join(' · ');
+        var link = c.listing_url
+          ? ' <a class="fmv-comp-link" href="' + c.listing_url + '" target="_blank" rel="noopener">↗</a>'
+          : '';
+        html += '<div class="fmv-comp-row">'
+          + '<div class="fmv-comp-info">'
+          + '<div class="fmv-comp-name">' + (c.year||'') + ' Porsche ' + (c.model||'') + (c.trim ? ' ' + c.trim : '') + '</div>'
+          + '<div class="fmv-comp-meta">' + meta + '</div>'
+          + '</div>'
+          + '<div style="display:flex;align-items:center">'
+          + '<span class="fmv-comp-price">$' + ((c.sold_price||0)/1000).toFixed(0) + 'K</span>'
+          + link
+          + '</div></div>';
+      }});
+      body.innerHTML = html;
+    }})
+    .catch(function() {{
+      body.innerHTML = '<div class="fmv-modal-loading">Could not load comps. Push server may be offline.</div>';
+    }});
+}}
+
+function closeFmvModal() {{
+  document.getElementById('fmv-modal-overlay').classList.remove('open');
+}}
+
+// Close modal on Escape
+document.addEventListener('keydown', function(e) {{
+  if (e.key === 'Escape') closeFmvModal();
+}});
+
 function toggleDropdown() {{
   document.getElementById('dd-overlay').classList.toggle('show');
   _syncSwatches();
