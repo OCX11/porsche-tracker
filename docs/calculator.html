@@ -81,6 +81,14 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .fmv-price{font-family:'Syne',sans-serif;font-size:44px;font-weight:800;color:#fff;letter-spacing:-1px;line-height:1;}
 .fmv-range{font-size:13px;color:var(--muted);margin-top:10px;}
 .fmv-range span{color:var(--text);}
+.condition-knob{margin-top:20px;padding-top:18px;border-top:1px solid var(--border);}
+.condition-label{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.condition-tiers{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+.tier-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.tier-btn:hover{border-color:#555;color:var(--text);}
+.tier-btn.active{background:#1a1a2e;border-color:#60A5FA;color:#60A5FA;}
+.tier-btn.active.tier-good{background:#0d1a0d;border-color:#22C55E;color:#22C55E;}
+.condition-adj{font-size:11px;color:var(--muted);margin-top:8px;min-height:16px;}
 .mileage-note{font-size:12px;color:var(--muted);margin-top:8px;font-style:italic;}
 .badges-row{display:flex;justify-content:center;gap:8px;margin-top:16px;flex-wrap:wrap;}
 .badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;}
@@ -366,6 +374,57 @@ function updateBtn() {
 }
 
 // ── Main calculate ────────────────────────────────────────────────────────────
+// ── Condition Knob ────────────────────────────────────────────────────────────
+var CONDITION_TIERS = [
+  { id: 'concours',  label: 'Concours',  mult: 1.20, note: '+20% · Show-quality, original paint, documented' },
+  { id: 'excellent', label: 'Excellent', mult: 1.10, note: '+10% · No issues, fresh service, low miles for year' },
+  { id: 'good',      label: 'Good',      mult: 1.00, note: 'Baseline · Typical well-kept example' },
+  { id: 'fair',      label: 'Fair',      mult: 0.88, note: '−12% · Minor deferred maintenance, higher miles' },
+  { id: 'project',   label: 'Project',   mult: 0.75, note: '−25% · Mechanical issues, cosmetic damage, non-running' },
+];
+var _baseMedian = null, _baseP25 = null, _baseP75 = null;
+
+function getCondition() {
+  return localStorage.getItem('ptox_condition') || 'good';
+}
+function setCondition(id) {
+  localStorage.setItem('ptox_condition', id);
+  applyCondition();
+}
+function applyCondition() {
+  if (_baseMedian === null) return;
+  var id = getCondition();
+  var tier = CONDITION_TIERS.find(function(t){ return t.id === id; }) || CONDITION_TIERS[2];
+  var adjMedian = Math.round(_baseMedian * tier.mult / 100) * 100;
+  var adjP25    = Math.round(_baseP25    * tier.mult / 100) * 100;
+  var adjP75    = Math.round(_baseP75    * tier.mult / 100) * 100;
+  var priceEl = document.querySelector('.fmv-price');
+  var rangeEl = document.querySelector('.fmv-range');
+  if (priceEl) priceEl.textContent = fmt(adjMedian);
+  if (rangeEl) rangeEl.innerHTML = 'Range: <span>' + fmt(adjP25) + '</span> &ndash; <span>' + fmt(adjP75) + '</span>';
+  // Update button states
+  document.querySelectorAll('.tier-btn').forEach(function(btn) {
+    var isActive = btn.dataset.tier === id;
+    btn.classList.toggle('active', isActive);
+    btn.classList.toggle('tier-good', isActive && id === 'good');
+  });
+  var adjEl = document.querySelector('.condition-adj');
+  if (adjEl) adjEl.textContent = tier.id === 'good' ? '' : tier.note;
+}
+function buildConditionKnob() {
+  var current = getCondition();
+  var btns = CONDITION_TIERS.map(function(t) {
+    return '<button class="tier-btn' + (t.id === current ? ' active' + (t.id === 'good' ? ' tier-good' : '') : '') + '" '
+      + 'data-tier="' + t.id + '" onclick="setCondition(\'' + t.id + '\')">' + t.label + '</button>';
+  }).join('');
+  var curTier = CONDITION_TIERS.find(function(t){ return t.id === current; }) || CONDITION_TIERS[2];
+  return '<div class="condition-knob">'
+    + '<div class="condition-label">Condition Adjustment</div>'
+    + '<div class="condition-tiers">' + btns + '</div>'
+    + '<div class="condition-adj">' + (curTier.id === 'good' ? '' : curTier.note) + '</div>'
+    + '</div>';
+}
+
 function calculate() {
   if (!DATA) return;
   var year = parseInt(document.getElementById('inp-year').value);
@@ -427,6 +486,11 @@ function calculate() {
     }
   }
 
+  // Store base values for condition adjustment
+  _baseMedian = g.median;
+  _baseP25    = g.p25;
+  _baseP75    = g.p75;
+
   document.getElementById('result-area').innerHTML =
     '<div class="result-card">' +
       '<div class="fmv-hero">' +
@@ -439,9 +503,13 @@ function calculate() {
           '<span class="badge badge-muted">' + g.count + ' comp' + (g.count !== 1 ? 's' : '') + '</span>' +
           '<span class="badge badge-muted">' + esc(genLabel) + '</span>' +
         '</div>' +
+        buildConditionKnob() +
       '</div>' +
       (compRows ? '<div class="comps-header">Recent Sold Comps</div>' + compRows : '') +
     '</div>';
+
+  // Apply stored condition immediately
+  applyCondition();
 }
 
 // ── Nav ───────────────────────────────────────────────────────────────────────
