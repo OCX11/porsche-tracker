@@ -839,8 +839,23 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
 .fmv-wrap:hover {{ background:rgba(255,255,255,0.03); }}
 .fmv-comps-link {{ color:var(--muted); cursor:pointer; border-bottom:1px dotted var(--muted); transition:color 0.15s, border-color 0.15s; }}
 .fmv-comps-link:hover {{ color:var(--text); border-color:var(--text); }}
-.fmv-wrap:hover .fmv-edit-hint {{ opacity:1; }}
-.fmv-edit-hint {{ position:absolute; right:4px; top:0; font-size:9px; color:var(--muted); opacity:0; transition:opacity 0.15s; pointer-events:none; font-family:'DM Mono',monospace; }}
+.fmv-val-edit {{ color:#A0A0B4; cursor:pointer; border-bottom:1px dotted transparent; transition:color 0.15s, border-color 0.15s; }}
+.fmv-val-edit:hover {{ color:var(--text); border-color:var(--muted); }}
+.fmv-wrap {{ position:relative; border-radius:4px; }}
+.fmv-listing-header {{ display:flex; gap:12px; padding:16px 20px; border-bottom:1px solid var(--border); }}
+.fmv-listing-thumb {{ width:100px; height:68px; object-fit:cover; border-radius:6px; flex-shrink:0; }}
+.fmv-listing-info {{ flex:1; min-width:0; }}
+.fmv-listing-title {{ font-size:13px; font-weight:700; color:#fff; margin-bottom:4px; }}
+.fmv-listing-meta {{ font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; margin-bottom:6px; }}
+.fmv-listing-prices {{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:6px; }}
+.fmv-listing-ask {{ font-size:12px; color:var(--muted); }}
+.fmv-listing-ask b {{ color:var(--text); }}
+.fmv-listing-fmv {{ font-size:12px; color:var(--muted); }}
+.fmv-listing-fmv b {{ color:#22C55E; }}
+.fmv-inline-pct {{ font-size:10px; margin-left:3px; }}
+.fmv-listing-link {{ font-size:11px; color:var(--muted); text-decoration:none; border-bottom:1px dotted var(--muted); }}
+.fmv-listing-link:hover {{ color:var(--text); }}
+.fmv-comps-section-header {{ padding:10px 20px 8px; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--border); }}
 .fmv-modal-overlay {{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:500; align-items:center; justify-content:center; padding:16px; }}
 .fmv-modal-overlay.open {{ display:flex; }}
 .fmv-modal {{ background:var(--bg2); border:1px solid var(--border); border-radius:12px; width:100%; max-width:480px; max-height:80vh; overflow:hidden; display:flex; flex-direction:column; }}
@@ -1441,13 +1456,14 @@ function buildFmvBar(d) {{
   var confLabel = d.fmv_conf === 'HIGH' ? 'HIGH' : d.fmv_conf === 'MEDIUM' ? 'MED' : 'LOW';
   var rangeStr = (d.fmv_lo && d.fmv_hi && d.fmv_cc >= 6)
     ? ' &middot; ' + fmtPrice(d.fmv_lo) + '\u2013' + fmtPrice(d.fmv_hi) : '';
-  // Comp count is always-visible and clickable — opens the drill-down modal
+  // Comp count: clickable dotted-underline link — opens listing+comps modal
   var ccStr = d.fmv_cc
     ? ' &middot; <span class="fmv-comps-link" data-has-comps="1" title="View ' + d.fmv_cc + ' sold comps">' + d.fmv_cc + ' comp' + (d.fmv_cc !== 1 ? 's' : '') + '</span>'
     : '';
+  // FMV value itself: clickable to open the edit input
   return '<div class="fmv-bar-block">'
     + '<div class="fmv-label-row">'
-    + '<span class="fmv-label">FMV ' + fmtPrice(d.fmv) + '</span>'
+    + '<span class="fmv-val-edit" data-edit-fmv="1" title="Click to set your own FMV">FMV ' + fmtPrice(d.fmv) + '</span>'
     + '<span class="fmv-conf ' + cls + '">' + (pctStr ? pctStr + ' &middot; ' : '') + confLabel + rangeStr + ccStr + '</span>'
     + '</div></div>';
 }}
@@ -1536,8 +1552,7 @@ function renderCard(d) {{
     + tierHtml
     + '<div class="card-price-row"><span class="price-lbl">' + priceLbl + '</span>'
     + '<span class="' + priceCls + '">' + fmtPrice(d.pr) + '</span></div>'
-    + '<div class="fmv-wrap" data-url="' + d.url + '" data-year="' + d.yr + '" data-model="' + (d.model||'').replace(/"/g,'&quot;') + '" data-trim="' + (d.trim||'').replace(/"/g,'&quot;') + '" data-price="' + (d.pr||0) + '" onclick="openFmvInput(event,this)">'
-    + '<span class="fmv-edit-hint">&#x270F;&#xFE0F; edit FMV</span>'
+    + '<div class="fmv-wrap" data-url="' + d.url + '" data-year="' + d.yr + '" data-model="' + (d.model||'').replace(/"/g,'&quot;') + '" data-trim="' + (d.trim||'').replace(/"/g,'&quot;') + '" data-price="' + (d.pr||0) + '">'
     + fmvHtml
     + '<input class="fmv-override-input" type="text" placeholder="e.g. 187 or 187000" onclick="event.stopPropagation()" onblur="commitFmvInput(this)" onkeydown="fmvKeydown(event,this)" />'
     + '</div>'
@@ -1753,60 +1768,103 @@ function filterDeals() {{
 // Delegated click handler for fmv-comps-link (avoids quote-escaping in template strings)
 document.addEventListener('click', function(e) {{
   var link = e.target.closest('.fmv-comps-link');
-  if (!link) return;
-  e.stopPropagation();
-  var wrap = link.closest('.fmv-wrap');
-  if (wrap) showFmvComps(wrap);
+  if (link) {{
+    e.stopPropagation();
+    var wrap = link.closest('.fmv-wrap');
+    if (wrap) showFmvComps(wrap);
+    return;
+  }}
+  // FMV value text click → open edit input
+  var editTrigger = e.target.closest('.fmv-val-edit');
+  if (editTrigger) {{
+    e.stopPropagation();
+    var wrap2 = editTrigger.closest('.fmv-wrap');
+    if (wrap2) openFmvInput(e, wrap2);
+    return;
+  }}
 }});
 
 function showFmvComps(wrap) {{
   var year  = parseInt(wrap.dataset.year  || 0);
   var model = wrap.dataset.model || '';
   var trim  = wrap.dataset.trim  || '';
+  var price = parseInt(wrap.dataset.price || 0);
+  var listingUrl = wrap.dataset.url || '';
+
   var overlay = document.getElementById('fmv-modal-overlay');
   var title   = document.getElementById('fmv-modal-title');
   var body    = document.getElementById('fmv-modal-body');
-  title.textContent = year + ' Porsche ' + model + (trim ? ' ' + trim : '') + ' — Sold Comps';
+  var d = CARD_DATA ? CARD_DATA.find(function(x){{ return x.url === listingUrl; }}) : null;
+
+  title.textContent = year + ' Porsche ' + model + (trim ? ' ' + trim : '');
   body.innerHTML = '<div class="fmv-modal-loading">Loading comps…</div>';
   overlay.classList.add('open');
 
-  var url = PUSH_SERVER + '/fmv-comps?year=' + year
+  var apiUrl = PUSH_SERVER + '/fmv-comps?year=' + year
     + '&model=' + encodeURIComponent(model)
-    + '&trim=' + encodeURIComponent(trim || '');
+    + '&trim='  + encodeURIComponent(trim || '');
 
-  fetch(url)
+  fetch(apiUrl)
     .then(function(r) {{ return r.json(); }})
     .then(function(data) {{
-      if (!data.comps || data.comps.length === 0) {{
-        body.innerHTML = '<div class="fmv-modal-loading">No comps found.</div>';
-        return;
-      }}
       var html = '';
-      data.comps.forEach(function(c) {{
-        var meta = [
-          c.mileage ? (Math.round(c.mileage/1000) + 'K mi') : '',
-          c.source || '',
-          c.sold_date ? c.sold_date.substring(0,7) : '',
-        ].filter(Boolean).join(' · ');
-        var link = c.listing_url
-          ? ' <a class="fmv-comp-link" href="' + c.listing_url + '" target="_blank" rel="noopener">↗</a>'
-          : '';
-        html += '<div class="fmv-comp-row">'
-          + '<div class="fmv-comp-info">'
-          + '<div class="fmv-comp-name">' + (c.year||'') + ' Porsche ' + (c.model||'') + (c.trim ? ' ' + c.trim : '') + '</div>'
-          + '<div class="fmv-comp-meta">' + meta + '</div>'
-          + '</div>'
-          + '<div style="display:flex;align-items:center">'
-          + '<span class="fmv-comp-price">$' + ((c.sold_price||0)/1000).toFixed(0) + 'K</span>'
-          + link
-          + '</div></div>';
-      }});
+
+      // ── Listing summary ──
+      html += '<div class="fmv-listing-header">';
+      if (d && d.img) html += '<img src="' + d.img + '" class="fmv-listing-thumb" />';
+      html += '<div class="fmv-listing-info">';
+      html += '<div class="fmv-listing-title">' + year + ' Porsche ' + model + (trim ? ' ' + trim : '') + '</div>';
+      var meta = [];
+      if (d && d.mi)    meta.push(Math.round(d.mi/1000) + 'K mi');
+      if (d && d.trans) meta.push(d.trans);
+      if (d && d.gen)   meta.push(d.gen);
+      if (d && d.dlr)   meta.push(d.dlr);
+      if (meta.length)  html += '<div class="fmv-listing-meta">' + meta.join(' &middot; ') + '</div>';
+      html += '<div class="fmv-listing-prices">';
+      if (price) html += '<span class="fmv-listing-ask">Ask <b>' + fmtPrice(price) + '</b></span>';
+      if (data.fmv) {{
+        var pct = price && data.fmv ? Math.round((price - data.fmv) / data.fmv * 100) : null;
+        var pctCls = pct !== null ? (pct <= -10 ? 'fmv-deal' : pct <= 0 ? 'fmv-fair' : 'fmv-over') : '';
+        var pctStr = pct !== null ? ' (' + (pct > 0 ? '+' : '') + pct + '%)' : '';
+        html += '<span class="fmv-listing-fmv">FMV <b>' + fmtPrice(data.fmv) + '</b>'
+          + (pctStr ? '<span class="fmv-conf ' + pctCls + '">' + pctStr + '</span>' : '') + '</span>';
+      }}
+      html += '</div>';
+      if (listingUrl) html += '<a class="fmv-listing-link" href="' + listingUrl + '" target="_blank" rel="noopener">View listing &#x2197;</a>';
+      html += '</div></div>';
+
+      // ── Comps ──
+      if (!data.comps || data.comps.length === 0) {{
+        html += '<div class="fmv-modal-loading">No comps found.</div>';
+      }} else {{
+        html += '<div class="fmv-comps-section-header">Comparable Sales &mdash; '
+          + data.comp_count + ' comp' + (data.comp_count !== 1 ? 's' : '')
+          + ' &middot; ' + data.confidence + ' confidence</div>';
+        data.comps.forEach(function(c) {{
+          var mi2  = c.mileage ? Math.round(c.mileage/1000) + 'K mi' : '';
+          var date = c.sold_date ? c.sold_date.substring(0,7) : '';
+          var src  = c.source || '';
+          var m2   = [mi2, src, date].filter(Boolean).join(' · ');
+          var lnk  = c.listing_url
+            ? ' <a class="fmv-comp-link" href="' + c.listing_url + '" target="_blank" rel="noopener">&#x2197;</a>'
+            : '';
+          html += '<div class="fmv-comp-row">'
+            + '<div class="fmv-comp-info">'
+            + '<div class="fmv-comp-name">' + (c.year||'') + ' Porsche ' + (c.model||'') + (c.trim ? ' ' + c.trim : '') + '</div>'
+            + '<div class="fmv-comp-meta">' + m2 + '</div>'
+            + '</div>'
+            + '<div style="display:flex;align-items:center;gap:4px">'
+            + '<span class="fmv-comp-price">$' + Math.round((c.sold_price||0)/1000) + 'K</span>'
+            + lnk + '</div></div>';
+        }});
+      }}
       body.innerHTML = html;
     }})
     .catch(function() {{
       body.innerHTML = '<div class="fmv-modal-loading">Could not load comps. Push server may be offline.</div>';
     }});
 }}
+
 
 function closeFmvModal() {{
   document.getElementById('fmv-modal-overlay').classList.remove('open');
