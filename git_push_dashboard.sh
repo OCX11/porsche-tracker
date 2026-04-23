@@ -12,6 +12,7 @@ if [ -n "$TOKEN" ]; then
 fi
 
 git add docs/index.html docs/auctions.html docs/search_data.json \
+        docs/calculator_data.json \
         docs/daily_report.html docs/market_report.html \
         docs/weekly_report.html docs/monthly_report.html 2>> "$LOG"
 
