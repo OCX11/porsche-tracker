@@ -1999,7 +1999,11 @@ window.addEventListener('DOMContentLoaded', function() {{
 </html>"""
 
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUT_PATH.write_text(html, encoding="utf-8")
+    # Atomic write: write to temp file then rename to avoid serving
+    # empty/partial HTML if a scrape cycle interrupts mid-write.
+    _tmp = OUT_PATH.with_suffix(".tmp")
+    _tmp.write_text(html, encoding="utf-8")
+    _tmp.replace(OUT_PATH)
     (BASE_DIR / "docs" / "stats.json").write_text(
         json.dumps({"n_active": n_active, "n_new": n_new, "n_auctions": n_auctions,
                     "n_comps": n_comps, "n_deals": n_deals}),
