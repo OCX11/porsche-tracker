@@ -328,6 +328,22 @@ def init_db():
               AND typeof(mileage) = 'text'
         """)
 
+        # VIN lifecycle tracking — records every significant event per VIN
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS vin_history (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                vin          TEXT NOT NULL,
+                listing_id   INTEGER,
+                event_type   TEXT NOT NULL,  -- listed, price_change, relisted, sold, cross_source
+                dealer       TEXT,
+                price        INTEGER,
+                mileage      INTEGER,
+                recorded_at  TEXT DEFAULT (datetime('now')),
+                notes        TEXT
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS ix_vin_history_vin ON vin_history(vin, recorded_at)")
+
         # Rebuild sold_comps_view after all migrations so it sees every column
         conn.execute("DROP VIEW IF EXISTS sold_comps_view")
         conn.execute("""
@@ -409,6 +425,7 @@ def upsert_listing(conn, dealer, year, make, model, trim, mileage, price, vin, u
                    condition=None, body_style=None, seller_type=None, feed_type=None,
                    date_first_seen=None, auction_ends_at=None, image_url_cdn=None):
     """Insert or update a listing. Returns (listing_id, is_new, price_changed)."""
+    import vin_tracker as _vt
     # Auto-derive feed_type from dealer name if not explicitly supplied
     if feed_type is None:
         feed_type = feed_type_for(dealer)
@@ -487,6 +504,24 @@ def upsert_listing(conn, dealer, year, make, model, trim, mileage, price, vin, u
                 "INSERT INTO price_history(listing_id, price, recorded_at) VALUES(?,?,datetime('now'))",
                 (listing_id, price)
             )
+            # VIN lifecycle: record price change
+            if vin and len(vin) == 17:
+                _vt.record_event(conn, vin, listing_id, "price_change", dealer or "",
+                                 price=price, notes=f"was ${old_price:,}")
+        # VIN lifecycle: detect cross-source (same VIN, different dealer already in DB)
+        if vin and len(vin) == 17:
+            other = conn.execute(
+                "SELECT id, dealer FROM listings WHERE vin=? AND dealer!=? AND status='active' LIMIT 1",
+                (vin, dealer)
+            ).fetchone()
+            if other:
+                existing_event = conn.execute(
+                    "SELECT id FROM vin_history WHERE vin=? AND event_type='cross_source' AND dealer=? LIMIT 1",
+                    (vin, dealer)
+                ).fetchone()
+                if not existing_event:
+                    _vt.record_event(conn, vin, listing_id, "cross_source", dealer or "",
+                                     price=price, notes=f"also on {other['dealer']}")
         return listing_id, False, price_changed
     else:
         cur = conn.execute(
@@ -507,6 +542,17 @@ def upsert_listing(conn, dealer, year, make, model, trim, mileage, price, vin, u
                 "INSERT INTO price_history(listing_id, price, recorded_at) VALUES(?,?,datetime('now'))",
                 (listing_id, price)
             )
+        # VIN lifecycle: record new listing event
+        if vin and len(vin) == 17:
+            # Check if this VIN was previously archived (relisted)
+            prev = conn.execute(
+                "SELECT id FROM listings WHERE vin=? AND dealer=? AND status='sold' LIMIT 1",
+                (vin, dealer)
+            ).fetchone()
+            event_type = "relisted" if prev else "listed"
+            _vt.record_event(conn, vin, listing_id, event_type, dealer or "",
+                             price=price, mileage=mileage,
+                             recorded_at=(date_first_seen + "T00:00:00Z" if date_first_seen else None))
         return listing_id, True, False
 
 
