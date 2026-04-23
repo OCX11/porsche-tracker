@@ -205,7 +205,26 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 // ── Data ──────────────────────────────────────────────────────────────────────
 var DATA = null;
 
+const PUSH_SERVER = 'https://ptox11-push.openclawx1.workers.dev';
+var USER_COMPS = [];
+
+async function loadUserComps() {
+  try {
+    var r = await fetch(PUSH_SERVER + '/user-comps');
+    if (r.ok) {
+      var d = await r.json();
+      USER_COMPS = d.comps || [];
+      if (USER_COMPS.length > 0) {
+        console.log('Loaded ' + USER_COMPS.length + ' personal FMV comps');
+      }
+    }
+  } catch(e) {
+    USER_COMPS = [];  // silent fail — calculator works fine without them
+  }
+}
+
 async function loadData() {
+  await loadUserComps();
   try {
     var r = await fetch('calculator_data.json');
     DATA = await r.json();
@@ -453,6 +472,43 @@ function calculate() {
   var genLabel = GEN_LABEL[gen] || gen;
   var trimLabel = trimVal || 'Base';
 
+  // Blend in personal FMV comps for this model+gen — they feed into median calculation
+  var userMatches = USER_COMPS.filter(function(c) {
+    if (!c.year || !c.model || !c.fmv) return false;
+    if (c.model.toLowerCase() !== model.toLowerCase()) return false;
+    if (getGeneration(c.year, c.model, c.trim || '') !== gen) return false;
+    return true;
+  }).map(function(c) {
+    return {
+      sold_price:   c.fmv,
+      sold_date:    (c.saved_at || '').substring(0, 10),
+      year:         c.year,
+      model:        c.model,
+      trim:         c.trim || '',
+      mileage:      null,
+      source:       'Personal',
+      listing_url:  c.url,
+      _is_user:     true,
+    };
+  });
+
+  // Merge user comps into g so median/range recalculates with them included
+  if (userMatches.length > 0) {
+    // Deep-clone g so we don't mutate DATA
+    g = Object.assign({}, g, {
+      comps: (g.comps || []).concat(userMatches),
+      count: (g.count || 0) + userMatches.length,
+    });
+    // Recompute median and range with user comps blended in
+    var allPrices = g.comps.map(function(c){ return c.sold_price; }).filter(Boolean).sort(function(a,b){ return a-b; });
+    if (allPrices.length > 0) {
+      var mid = Math.floor(allPrices.length / 2);
+      g.median = allPrices.length % 2 === 0 ? Math.round((allPrices[mid-1] + allPrices[mid]) / 2) : allPrices[mid];
+      g.p25 = allPrices[Math.floor(allPrices.length * 0.25)] || g.median;
+      g.p75 = allPrices[Math.floor(allPrices.length * 0.75)] || g.median;
+    }
+  }
+
   // Mileage note
   var mileageNote = '';
   if (mileage !== null && g.comps && g.comps.length > 0) {
@@ -475,7 +531,8 @@ function calculate() {
       var c = g.comps[i];
       var miStr = c.mileage ? fmtMi(c.mileage) : '';
       var dateStr = c.sold_date ? c.sold_date.substring(0, 7) : '';
-      var meta = [miStr, c.source || '', dateStr].filter(function(s){ return s; }).join(' &middot; ');
+      var sourceStr = c._is_user ? '<span style="color:#60A5FA;font-size:9px;font-weight:700;letter-spacing:0.5px">YOUR COMP</span>' : (c.source || '');
+      var meta = [miStr, sourceStr, dateStr].filter(function(s){ return s; }).join(' &middot; ');
       var linkHtml = c.listing_url
         ? '<a class="comp-link" href="' + esc(c.listing_url) + '" target="_blank" rel="noopener">&#x2197;</a>'
         : '';

@@ -835,6 +835,13 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
 .fmv-block {{ margin-bottom:7px; }}
 .fmv-top-row {{ display:flex; justify-content:space-between; font-family:'DM Mono',monospace; font-size:10px; margin-bottom:5px; }}
 .fmv-label {{ color:var(--muted); }}
+.fmv-wrap {{ cursor:pointer; position:relative; border-radius:4px; transition:background 0.15s; }}
+.fmv-wrap:hover {{ background:rgba(255,255,255,0.03); }}
+.fmv-wrap:hover .fmv-edit-hint {{ opacity:1; }}
+.fmv-edit-hint {{ position:absolute; right:2px; top:0; font-size:9px; color:var(--muted); opacity:0; transition:opacity 0.15s; pointer-events:none; font-family:'DM Mono',monospace; }}
+.fmv-override-input {{ display:none; width:140px; background:var(--bg3); border:1px solid var(--red); border-radius:4px; color:var(--text); font-family:'DM Mono',monospace; font-size:12px; padding:4px 8px; margin-top:4px; outline:none; }}
+.fmv-override-input.visible {{ display:block; }}
+.fmv-user-label {{ font-size:9px; color:#60A5FA; font-family:'DM Mono',monospace; letter-spacing:0.5px; text-transform:uppercase; margin-bottom:2px; }}
 .fmv-delta-txt {{ font-weight:500; }}
 .fmv-delta-txt.bar-great {{ color:var(--green); }}
 .fmv-delta-txt.bar-good  {{ color:#86EFAC; }}
@@ -1495,10 +1502,99 @@ function renderCard(d) {{
     + tierHtml
     + '<div class="card-price-row"><span class="price-lbl">' + priceLbl + '</span>'
     + '<span class="' + priceCls + '">' + fmtPrice(d.pr) + '</span></div>'
+    + '<div class="fmv-wrap" data-url="' + d.url + '" data-year="' + d.yr + '" data-model="' + (d.model||'').replace(/"/g,'&quot;') + '" data-trim="' + (d.trim||'').replace(/"/g,'&quot;') + '" data-price="' + (d.pr||0) + '" onclick="openFmvInput(event,this)">'
+    + '<span class="fmv-edit-hint">✏️</span>'
     + fmvHtml
+    + '<input class="fmv-override-input" type="text" placeholder="e.g. 187 or 187000" onclick="event.stopPropagation()" onblur="commitFmvInput(this)" onkeydown="if(event.key===\'Enter\')this.blur();if(event.key===\'Escape\')this.classList.remove(\'visible\')" />'
+    + '</div>'
     + endsHtml
     + metaHtml
     + '</div></div>';
+}}
+
+// ── Personal FMV override ────────────────────────────────────────────────────
+var PUSH_SERVER = 'https://ptox11-push.openclawx1.workers.dev';
+
+function openFmvInput(e, wrap) {{
+  if (e.target.classList.contains('fmv-override-input')) return;
+  e.stopPropagation();
+  var input = wrap.querySelector('.fmv-override-input');
+  var stored = localStorage.getItem('ptox_fmv:' + wrap.dataset.url);
+  if (stored) input.value = Math.round(parseInt(stored) / 1000);
+  input.classList.add('visible');
+  input.focus();
+  input.select();
+}}
+
+function commitFmvInput(input) {{
+  var wrap = input.closest('.fmv-wrap');
+  input.classList.remove('visible');
+  var raw = (input.value || '').trim();
+  if (!raw) {{ maybeClearFmvOverride(wrap); return; }}
+  // Accept K shorthand: 187 → $187K, 187500 → $187.5K
+  var num = parseFloat(raw);
+  var val = num >= 5000 ? Math.round(num) : Math.round(num * 1000);
+  if (!val || val < 5000 || val > 5000000) {{ maybeClearFmvOverride(wrap); return; }}
+
+  localStorage.setItem('ptox_fmv:' + wrap.dataset.url, val);
+  updateCardFmvDisplay(wrap, val);
+
+  // POST to push server as a personal comp (feeds FMV Calculator)
+  fetch(PUSH_SERVER + '/user-comp', {{
+    method: 'POST',
+    headers: {{'Content-Type': 'application/json'}},
+    body: JSON.stringify({{
+      url:   wrap.dataset.url,
+      fmv:   val,
+      year:  parseInt(wrap.dataset.year  || 0),
+      model: wrap.dataset.model || '',
+      trim:  wrap.dataset.trim  || '',
+      price: parseInt(wrap.dataset.price || 0),
+    }})
+  }}).catch(function(){{}});
+}}
+
+function maybeClearFmvOverride(wrap) {{
+  var url = wrap.dataset.url;
+  if (!localStorage.getItem('ptox_fmv:' + url)) return;
+  if (!confirm('Clear your custom FMV for this listing?')) return;
+  localStorage.removeItem('ptox_fmv:' + url);
+  fetch(PUSH_SERVER + '/user-comp', {{
+    method: 'DELETE',
+    headers: {{'Content-Type': 'application/json'}},
+    body: JSON.stringify({{url: url}})
+  }}).catch(function(){{}});
+  var d = CARD_DATA.find(function(x){{ return x.url === url; }});
+  if (d) {{
+    var tmp = document.createElement('div');
+    tmp.innerHTML = renderCard(d);
+    var oldCard = wrap.closest('.card');
+    if (oldCard) oldCard.replaceWith(tmp.firstChild);
+    applyStoredFmvOverrides();
+  }}
+}}
+
+function updateCardFmvDisplay(wrap, fmv) {{
+  var price = parseInt(wrap.dataset.price || 0);
+  var pct   = price && fmv ? Math.round((price - fmv) / fmv * 100) : null;
+  var cls   = pct !== null ? (pct <= -10 ? 'fmv-deal' : pct <= 0 ? 'fmv-fair' : 'fmv-over') : '';
+  var pctStr = pct !== null ? (pct > 0 ? '+' : '') + pct + '%' : '';
+  var barEl = wrap.querySelector('.fmv-bar-block, .fmv-none');
+  if (barEl) {{
+    barEl.className = 'fmv-bar-block';
+    barEl.innerHTML = '<div class="fmv-user-label">Your FMV</div>'
+      + '<div class="fmv-label-row">'
+      + '<span class="fmv-label">FMV ' + fmtPrice(fmv) + '</span>'
+      + (pctStr ? '<span class="fmv-conf ' + cls + '">' + pctStr + '</span>' : '')
+      + '</div>';
+  }}
+}}
+
+function applyStoredFmvOverrides() {{
+  document.querySelectorAll('.fmv-wrap[data-url]').forEach(function(wrap) {{
+    var stored = parseInt(localStorage.getItem('ptox_fmv:' + (wrap.dataset.url||'')) || '0');
+    if (stored > 0) updateCardFmvDisplay(wrap, stored);
+  }});
 }}
 
 function renderCards() {{
@@ -1517,6 +1613,8 @@ function renderCards() {{
   renderedCount = next;
   // Restart countdowns for newly inserted auction cards
   startCountdowns();
+  // Apply any stored personal FMV overrides to newly rendered cards
+  applyStoredFmvOverrides();
 }}
 
 // ── Infinite scroll ───────────────────────────────────────────────────────────

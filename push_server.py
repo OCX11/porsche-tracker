@@ -11,6 +11,9 @@ Endpoints:
   POST /unsubscribe             → remove a push subscription
   GET  /subscribers             → list active subscriber count (internal)
   POST /send-push               → send a push to all subscribers (internal, localhost only)
+  POST /user-comp               → save a personal FMV comp (url, fmv, year, model, trim)
+  DELETE /user-comp             → remove a personal FMV comp by url
+  GET  /user-comps              → return all personal FMV comps
 
 Push payloads are sent by notify_push.py (replaces notify_imessage.py).
 This server just holds subscriptions and relays pushes to APNs/FCM via VAPID.
@@ -260,6 +263,77 @@ def _send_to_all(subs: dict, notification: dict) -> dict:
     log.info("Push delivery: sent=%d  failed=%d  removed=%d  remaining=%d",
              sent, failed, len(expired), len(subs))
     return {"sent": sent, "failed": failed, "removed": len(expired)}
+
+
+# ── Personal FMV comps ───────────────────────────────────────────────────────────
+
+USER_COMPS_FILE = SCRIPT_DIR / "data" / "user_comps.json"
+
+def _load_user_comps():
+    if USER_COMPS_FILE.exists():
+        try:
+            return json.loads(USER_COMPS_FILE.read_text())
+        except Exception:
+            return []
+    return []
+
+def _save_user_comps(comps):
+    USER_COMPS_FILE.write_text(json.dumps(comps, indent=2))
+
+@app.route("/user-comp", methods=["POST"])
+def save_user_comp():
+    """Save a personal FMV comp — stored and used by FMV Calculator."""
+    data = request.get_json(silent=True) or {}
+    listing_url = (data.get("url") or "").strip()
+    fmv_value   = data.get("fmv")
+    year        = data.get("year")
+    model       = data.get("model", "")
+    trim        = data.get("trim", "")
+    price       = data.get("price")
+
+    if not listing_url or not fmv_value or not year:
+        abort(400, "Missing required fields: url, fmv, year")
+    try:
+        fmv_value = int(fmv_value)
+        year      = int(year)
+    except (ValueError, TypeError):
+        abort(400, "fmv and year must be integers")
+
+    comps = _load_user_comps()
+    comps = [c for c in comps if c.get("url") != listing_url]
+    comps.append({
+        "url":      listing_url,
+        "fmv":      fmv_value,
+        "year":     year,
+        "model":    model,
+        "trim":     trim,
+        "price":    price,
+        "saved_at": datetime.utcnow().isoformat() + "Z",
+        "source":   "user",
+    })
+    _save_user_comps(comps)
+    log.info("User comp saved: %s %s %s → FMV $%d", year, model, trim, fmv_value)
+    return jsonify({"ok": True, "total": len(comps)})
+
+@app.route("/user-comp", methods=["DELETE"])
+def delete_user_comp():
+    """Remove a personal FMV comp by listing URL."""
+    data = request.get_json(silent=True) or {}
+    listing_url = (data.get("url") or "").strip()
+    if not listing_url:
+        abort(400, "Missing url")
+    comps = _load_user_comps()
+    before = len(comps)
+    comps = [c for c in comps if c.get("url") != listing_url]
+    _save_user_comps(comps)
+    log.info("User comp removed: %s (had %d, now %d)", listing_url[-40:], before, len(comps))
+    return jsonify({"ok": True, "removed": before - len(comps)})
+
+@app.route("/user-comps", methods=["GET"])
+def get_user_comps():
+    """Return all personal FMV comps for use by the calculator."""
+    comps = _load_user_comps()
+    return jsonify({"comps": comps, "count": len(comps)})
 
 
 # ── Entry point ─────────────────────────────────────────────────────────────────
