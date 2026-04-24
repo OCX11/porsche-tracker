@@ -1044,6 +1044,11 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
   .topbar {{ padding:8px 12px; }}
   .stats-bar {{ margin:0 8px 8px; }}
   .stat-number {{ font-size:18px; }}
+  .fmv-wrap {{ min-width:0; }}
+  .fmv-bar-wrap {{ min-width:0; }}
+  .fmv-bottom-row {{ min-width:0; }}
+  .fmv-val-txt {{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }}
+  .fmv-comps-txt {{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }}
 }}
 </style>
 </head>
@@ -1765,19 +1770,19 @@ function filterDeals() {{
   applyFilters(); updateFabState();
 }}
 // ── FMV comp drill-down modal ─────────────────────────────────────────────────
-// Delegated click handler for fmv-comps-link (avoids quote-escaping in template strings)
+// Intercept ALL clicks on fmv-wrap first — prevents card's onclick from firing
 document.addEventListener('click', function(e) {{
+  var wrap = e.target.closest('.fmv-wrap');
+  if (wrap) e.stopPropagation();  // always block bubble to card onclick
   var link = e.target.closest('.fmv-comps-link');
   if (link) {{
-    e.stopPropagation();
-    var wrap = link.closest('.fmv-wrap');
-    if (wrap) showFmvComps(wrap);
+    var w = link.closest('.fmv-wrap');
+    if (w) showFmvComps(w);
     return;
   }}
   // FMV value text click → open edit input
   var editTrigger = e.target.closest('.fmv-val-edit');
   if (editTrigger) {{
-    e.stopPropagation();
     var wrap2 = editTrigger.closest('.fmv-wrap');
     if (wrap2) openFmvInput(e, wrap2);
     return;
