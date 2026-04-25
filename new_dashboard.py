@@ -1561,7 +1561,7 @@ function renderCard(d) {{
     + '<span class="' + priceCls + '">' + fmtPrice(d.pr) + '</span></div>'
     + '<div class="fmv-wrap" data-url="' + d.url + '" data-year="' + d.yr + '" data-model="' + (d.model||'').replace(/"/g,'&quot;') + '" data-trim="' + (d.trim||'').replace(/"/g,'&quot;') + '" data-price="' + (d.pr||0) + '">'
     + fmvHtml
-    + '<input class="fmv-override-input" type="text" placeholder="e.g. 187 or 187000" onclick="event.stopPropagation()" onblur="commitFmvInput(this)" onkeydown="fmvKeydown(event,this)" />'
+    + (!IS_PUBLIC ? '<input class="fmv-override-input" type="text" placeholder="e.g. 187 or 187000" onclick="event.stopPropagation()" onblur="commitFmvInput(this)" onkeydown="fmvKeydown(event,this)" />' : '')
     + '</div>'
     + endsHtml
     + metaHtml
@@ -1569,6 +1569,8 @@ function renderCard(d) {{
 }}
 
 // ── Personal FMV override ────────────────────────────────────────────────────
+// IS_PUBLIC: true on dashboard.rennmarkt.net — FMV adjustment disabled
+var IS_PUBLIC = (location.hostname === 'dashboard.rennmarkt.net');
 var PUSH_SERVER = 'https://ptox11-push.openclawx1.workers.dev';
 
 function fmvKeydown(e, input) {{
@@ -1780,7 +1782,7 @@ document.addEventListener('click', function(e) {{
     var link = e.target.closest('.fmv-comps-link');
     if (link) {{ showFmvComps(wrap); }}
     var editTrigger = e.target.closest('.fmv-val-edit');
-    if (editTrigger) {{ openFmvInput(e, wrap); }}
+    if (editTrigger && !IS_PUBLIC) {{ openFmvInput(e, wrap); }}
     return;  // stop — never navigate when clicking fmv-wrap
   }}
   // Card click → navigate to listing
