@@ -24,6 +24,7 @@ Small performance car dealership. All purchases are investments. Core range $70K
 - **VAPID sub claim must be https URL** — not mailto: (Apple requirement)
 - **GitHub PAT: no expiry** — confirmed April 25 2026
 - **DataImpulse proxy mandatory** for AutoTrader + eBay — never fall back to bare IP
+- **TASK BOARD — ONE NOTE ONLY:** There is exactly one task board note. NEVER create a new one. ALWAYS edit the existing note titled "🏎 PTOX11 / RennMarkt — Task Board". ALWAYS use proper HTML formatting via osascript (h1/h2/ul/li). Using Apple Notes MCP to write the task board is FORBIDDEN — it destroys formatting.
 
 ---
 
