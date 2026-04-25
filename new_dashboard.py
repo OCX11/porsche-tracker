@@ -1570,6 +1570,10 @@ function renderCard(d) {{
 
 // ── Personal FMV override ────────────────────────────────────────────────────
 // IS_PUBLIC: disables FMV adjustment on public URL unless unlocked
+if (location.hash === '#unlock=gt3rs') {{
+  localStorage.setItem('ptox_unlock', 'gt3rs');
+  location.hash = '';
+}}
 var IS_PUBLIC = (location.hostname === 'dashboard.rennmarkt.net')
   && (localStorage.getItem('ptox_unlock') !== 'gt3rs');
 var PUSH_SERVER = 'https://ptox11-push.openclawx1.workers.dev';
