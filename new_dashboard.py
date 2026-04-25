@@ -1574,7 +1574,7 @@ if (location.hash === '#unlock=gt3rs') {{
   localStorage.setItem('ptox_unlock', 'gt3rs');
   location.hash = '';
 }}
-var IS_PUBLIC = (location.hostname === 'www.rennmarkt.net')
+var IS_PUBLIC = (location.hostname !== 'admin.rennmarkt.net')
   && (localStorage.getItem('ptox_unlock') !== 'gt3rs');
 // Triple-tap header to unlock FMV editing — uses in-page modal (iOS PWA safe)
 (function() {{
