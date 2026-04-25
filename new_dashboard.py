@@ -1576,28 +1576,68 @@ if (location.hash === '#unlock=gt3rs') {{
 }}
 var IS_PUBLIC = (location.hostname === 'dashboard.rennmarkt.net')
   && (localStorage.getItem('ptox_unlock') !== 'gt3rs');
-// Triple-tap header to unlock FMV editing
+// Triple-tap header to unlock FMV editing — uses in-page modal (iOS PWA safe)
 (function() {{
+  // Inject modal HTML + CSS once
+  var modalHTML = '<div id="unlock-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;">'
+    + '<div style="background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:24px 20px;width:260px;display:flex;flex-direction:column;gap:12px;align-items:center;">'
+    + '<div style="font-family:monospace;font-size:13px;color:#888;">FMV Access</div>'
+    + '<input id="unlock-input" type="password" placeholder="passphrase" autocomplete="off" style="background:#0d0d0d;border:1px solid #444;color:#fff;font-family:monospace;font-size:16px;padding:10px 14px;border-radius:6px;width:100%;box-sizing:border-box;outline:none;">'
+    + '<div style="display:flex;gap:8px;width:100%;">'
+    + '<button id="unlock-cancel" style="flex:1;background:#222;border:1px solid #333;color:#888;font-family:monospace;font-size:13px;padding:9px;border-radius:6px;cursor:pointer;">Cancel</button>'
+    + '<button id="unlock-submit" style="flex:1;background:#c0392b;border:none;color:#fff;font-family:monospace;font-size:13px;padding:9px;border-radius:6px;cursor:pointer;">Unlock</button>'
+    + '</div>'
+    + '<div id="unlock-error" style="font-family:monospace;font-size:11px;color:#e74c3c;display:none;">incorrect passphrase</div>'
+    + '</div></div>';
+  document.addEventListener('DOMContentLoaded', function() {{
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    document.getElementById('unlock-submit').addEventListener('click', doUnlock);
+    document.getElementById('unlock-cancel').addEventListener('click', hideModal);
+    document.getElementById('unlock-input').addEventListener('keydown', function(e) {{
+      if (e.key === 'Enter') doUnlock();
+      if (e.key === 'Escape') hideModal();
+    }});
+  }});
+  function showModal() {{
+    var overlay = document.getElementById('unlock-overlay');
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    setTimeout(function() {{ document.getElementById('unlock-input').focus(); }}, 50);
+  }}
+  function hideModal() {{
+    var overlay = document.getElementById('unlock-overlay');
+    if (overlay) overlay.style.display = 'none';
+    var inp = document.getElementById('unlock-input');
+    if (inp) inp.value = '';
+    var err = document.getElementById('unlock-error');
+    if (err) err.style.display = 'none';
+  }}
+  function doUnlock() {{
+    var pw = document.getElementById('unlock-input').value.trim();
+    if (pw === 'gt3rs') {{
+      localStorage.setItem('ptox_unlock', 'gt3rs');
+      hideModal();
+      location.reload();
+    }} else {{
+      document.getElementById('unlock-error').style.display = 'block';
+      document.getElementById('unlock-input').value = '';
+    }}
+  }}
   var taps = 0, timer;
   document.addEventListener('click', function(e) {{
-    if (!e.target.closest('nav, .nav, header, .header, #nav, #header, .brand, .logo')) return;
+    if (!e.target.closest('header')) return;
     taps++;
     clearTimeout(timer);
     if (taps >= 3) {{
       taps = 0;
       if (localStorage.getItem('ptox_unlock') === 'gt3rs') {{
         localStorage.removeItem('ptox_unlock');
-        alert('FMV editing locked');
         location.reload();
       }} else {{
-        var pw = prompt('Passphrase:');
-        if (pw === 'gt3rs') {{
-          localStorage.setItem('ptox_unlock', 'gt3rs');
-          location.reload();
-        }}
+        showModal();
       }}
     }}
-    timer = setTimeout(function() {{ taps = 0; }}, 600);
+    timer = setTimeout(function() {{ taps = 0; }}, 700);
   }});
 }})();
 var PUSH_SERVER = 'https://ptox11-push.openclawx1.workers.dev';
