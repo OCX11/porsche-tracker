@@ -604,7 +604,7 @@ def generate() -> str:
 (function(){{var t=localStorage.getItem('ptox_theme');if(t)document.documentElement.dataset.theme=t;}})();
 </script>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="PTOX">
+<meta name="apple-mobile-web-app-title" content="Rennmarkt">
 <meta name="theme-color" content="#0A0A0C">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">

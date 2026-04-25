@@ -1,9 +1,9 @@
 {
-  "name": "Porsche Tracker",
-  "short_name": "PTracker",
+  "name": "Rennmarkt",
+  "short_name": "Rennmarkt",
   "description": "Live Porsche market intelligence — 9 sources, FMV scoring, deal alerts",
-  "start_url": "/PTOX11/",
-  "scope": "/PTOX11/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0f1117",
