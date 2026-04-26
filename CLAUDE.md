@@ -8,7 +8,7 @@
 
 Autonomous Porsche market intelligence platform on a Mac Mini M4. Scrapes 10 sources every 12 minutes, scores every listing against FMV using 6,024 BaT sold comps, and fires iOS push notifications the moment a new listing enters the DB.
 
-**Repo:** <https://github.com/OCX11/PTOX11>**Dashboard:** <https://ocx11.github.io/PTOX11/>**Auctions:** <https://ocx11.github.io/PTOX11/auctions.html>**Machine:** Mac Mini M4, user: claw, 24/7 **DB:** \~/porsche-tracker/data/inventory.db (SQLite) **Logs:** \~/porsche-tracker/logs/
+**Repo:** <https://github.com/OCX11/rennmarkt>**Dashboard:** <https://ocx11.github.io/PTOX11/>**Auctions:** <https://ocx11.github.io/PTOX11/auctions.html>**Machine:** Mac Mini M4, user: claw, 24/7 **DB:** \~/porsche-tracker/data/inventory.db (SQLite) **Logs:** \~/porsche-tracker/logs/
 
 ### Business Context
 
@@ -265,10 +265,9 @@ SeriesModelGeneration logicAA2/AB2/AC2911 Carrera RWD≤2004=996, ≤2008=997.1,
 - BaT comp backfill: 6,024 comps
 - DataImpulse proxy, launchd scheduling, archive capture
 
-### 2026-04-23
+### 2026-04-26
 
-- Memory system built end-to-end: .claude_context.md restructured, [CLAUDE.md](http://CLAUDE.md) created, session write template added
-- Profile preferences updated: MEMORY PROTOCOL in Stage 1, partnership framing added, redundancies removed
-- Project cleanup: [HANDOVER.md](http://HANDOVER.md) + NEXT_STEPS.md + [WATCHLIST.md](http://WATCHLIST.md) + session summaries deleted — all folded into [CLAUDE.md](http://CLAUDE.md)
-- [CLAUDE.md](http://CLAUDE.md) is now single source of truth for this project — full technical bible attached to project in app
-- Active priorities unchanged: FMV audit + uncommitted HTML changes still pending
+- CRITICAL BUG FIXED: [www.rennmarkt.net](http://www.rennmarkt.net) showing no car cards since April 25 gen-badge commit
+- Root cause: JS syntax error in renderCard f-string — \\' (Python escape) rendered as bare '' in JS output (adjacent string literals = syntax error), killing entire script before any card rendered
+- Fix: replaced \\' with \\x27 (JS hex escape for single quote) in new_dashboard.py renderCard openGenEditor string
+- GUARD ADDED: git_push_dashboard.sh now extracts main
