@@ -458,9 +458,9 @@ def _build_html(s_ending, s_live, s_noend, s_ended, total, n_ending, n_live, n_e
 <!-- pull-to-refresh replaces meta refresh -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="PTOX Auctions">
+<meta name="apple-mobile-web-app-title" content="RennMarkt Auctions">
 <meta name="theme-color" content="#0A0A0C">
-<title>PTOX11 &mdash; Auction Watcher</title>
+<title>RennMarkt &mdash; Auction Watcher</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
 
@@ -626,7 +626,7 @@ a {{ color:inherit; text-decoration:none; }}
 <body>
 
 <header class="topbar">
-  <a class="logo" href="index.html">PTOX<span>11</span></a>
+  <a class="logo" href="index.html">Renn<span>Markt</span></a>
   <button class="more-btn" onclick="toggleDropdown()">More &#x25BE;</button>
 </header>
 <div class="stats-bar">

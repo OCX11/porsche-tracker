@@ -608,7 +608,7 @@ def generate() -> str:
 <meta name="theme-color" content="#0A0A0C">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<title>PTOX11 &mdash; Porsche Market Intelligence</title>
+<title>RennMarkt &mdash; Porsche Market Intelligence</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
 
@@ -1058,7 +1058,7 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
 
 <!-- ── Nav ── -->
 <header class="topbar">
-  <a class="logo" href="index.html">PTOX<span>11</span></a>
+  <a class="logo" href="index.html">Renn<span>Markt</span></a>
   <button class="more-btn" onclick="toggleDropdown()">More &#x25BE;</button>
 </header>
 <div class="stats-bar">
