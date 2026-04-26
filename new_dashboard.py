@@ -937,6 +937,9 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
 }}
 .countdown {{ color:var(--red); font-weight:500; }}
 .card-meta {{ font-family:'DM Mono',monospace; font-size:10px; color:#8A8A9E; }}
+.star-btn {{ background:none; border:none; cursor:pointer; font-size:14px; padding:0 0 0 4px; color:#444; line-height:1; flex-shrink:0; transition:color 0.15s; }}
+.star-btn:hover {{ color:#f59e0b; }}
+.star-btn.starred {{ color:#f59e0b; }}
 .days-stale {{ color:#F87171; font-weight:500; }}
 .dom-chip {{ color:#6B6B7D; }}
 .badge {{ font-family:'DM Mono',monospace; font-size:10px; font-weight:500; padding:2px 7px; border-radius:3px; display:inline-block; }}
@@ -1191,6 +1194,7 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
     <div class="filter-checkboxes">
       <label><input type="checkbox" id="f-deals" onchange="applyFilters()"> Deals only (&darr;10%+ FMV)</label>
       <label><input type="checkbox" id="f-tier1" onchange="applyFilters()"> GT / Collector</label>
+      <label style="cursor:pointer" onclick="filterStarred()"><span id="filter-starred-btn" style="font-size:13px;margin-right:3px">&#x2606;</span> Saved cars</label>
     </div>
   </div>
 
@@ -1377,6 +1381,7 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
       <div class="drawer-checkboxes">
         <label><input type="checkbox" id="d-deals" onchange="syncFromDrawer()"> Deals only (&darr;10%+ FMV)</label>
         <label><input type="checkbox" id="d-tier1" onchange="syncFromDrawer()"> GT / Collector</label>
+        <label style="cursor:pointer" onclick="filterStarred();closeDrawer()"><span style="font-size:13px;margin-right:3px">&#x2606;</span> Saved cars</label>
       </div>
     </div>
   </div>
@@ -1399,6 +1404,8 @@ var activeSrcs = [];
 var activeCooling = null;
 var activeBody    = null;
 var filterNewToday = false;
+var filterStarredOnly = false;
+var _starred = {{}};  // url → true
 
 function toggleCooling(btn, type) {{
   if (activeCooling === type) {{
@@ -1465,6 +1472,7 @@ function applyFilters() {{
     if (activeCooling && d.cool !== activeCooling) return false;
     if (activeBody && d.bs !== activeBody) return false;
     if (filterNewToday && !d.nt) return false;
+    if (filterStarredOnly && !_starred[d.url]) return false;
     return true;
   }});
 
@@ -1618,7 +1626,9 @@ function renderCard(d) {{
     + ' data-url="' + d.url + '">'
     + imgHtml
     + '<div class="card-body">'
-    + '<div class="card-top-row">' + badgeHtml + ageHtml + '</div>'
+    + '<div class="card-top-row">' + badgeHtml + ageHtml
+  + '<button class="star-btn" data-url="' + d.url + '" onclick="event.stopPropagation();toggleStar(this)" title="Save car">&#x2606;</button>'
+  + '</div>'
     + titleHtml
     + tierHtml
     + '<div class="card-price-row"><span class="price-lbl">' + priceLbl + '</span>'
@@ -1868,6 +1878,8 @@ function renderCards() {{
   startCountdowns();
   // Apply any stored personal FMV overrides to newly rendered cards
   applyStoredFmvOverrides();
+  // Apply stored star state to newly rendered cards
+  loadStarred();
 }}
 
 // ── Infinite scroll ───────────────────────────────────────────────────────────
@@ -1886,6 +1898,8 @@ function resetFilters() {{
   activeCooling = null;
   activeBody = null;
   filterNewToday = false;
+  filterStarredOnly = false;
+  var sb = document.getElementById('filter-starred-btn'); if (sb) sb.classList.remove('active');
   document.querySelectorAll('.chip').forEach(function(c) {{ c.classList.remove('active'); }});
   ['f-year-min','f-year-max','f-price-min','f-price-max',
    'd-year-min','d-year-max','d-price-min','d-price-max'].forEach(function(id) {{
@@ -2264,12 +2278,53 @@ function updateTimestamps() {{
   }});
 }}
 
+
+// ── Starred / saved cars ──────────────────────────────────────────────────────
+function loadStarred() {{
+  try {{
+    var raw = localStorage.getItem('ptox_starred') || '{{}}';
+    _starred = JSON.parse(raw);
+  }} catch(e) {{ _starred = {{}}; }}
+  // Apply starred state to any already-rendered star buttons
+  document.querySelectorAll('.star-btn').forEach(function(btn) {{
+    var url = btn.dataset.url || '';
+    if (_starred[url]) {{ btn.textContent = '\u2605'; btn.classList.add('starred'); }}
+    else {{ btn.textContent = '\u2606'; btn.classList.remove('starred'); }}
+  }});
+}}
+
+function toggleStar(btn) {{
+  var url = btn.dataset.url || '';
+  if (!url) return;
+  if (_starred[url]) {{
+    delete _starred[url];
+    btn.textContent = '\u2606';
+    btn.classList.remove('starred');
+  }} else {{
+    _starred[url] = 1;
+    btn.textContent = '\u2605';
+    btn.classList.add('starred');
+  }}
+  try {{ localStorage.setItem('ptox_starred', JSON.stringify(_starred)); }} catch(e) {{}}
+  // If starred-only filter is active, re-apply so card hides/shows immediately
+  if (filterStarredOnly) applyFilters();
+}}
+
+function filterStarred() {{
+  filterStarredOnly = !filterStarredOnly;
+  filterNewToday = false;
+  var btn = document.getElementById('filter-starred-btn');
+  if (btn) btn.classList.toggle('active', filterStarredOnly);
+  applyFilters(); updateFabState();
+}}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', function() {{
   if (window.location.hash === '#comps') {{
     var compsCell = document.querySelector('.stat-cell[onclick*="comps"]');
     switchView('comps', compsCell);
   }}
+  loadStarred();
   applyFilters();
   startCountdowns();
   updateTimestamps();
