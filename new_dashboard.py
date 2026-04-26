@@ -1532,7 +1532,7 @@ function renderCard(d) {{
   var priceCls = isAuc ? 'price-auction' : 'price-ask';
 
   var genBadge = d.gen ? '<div class="img-gen-badge' + (!IS_PUBLIC ? ' admin-editable' : '') + '"'
-    + (!IS_PUBLIC ? ' onclick="event.stopPropagation();openGenEditor(this,\'' + d.id + '\',\'' + d.gen + '\')"' : '')
+    + (!IS_PUBLIC ? ' onclick="event.stopPropagation();openGenEditor(this,\\x27' + d.id + '\\x27,\\x27' + d.gen + '\\x27)"' : '')
     + ' title="' + (IS_PUBLIC ? d.gen : 'Click to correct generation') + '">' + d.gen + '</div>' : '';
 
   var dealBadge = '';
