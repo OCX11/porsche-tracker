@@ -123,6 +123,12 @@ _TRIM_ALIASES = {
     "slant nose conversion":                "_restomod_slantnose",
     "slant-nose conversion":                "_restomod_slantnose",
     "gemballa":                             "_restomod_gemballa",
+    "safari custom":                        "_restomod_safari",
+    "safari build":                         "_restomod_safari",
+    "custom restomod":                      "_restomod_custom",
+    "restomod":                             "_restomod_custom",
+    "outlaw":                               "_restomod_outlaw",
+    "custom build":                         "_restomod_custom",
 
     # ── Air-cooled body-style preservation ──────────────────────────────────
     # For G-series (3.2), 964, 993 — coupe/cabriolet/targa have 30-40% price
@@ -618,6 +624,12 @@ def _trim_match_score(target_trim: Optional[str], comp_trim: Optional[str]) -> f
     t = normalize_trim(target_trim)
     c = normalize_trim(comp_trim)
 
+    # Restomod/custom sentinels are never comparable to anything
+    if t and t.startswith("_restomod"):
+        return 0.0
+    if c and c.startswith("_restomod"):
+        return 0.0
+
     if t is None and c is None:
         return 0.6   # both unknown — ok match
     if t is None:
@@ -771,8 +783,8 @@ def get_fmv(
         # Exclude comps with zero trim match score. This fires when:
         # 1. Known target vs known comp in different families (GT3 RS vs Sport Classic)
         # 2. Unknown target (None) vs high-performance comp (GT3, Turbo, etc.)
-        #    — _trim_match_score returns 0.0 for high-perf comps when target is None
-        if trim_score == 0.0 and comp.trim_normalized:
+        # 3. Restomod/custom target — never comparable to any comp (score always 0.0)
+        if trim_score == 0.0:
             return 0.0
         # When target trim is known, cross-gen comps are excluded entirely.
         # Only allow cross-gen for GT variants (handled below via _GT_TRIMS fallback)
@@ -809,35 +821,40 @@ def get_fmv(
         # No trim known — cross-gen fallback is acceptable
         use_comps = scored
     else:
-        # Trim is known but no same-gen comps matched (likely unrecognized trim
-        # string from scraper).  Try two broader fallback tiers before NONE:
-        #   Tier A — same-gen comps that share a trim family (ts > 0)
-        #            or have no normalized trim at all.
-        #   Tier B — pure generation baseline: all same-gen comps equally.
-        # This prevents garbage-trim listings from getting NONE confidence when
-        # there is plenty of generation-level comp data available.
-        #
-        # Always build both tiers. Use Tier A only when it yields >= 3 comps
-        # (a meaningful family-level signal); otherwise fall through to the
-        # broader gen baseline so a single no-trim comp doesn't block hundreds
-        # of useful same-generation comps.
-        gen_family = []
-        gen_all = []
-        for c in sold_comps:
-            if c.generation != target_gen:
-                continue
-            ts = _trim_match_score(norm_trim, c.trim_normalized)
-            rec_w = _recency_weight(c.sold_date)
-            src_w = c.source_weight
-            fb_all = src_w * rec_w * 0.4
-            if fb_all > 0.05:
-                gen_all.append((c, fb_all))
-            if ts > 0.0 or c.trim_normalized is None:
-                fb_fam = src_w * rec_w * (0.4 + 0.4 * ts)
-                if fb_fam > 0.05:
-                    gen_family.append((c, fb_fam))
+        # Restomod/custom trims: no comps exist — return NONE immediately.
+        # These are bespoke builds with no meaningful sold comp pool.
+        if norm_trim and norm_trim.startswith("_restomod"):
+            use_comps = []
+        else:
+            # Trim is known but no same-gen comps matched (likely unrecognized trim
+            # string from scraper).  Try two broader fallback tiers before NONE:
+            #   Tier A — same-gen comps that share a trim family (ts > 0)
+            #            or have no normalized trim at all.
+            #   Tier B — pure generation baseline: all same-gen comps equally.
+            # This prevents garbage-trim listings from getting NONE confidence when
+            # there is plenty of generation-level comp data available.
+            #
+            # Always build both tiers. Use Tier A only when it yields >= 3 comps
+            # (a meaningful family-level signal); otherwise fall through to the
+            # broader gen baseline so a single no-trim comp doesn't block hundreds
+            # of useful same-generation comps.
+            gen_family = []
+            gen_all = []
+            for c in sold_comps:
+                if c.generation != target_gen:
+                    continue
+                ts = _trim_match_score(norm_trim, c.trim_normalized)
+                rec_w = _recency_weight(c.sold_date)
+                src_w = c.source_weight
+                fb_all = src_w * rec_w * 0.4
+                if fb_all > 0.05:
+                    gen_all.append((c, fb_all))
+                if ts > 0.0 or c.trim_normalized is None:
+                    fb_fam = src_w * rec_w * (0.4 + 0.4 * ts)
+                    if fb_fam > 0.05:
+                        gen_family.append((c, fb_fam))
 
-        use_comps = gen_family if len(gen_family) >= 3 else gen_all
+            use_comps = gen_family if len(gen_family) >= 3 else gen_all
 
     if not use_comps:
         # No comps found at all
