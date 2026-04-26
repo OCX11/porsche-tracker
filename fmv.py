@@ -51,8 +51,10 @@ def get_generation(year: Optional[int], model: str, trim: str = "") -> str:
         if year <= 1994:  return "964"
         if year <= 1998:  return "993"
         if year <= 2004:  return "996"
-        if year <= 2013:  return "997"   # 997.2 ran through 2012 MY (titled 2013 in some markets)
-        if year <= 2019:  return "991"
+        if year <= 2009:  return "997_1"  # 997.1: 2005–2009
+        if year <= 2013:  return "997_2"  # 997.2: 2010–2013 (DFI, PDK)
+        if year <= 2016:  return "991_1"  # 991.1: 2012–2016
+        if year <= 2019:  return "991_2"  # 991.2: 2017–2019
         return "992"
 
     if model_lower == "cayman":
@@ -761,7 +763,7 @@ def get_fmv(
 
     # ── Match sold comps by generation + trim ────────────────────────────────
     def score_comp(comp: Comp) -> float:
-        gen_match   = 1.0 if comp.generation == target_gen else 0.3
+        gen_match   = 1.0 if comp.generation == target_gen else 0.0
         trim_score  = _trim_match_score(norm_trim, comp.trim_normalized)
         recency     = _recency_weight(comp.sold_date)
         source_w    = comp.source_weight
@@ -770,6 +772,11 @@ def get_fmv(
         # 2. Unknown target (None) vs high-performance comp (GT3, Turbo, etc.)
         #    — _trim_match_score returns 0.0 for high-perf comps when target is None
         if trim_score == 0.0 and comp.trim_normalized:
+            return 0.0
+        # When target trim is known, cross-gen comps are excluded entirely.
+        # Only allow cross-gen for GT variants (handled below via _GT_TRIMS fallback)
+        # and for unknown trims.
+        if gen_match == 0.0 and norm_trim is not None:
             return 0.0
         return gen_match * (0.4 + 0.6 * trim_score) * recency * source_w
 

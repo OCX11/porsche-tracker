@@ -2117,6 +2117,16 @@ window.addEventListener('pageshow', function(e) {{
   if (e.persisted) {{ /* page restored from bfcache — no action needed */ }}
 }});
 
+// PWA visibility restore — when returning from an external app (eBay, BaT, etc.)
+// iOS fires visibilitychange. Re-apply filters and scroll position so the
+// PWA doesn't appear blank or jump.
+document.addEventListener('visibilitychange', function() {{
+  if (document.visibilityState === 'visible') {{
+    // Re-render the active view with current filter state
+    if (typeof applyFilters === 'function') applyFilters();
+  }}
+}});
+
 // ── Live timestamps (client-side, updates every 60s) ─────────────────────────
 function _fmtAge(isoStr) {{
   if (!isoStr) return '';
