@@ -927,7 +927,9 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
 .fmv-none {{
   display:flex; align-items:center; gap:5px;
   font-family:'DM Mono',monospace; font-size:9px; color:#6B6B7D; margin-bottom:7px;
+  cursor:pointer; transition:color 0.15s;
 }}
+.fmv-none:hover {{ color:#9898B0; }}
 .fmv-none-dot {{ width:5px; height:5px; border-radius:50%; background:var(--border); flex-shrink:0; }}
 
 .auction-ends {{
@@ -1586,7 +1588,9 @@ function renderCard(d) {{
   }} else if (d.fmv && d.fmv_conf !== 'NONE') {{
     fmvHtml = buildFmvBar(d);
   }} else {{
-    fmvHtml = '<div class="fmv-none"><span class="fmv-none-dot"></span>No FMV \u2014 insufficient comps</div>';
+    fmvHtml = '<div class="fmv-none"><span class="fmv-none-dot"></span>'
+      + (IS_PUBLIC ? 'No FMV \u2014 insufficient comps' : 'No FMV \u2014 click to set manually')
+      + '</div>';
   }}
 
   var endsHtml = '';
@@ -1970,7 +1974,8 @@ document.addEventListener('click', function(e) {{
     var link = e.target.closest('.fmv-comps-link');
     if (link) {{ showFmvComps(wrap); }}
     var editTrigger = e.target.closest('.fmv-val-edit');
-    if (editTrigger && !IS_PUBLIC) {{ openFmvInput(e, wrap); }}
+    var noneTrigger = e.target.closest('.fmv-none');
+    if ((editTrigger || noneTrigger) && !IS_PUBLIC) {{ openFmvInput(e, wrap); }}
     return;  // stop — never navigate when clicking fmv-wrap
   }}
   // Card click → navigate to listing

@@ -275,6 +275,9 @@ def _parse_html(html: str) -> list:
 
         # Image
         image_url = img["src"] if img else None
+        # Upgrade thumbnail from 160x120 to 800x600 on Rennlist CDN
+        if image_url and "160x120" in image_url:
+            image_url = image_url.replace("160x120", "800x600")
 
         # Title / year / model / trim
         title = _best_title_line(text_content)
