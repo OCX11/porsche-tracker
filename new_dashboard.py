@@ -540,9 +540,10 @@ def generate() -> str:
             badge_cfg = _BADGE_CFG.get(dealer_k, (None, None, (c.get("dealer") or "")[:12]))
             card_items.append({
                 # --- filter/sort keys ---
+                "id":   c["id"],
                 "yr":   int(c.get("year") or 0),
                 "pr":   int(c.get("price") or 0),
-                "gen":  _gen(c.get("year"), c.get("model")),
+                "gen":  c.get("generation") or _gen(c.get("year"), c.get("model")),
                 "src":  badge_cfg[2],
                 "tier": c.get("tier") or "",
                 "deal": pct is not None and pct <= -10,
@@ -550,9 +551,10 @@ def generate() -> str:
                 "cool": ("air" if (int(c.get("year") or 0) <= 1998 and "911" in (c.get("model") or "").lower())
                          else ("water" if (int(c.get("year") or 0) >= 1999 and "911" in (c.get("model") or "").lower())
                          else None)),
+                "bs":   c.get("body_style") or "",
                 "dom":  c.get("days_on_market") or 0,
                 "txt":  ((str(c.get("year") or "") + " " + (c.get("model") or "") + " " +
-                          (c.get("dealer") or "") + " " + _gen(c.get("year"), c.get("model")))).lower(),
+                          (c.get("dealer") or "") + " " + (c.get("generation") or _gen(c.get("year"), c.get("model"))))).lower(),
                 # --- raw data for client-side rendering ---
                 "url":  c.get("listing_url") or "#",
                 "img":  c.get("image_url") or "",
@@ -803,6 +805,24 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
   background:rgba(0,0,0,0.72); backdrop-filter:blur(4px);
   font-family:'DM Mono',monospace; font-size:9px; color:#9090A8;
   padding:3px 7px; border-radius:3px; letter-spacing:0.5px;
+}}
+.img-gen-badge.admin-editable {{ cursor:pointer; }}
+.img-gen-badge.admin-editable:hover {{ color:#D85A30; border:1px solid #D85A30; }}
+.gen-edit-dropdown {{
+  position:absolute; top:28px; left:8px; z-index:200;
+  background:#1a1a1a; border:1px solid #444; border-radius:6px;
+  padding:4px 0; min-width:110px; box-shadow:0 4px 16px rgba(0,0,0,0.7);
+}}
+.gen-edit-dropdown select {{
+  background:#1a1a1a; color:#e8e4df; border:none; outline:none;
+  font-family:'DM Mono',monospace; font-size:11px; padding:4px 8px;
+  width:100%; cursor:pointer;
+}}
+.gen-edit-dropdown .gen-save-btn {{
+  display:block; width:100%; margin-top:4px;
+  background:#D85A30; border:none; color:#fff;
+  font-family:'DM Mono',monospace; font-size:10px;
+  padding:4px 8px; cursor:pointer; border-radius:0 0 5px 5px;
 }}
 .img-deal-badge {{
   position:absolute; top:8px; right:8px;
@@ -1121,6 +1141,15 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
   </div>
 
   <div class="filter-group">
+    <span class="filter-group-label">Body Style</span>
+    <div class="chip-row">
+      <button class="chip" data-val="Coupe"     onclick="toggleBody(this,&apos;Coupe&apos;)">Coupe</button>
+      <button class="chip" data-val="Cabriolet" onclick="toggleBody(this,&apos;Cabriolet&apos;)">Cabriolet</button>
+      <button class="chip" data-val="Targa"     onclick="toggleBody(this,&apos;Targa&apos;)">Targa</button>
+    </div>
+  </div>
+
+  <div class="filter-group">
     <span class="filter-group-label">Generation</span>
     <div class="chip-row" id="gen-chips">
       {gen_chips_html}
@@ -1302,6 +1331,14 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
         <button class="chip" data-val="Water-cooled" onclick="toggleCooling(this,&apos;water&apos;)" title="911s 1999 &amp; newer">Water-cooled</button>
       </div>
     </div>
+    <div class="drawer-section" style="grid-column:1/-1">
+      <span class="drawer-section-label">Body Style</span>
+      <div class="drawer-chips">
+        <button class="chip" data-val="Coupe"     onclick="toggleBody(this,&apos;Coupe&apos;)">Coupe</button>
+        <button class="chip" data-val="Cabriolet" onclick="toggleBody(this,&apos;Cabriolet&apos;)">Cabriolet</button>
+        <button class="chip" data-val="Targa"     onclick="toggleBody(this,&apos;Targa&apos;)">Targa</button>
+      </div>
+    </div>
     <div class="drawer-section">
       <span class="drawer-section-label">Generation</span>
       <div class="drawer-chips" id="d-gen-chips">
@@ -1353,6 +1390,7 @@ var PAGE = 48;
 var activeGens = [];
 var activeSrcs = [];
 var activeCooling = null;
+var activeBody    = null;
 var filterNewToday = false;
 
 function toggleCooling(btn, type) {{
@@ -1362,6 +1400,19 @@ function toggleCooling(btn, type) {{
   }} else {{
     document.querySelectorAll('.chip[data-val="Air-cooled"],.chip[data-val="Water-cooled"]').forEach(function(c) {{ c.classList.remove('active'); }});
     activeCooling = type;
+    btn.classList.add('active');
+  }}
+  applyFilters();
+  updateFabState();
+}}
+
+function toggleBody(btn, type) {{
+  if (activeBody === type) {{
+    activeBody = null;
+    document.querySelectorAll('.chip[data-val="Coupe"],.chip[data-val="Cabriolet"],.chip[data-val="Targa"]').forEach(function(c) {{ c.classList.remove('active'); }});
+  }} else {{
+    document.querySelectorAll('.chip[data-val="Coupe"],.chip[data-val="Cabriolet"],.chip[data-val="Targa"]').forEach(function(c) {{ c.classList.remove('active'); }});
+    activeBody = type;
     btn.classList.add('active');
   }}
   applyFilters();
@@ -1405,6 +1456,7 @@ function applyFilters() {{
     if (dealsOnly && !d.deal) return false;
     if (tier1Only && d.tier !== 'TIER1') return false;
     if (activeCooling && d.cool !== activeCooling) return false;
+    if (activeBody && d.bs !== activeBody) return false;
     if (filterNewToday && !d.nt) return false;
     return true;
   }});
@@ -1479,7 +1531,9 @@ function renderCard(d) {{
   var priceLbl = isAuc ? 'Bid' : 'Ask';
   var priceCls = isAuc ? 'price-auction' : 'price-ask';
 
-  var genBadge = d.gen ? '<div class="img-gen-badge">' + d.gen + '</div>' : '';
+  var genBadge = d.gen ? '<div class="img-gen-badge' + (!IS_PUBLIC ? ' admin-editable' : '') + '"'
+    + (!IS_PUBLIC ? ' onclick="event.stopPropagation();openGenEditor(this,\'' + d.id + '\',\'' + d.gen + '\')"' : '')
+    + ' title="' + (IS_PUBLIC ? d.gen : 'Click to correct generation') + '">' + d.gen + '</div>' : '';
 
   var dealBadge = '';
   if (d.fmv_pct !== null && d.fmv_pct <= -10) {{
@@ -1547,6 +1601,7 @@ function renderCard(d) {{
     + ' data-year="' + d.yr + '"'
     + ' data-model="' + d.model + '"'
     + ' data-gen="' + d.gen + '"'
+    + ' data-id="' + d.id + '"'
     + ' data-tier="' + d.tier + '"'
     + ' data-price="' + (d.pr||0) + '"'
     + ' data-src-label="' + d.src + '"'
@@ -1641,6 +1696,59 @@ var IS_PUBLIC = (location.hostname !== 'admin.rennmarkt.net')
   }});
 }})();
 var PUSH_SERVER = 'https://ptox11-push.openclawx1.workers.dev';
+var _GEN_OPTIONS = ['Classic','930','964','993','996','997_1','997_2','991_1','991_2','992','986','987','981','718_cayman','718_boxster','Carrera GT','918','944'];
+
+function openGenEditor(badge, listingId, currentGen) {{
+  // Close any other open gen editors
+  document.querySelectorAll('.gen-edit-dropdown').forEach(function(d) {{ d.remove(); }});
+  var opts = _GEN_OPTIONS.map(function(g) {{
+    return '<option value="' + g + '"' + (g === currentGen ? ' selected' : '') + '>' + g + '</option>';
+  }}).join('');
+  var dropdown = document.createElement('div');
+  dropdown.className = 'gen-edit-dropdown';
+  dropdown.innerHTML = '<select id="gen-sel-' + listingId + '">' + opts + '</select>'
+    + '<button class="gen-save-btn" onclick="saveGenOverride(' + listingId + ',this)">Save</button>';
+  badge.parentNode.appendChild(dropdown);
+  dropdown.querySelector('select').focus();
+  // Click outside closes
+  setTimeout(function() {{
+    document.addEventListener('click', function _close(e) {{
+      if (!dropdown.contains(e.target) && e.target !== badge) {{
+        dropdown.remove();
+        document.removeEventListener('click', _close);
+      }}
+    }});
+  }}, 0);
+}}
+
+function saveGenOverride(listingId, btn) {{
+  var sel = document.getElementById('gen-sel-' + listingId);
+  if (!sel) return;
+  var newGen = sel.value;
+  btn.textContent = '...';
+  btn.disabled = true;
+  fetch(PUSH_SERVER + '/gen-override', {{
+    method: 'POST',
+    headers: {{'Content-Type': 'application/json', 'X-Admin-Token': 'gt3rs'}},
+    body: JSON.stringify({{id: listingId, generation: newGen}})
+  }}).then(function(r) {{ return r.json(); }}).then(function(data) {{
+    if (data.ok) {{
+      // Update badge text in DOM
+      var badge = document.querySelector('.img-gen-badge[onclick*="' + listingId + '"]');
+      if (badge) badge.textContent = newGen;
+      // Update card data
+      var card = document.querySelector('[data-id="' + listingId + '"]');
+      if (card) card.dataset.gen = newGen;
+      btn.closest('.gen-edit-dropdown').remove();
+    }} else {{
+      btn.textContent = 'Error';
+      btn.disabled = false;
+    }}
+  }}).catch(function() {{
+    btn.textContent = 'Error';
+    btn.disabled = false;
+  }});
+}}
 
 function fmvKeydown(e, input) {{
   if (e.key === 'Enter') input.blur();
@@ -1767,6 +1875,7 @@ if (_ca) {{
 function resetFilters() {{
   activeGens = []; activeSrcs = [];
   activeCooling = null;
+  activeBody = null;
   filterNewToday = false;
   document.querySelectorAll('.chip').forEach(function(c) {{ c.classList.remove('active'); }});
   ['f-year-min','f-year-max','f-price-min','f-price-max',

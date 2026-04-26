@@ -45,6 +45,13 @@ SUBS_FILE = SCRIPT_DIR / "data" / "push_subscriptions.json"
 
 app = Flask(__name__)
 
+@app.after_request
+def add_cors(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Admin-Token"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
+    return response
+
 
 # ── VAPID keys ─────────────────────────────────────────────────────────────────
 
@@ -388,6 +395,56 @@ def get_user_comps():
     """Return all personal FMV comps for use by the calculator."""
     comps = _load_user_comps()
     return jsonify({"comps": comps, "count": len(comps)})
+
+
+# ── Generation override ──────────────────────────────────────────────────────
+
+_DB_PATH = Path(__file__).parent / "data" / "inventory.db"
+
+@app.route("/gen-override", methods=["POST", "OPTIONS"])
+def gen_override():
+    """Correct the generation for a listing. Admin only (checked server-side)."""
+    if request.method == "OPTIONS":
+        resp = jsonify({"ok": True})
+        resp.headers["Access-Control-Allow-Origin"] = "*"
+        resp.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Admin-Token"
+        return resp
+
+    # Simple token check — same passphrase as dashboard unlock
+    token = request.headers.get("X-Admin-Token", "")
+    if token != "gt3rs":
+        abort(403, "Unauthorized")
+
+    data = request.get_json(silent=True) or {}
+    listing_id  = data.get("id")
+    new_gen     = (data.get("generation") or "").strip()
+
+    if not listing_id or not new_gen:
+        abort(400, "Missing id or generation")
+
+    valid_gens = {
+        "Classic","930","964","993","996",
+        "997_1","997_2","991_1","991_2","992",
+        "986","987","981","718_cayman","718_boxster",
+        "Carrera GT","918","944","928","914","912","356"
+    }
+    if new_gen not in valid_gens:
+        abort(400, f"Invalid generation: {new_gen}")
+
+    import sqlite3
+    try:
+        conn = sqlite3.connect(_DB_PATH)
+        conn.execute(
+            "UPDATE listings SET generation=? WHERE id=?",
+            (new_gen, int(listing_id))
+        )
+        conn.commit()
+        conn.close()
+        log.info("Gen override: listing %s → %s", listing_id, new_gen)
+        return jsonify({"ok": True, "id": listing_id, "generation": new_gen})
+    except Exception as e:
+        log.error("Gen override failed: %s", e)
+        abort(500, str(e))
 
 
 # ── Entry point ─────────────────────────────────────────────────────────────────
