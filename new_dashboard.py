@@ -152,6 +152,13 @@ _BADGE_CFG = {
 }
 _AUCTION_SET = frozenset({"bring a trailer","bat","bringatrailer","pcarmarket","cars & bids","carsandbids","cars and bids","classic.com"})
 
+# Normalize legacy underscore gen values → dot format used by filter chips
+_NORM_GEN = {
+    "991_1": "991.1", "991_2": "991.2",
+    "997_1": "997.1", "997_2": "997.2",
+    "718_cayman": "718", "718_boxster": "718",
+}
+
 def _badge(dealer: str) -> str:
     k = (dealer or "").lower().strip()
     bg, fg, label = _BADGE_CFG.get(k, ("#18181F", "#6B6B7D", (dealer or "?")[:12]))
@@ -543,7 +550,7 @@ def generate() -> str:
                 "id":   c["id"],
                 "yr":   int(c.get("year") or 0),
                 "pr":   int(c.get("price") or 0),
-                "gen":  c.get("generation") or _gen(c.get("year"), c.get("model")),
+                "gen":  _NORM_GEN.get(c.get("generation") or "", c.get("generation")) or _gen(c.get("year"), c.get("model")),
                 "src":  badge_cfg[2],
                 "tier": c.get("tier") or "",
                 "deal": pct is not None and pct <= -10,
