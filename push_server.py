@@ -14,11 +14,13 @@ Endpoints:
   POST /user-comp               → save a personal FMV comp (url, fmv, year, model, trim)
   DELETE /user-comp             → remove a personal FMV comp by url
   GET  /user-comps              → return all personal FMV comps
+  POST /waitlist                → save a waitlist email to Google Sheets
 
 Push payloads are sent by notify_push.py (replaces notify_imessage.py).
 This server just holds subscriptions and relays pushes to APNs/FCM via VAPID.
 """
 import json
+import os
 import logging
 import sys
 from datetime import datetime
@@ -445,6 +447,38 @@ def gen_override():
     except Exception as e:
         log.error("Gen override failed: %s", e)
         abort(500, str(e))
+
+
+# ── Waitlist ─────────────────────────────────────────────────────────────────────
+# Google Apps Script Web App URL — set via env var or paste directly:
+SHEETS_WAITLIST_URL = os.environ.get("SHEETS_WAITLIST_URL", "")
+
+@app.route("/waitlist", methods=["POST", "OPTIONS"])
+def waitlist():
+    if request.method == "OPTIONS":
+        return "", 204
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip().lower()
+    if not email or "@" not in email:
+        return jsonify({"ok": False, "error": "invalid email"}), 400
+    payload = {"email": email, "source": "rennmarkt.net"}
+    if SHEETS_WAITLIST_URL:
+        try:
+            import urllib.request as _ur, json as _json
+            req = _ur.Request(
+                SHEETS_WAITLIST_URL,
+                data=_json.dumps(payload).encode(),
+                headers={"Content-Type": "application/json"},
+                method="POST"
+            )
+            _ur.urlopen(req, timeout=8)
+        except Exception as e:
+            log.warning("Sheets waitlist write failed: %s", e)
+            return jsonify({"ok": False, "error": "sheets error"}), 500
+    else:
+        log.warning("SHEETS_WAITLIST_URL not set — email not saved: %s", email)
+    log.info("Waitlist signup: %s", email)
+    return jsonify({"ok": True})
 
 
 # ── Entry point ─────────────────────────────────────────────────────────────────

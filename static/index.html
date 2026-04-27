@@ -52882,5 +52882,74 @@ document.addEventListener('DOMContentLoaded', () => {
   // (cards have data-source-type='auction' for auction sources, data needs feed_type too)
 });
 </script>
+<style>
+#waitlist-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  background:#0f1117;border-top:1px solid #1e2535;
+  padding:12px 20px;display:flex;align-items:center;justify-content:center;
+  gap:12px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  box-shadow:0 -4px 20px rgba(0,0,0,.5);
+}
+#waitlist-bar.hidden{display:none}
+#waitlist-bar p{margin:0;font-size:13px;color:#94a3b8;white-space:nowrap}
+#waitlist-bar p strong{color:#e2e8f0}
+#waitlist-input{
+  background:#1e2535;border:1px solid #334155;color:#e2e8f0;
+  border-radius:6px;padding:7px 12px;font-size:13px;width:220px;outline:none;
+}
+#waitlist-input:focus{border-color:#ef4444}
+#waitlist-btn{
+  background:#ef4444;color:#fff;border:none;border-radius:6px;
+  padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;
+}
+#waitlist-btn:hover{background:#dc2626}
+#waitlist-btn:disabled{background:#475569;cursor:default}
+#waitlist-msg{font-size:13px;color:#4ade80;display:none}
+#waitlist-dismiss{background:none;border:none;color:#475569;cursor:pointer;font-size:18px;padding:0 4px;line-height:1}
+#waitlist-dismiss:hover{color:#94a3b8}
+</style>
+<div id="waitlist-bar">
+  <p><strong>Rennmarkt</strong> — Private 911 market intelligence. Get notified when we go live.</p>
+  <input id="waitlist-input" type="email" placeholder="your@email.com" autocomplete="email">
+  <button id="waitlist-btn" onclick="submitWaitlist()">Notify me</button>
+  <span id="waitlist-msg">&#10003; You're on the list</span>
+  <button id="waitlist-dismiss" onclick="document.getElementById('waitlist-bar').classList.add('hidden')">&#10005;</button>
+</div>
+<script>
+async function submitWaitlist() {
+  const input = document.getElementById('waitlist-input');
+  const btn   = document.getElementById('waitlist-btn');
+  const msg   = document.getElementById('waitlist-msg');
+  const email = input.value.trim();
+  if (!email || !email.includes('@')) { input.focus(); return; }
+  btn.disabled = true;
+  btn.textContent = 'Saving\u2026';
+  try {
+    const res = await fetch('https://push.rennmarkt.net/waitlist', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email})
+    });
+    const data = await res.json();
+    if (data.ok) {
+      input.style.display = 'none';
+      btn.style.display   = 'none';
+      msg.style.display   = 'inline';
+      localStorage.setItem('wl_done', '1');
+    } else {
+      btn.textContent = 'Try again';
+      btn.disabled = false;
+    }
+  } catch(e) {
+    btn.textContent = 'Try again';
+    btn.disabled = false;
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('wl_done')) {
+    document.getElementById('waitlist-bar').classList.add('hidden');
+  }
+});
+</script>
 </body>
 </html>
