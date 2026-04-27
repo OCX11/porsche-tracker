@@ -451,7 +451,7 @@ def gen_override():
 
 # ── Waitlist ─────────────────────────────────────────────────────────────────────
 # Google Apps Script Web App URL — set via env var or paste directly:
-SHEETS_WAITLIST_URL = os.environ.get("SHEETS_WAITLIST_URL", "")
+SHEETS_WAITLIST_URL = os.environ.get("SHEETS_WAITLIST_URL", "https://script.google.com/macros/s/AKfycbyQp-NrzGlpJnuaaTClhNme_eLxAFHok82-QDZhgFqnfBxRjFZkqgTLnnexpBDk0Wqu/exec")
 
 @app.route("/waitlist", methods=["POST", "OPTIONS"])
 def waitlist():
