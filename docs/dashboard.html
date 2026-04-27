@@ -2706,5 +2706,78 @@ function toggleGen(slug) {
   if (open) _applyFilters();   // re-apply source/tier filters inside expanded gen
 }
 </script>
+
+<!-- ── Access gate + 3x tap admin unlock ──────────────────────────────────── -->
+<div id="admin-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:99999;align-items:center;justify-content:center;">
+  <div style="background:#111;border:1px solid #2a2a2a;border-radius:10px;padding:28px 22px;width:270px;display:flex;flex-direction:column;gap:12px;align-items:center;">
+    <div style="font-family:monospace;font-size:12px;color:#666;">Admin Access</div>
+    <input id="admin-input" type="password" placeholder="passphrase" autocomplete="off" style="background:#0a0a0a;border:1px solid #333;color:#fff;font-family:monospace;font-size:15px;padding:10px 14px;border-radius:6px;width:100%;outline:none;">
+    <div style="display:flex;gap:8px;width:100%;">
+      <button id="admin-cancel" style="flex:1;background:#1a1a1a;border:1px solid #2a2a2a;color:#666;font-family:monospace;font-size:12px;padding:9px;border-radius:6px;cursor:pointer;">Cancel</button>
+      <button id="admin-submit" style="flex:1;background:#D85A30;border:none;color:#fff;font-family:monospace;font-size:12px;padding:9px;border-radius:6px;cursor:pointer;">Unlock</button>
+    </div>
+    <div id="admin-error" style="font-family:monospace;font-size:11px;color:#e74c3c;display:none;">incorrect passphrase</div>
+  </div>
+</div>
+<div id="dash-tap-target" style="position:fixed;bottom:0;right:0;width:60px;height:60px;z-index:9998;cursor:default;"></div>
+
+<script>
+// ── Gate: redirect to splash unless public access granted ─────────────────────
+(function(){
+  if(!localStorage.getItem('rm_public_access') && !localStorage.getItem('ptox_unlock')){
+    window.location.href='/';
+  }
+})();
+
+// ── 3x tap → admin unlock modal ──────────────────────────────────────────────
+(function(){
+  var taps=0,timer;
+  var overlay=document.getElementById('admin-overlay');
+  var input=document.getElementById('admin-input');
+  var errEl=document.getElementById('admin-error');
+
+  document.getElementById('dash-tap-target').addEventListener('click',function(){
+    taps++;
+    clearTimeout(timer);
+    if(taps>=3){
+      taps=0;
+      if(localStorage.getItem('ptox_unlock')==='gt3rs'){
+        localStorage.removeItem('ptox_unlock');
+        location.reload();
+      } else {
+        overlay.style.display='flex';
+        setTimeout(function(){input.focus();},80);
+      }
+    }
+    timer=setTimeout(function(){taps=0;},700);
+  });
+
+  document.getElementById('admin-submit').addEventListener('click',doAdminUnlock);
+  document.getElementById('admin-cancel').addEventListener('click',hideAdminModal);
+  input.addEventListener('keydown',function(e){
+    if(e.key==='Enter') doAdminUnlock();
+    if(e.key==='Escape') hideAdminModal();
+  });
+
+  function hideAdminModal(){
+    overlay.style.display='none';
+    input.value='';
+    errEl.style.display='none';
+  }
+
+  function doAdminUnlock(){
+    var pw=input.value.trim();
+    if(pw==='gt3rs'){
+      localStorage.setItem('ptox_unlock','gt3rs');
+      hideAdminModal();
+      location.reload();
+    } else {
+      errEl.style.display='block';
+      input.value='';
+      input.focus();
+    }
+  }
+})();
+</script>
 </body>
 </html>
