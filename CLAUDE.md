@@ -141,10 +141,10 @@ Alert typeStatusNotesNew-listing push✅ ACTIVEEvery new listing → iOS push. 2
 
 ### Push Stack
 
-- **Subscriber page:** <https://ocx11.github.io/PTOX11/notify.html>
-- **Cloudflare Worker (permanent URL):** <https://ptox11-push.openclawx1.workers.dev>
+- **Subscriber page:** <https://www.rennmarkt.net/notify.html>
+- **Cloudflare Worker (permanent URL):** <https://rennmarkt-push.openclawx1.workers.dev>
 - **Local push server:** localhost:5055 (push_server.py via launchd)
-- **VAPID sub claim:** <https://ocx11.github.io/PTOX11/> (Apple requires https URL, not mailto:)
+- **VAPID sub claim:** <https://www.rennmarkt.net/> (Apple requires https URL, not mailto:)
 - **pywebpush:** 1.14.1 — do NOT upgrade, 2.x has Apple JWT bug
 
 ### Push Format

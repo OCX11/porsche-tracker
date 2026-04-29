@@ -1,10 +1,10 @@
-// PTOX11 — Service Worker v2
+// Rennmarkt — Service Worker v3
 // Handles: caching, push notifications, notification click → open listing URL
 
-const CACHE_NAME = 'ptox11-v2';
+const CACHE_NAME = 'ptox11-v3';
 const ASSETS = [
-  '/PTOX11/',
-  '/PTOX11/index.html',
+  '/',
+  '/index.html',
 ];
 
 // ── Install ────────────────────────────────────────────────────────────────────
@@ -30,7 +30,7 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        if (response.ok && event.request.url.includes('/PTOX11/')) {
+        if (response.ok && event.request.url.includes('rennmarkt.net')) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
@@ -51,9 +51,9 @@ self.addEventListener('push', event => {
 
   const title   = data.title  || 'PTOX11';
   const body    = data.body   || '';
-  const url     = data.url    || 'https://ocx11.github.io/PTOX11/';
-  const icon    = data.icon   || '/PTOX11/icons/icon-192.png';
-  const badge   = data.badge  || '/PTOX11/icons/icon-192.png';
+  const url     = data.url    || 'https://www.rennmarkt.net/';
+  const icon    = data.icon   || '/icons/icon-192.png';
+  const badge   = data.badge  || '/icons/icon-192.png';
 
   const options = {
     body,
@@ -72,13 +72,13 @@ self.addEventListener('notificationclick', event => {
   event.notification.close();
   const url = (event.notification.data && event.notification.data.url)
     ? event.notification.data.url
-    : 'https://ocx11.github.io/PTOX11/';
+    : 'https://www.rennmarkt.net/';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
-      // If a PTOX11 tab is already open, focus it then navigate
+      // If a Rennmarkt tab is already open, focus it then navigate
       for (const client of clientList) {
-        if (client.url.includes('ocx11.github.io') && 'focus' in client) {
+        if (client.url.includes('rennmarkt.net') && 'focus' in client) {
           client.focus();
           client.navigate(url);
           return;

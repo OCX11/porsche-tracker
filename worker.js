@@ -18,8 +18,8 @@ export default {
         headers: response.headers,
       });
       newResponse.headers.set('Access-Control-Allow-Origin', '*');
-      newResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      newResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type');
+      newResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+      newResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Token');
       return newResponse;
     } catch (e) {
       return new Response('Push server unreachable: ' + e.message, { status: 502 });

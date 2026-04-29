@@ -54,7 +54,7 @@ body{background:#0a0a0a;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
 #unlock-cancel{flex:1;background:#1a1a1a;border:1px solid #2a2a2a;color:#666;font-family:monospace;font-size:12px;padding:9px;border-radius:6px;cursor:pointer}
 #unlock-submit{flex:1;background:#D85A30;border:none;color:#fff;font-family:monospace;font-size:12px;padding:9px;border-radius:6px;cursor:pointer}
 #unlock-error{font-family:monospace;font-size:11px;color:#e74c3c;display:none}
-#tap-target{position:fixed;bottom:0;right:0;width:60px;height:60px;z-index:9998;cursor:default}
+#tap-target{position:fixed;bottom:20px;right:0;width:60px;height:60px;z-index:9998;cursor:default}
 </style>
 </head>
 <body>
@@ -151,11 +151,14 @@ document.getElementById('signup-email').addEventListener('keydown',function(e){ 
   var input=document.getElementById('unlock-input');
   var errEl=document.getElementById('unlock-error');
 
-  document.getElementById('tap-target').addEventListener('click',function(){
+  function onTap(e){
+    if(e && e.cancelable) e.preventDefault();
     taps++;clearTimeout(timer);
     if(taps>=3){ taps=0; overlay.classList.add('show'); setTimeout(function(){input.focus();},80); }
     timer=setTimeout(function(){taps=0;},700);
-  });
+  }
+  document.getElementById('tap-target').addEventListener('click',onTap);
+  document.getElementById('tap-target').addEventListener('touchend',onTap);
 
   document.getElementById('unlock-submit').addEventListener('click',doUnlock);
   document.getElementById('unlock-cancel').addEventListener('click',hideModal);

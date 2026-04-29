@@ -1742,7 +1742,7 @@ var IS_PUBLIC = (location.hostname !== 'admin.rennmarkt.net')
     timer = setTimeout(function() {{ taps = 0; }}, 700);
   }});
 }})();
-var PUSH_SERVER = 'https://ptox11-push.openclawx1.workers.dev';
+var PUSH_SERVER = 'https://rennmarkt-push.openclawx1.workers.dev';
 var _GEN_OPTIONS = ['Classic','930','964','993','996','997_1','997_2','991_1','991_2','992','986','987','981','718_cayman','718_boxster','Carrera GT','918','944'];
 
 function openGenEditor(badge, listingId, currentGen) {{

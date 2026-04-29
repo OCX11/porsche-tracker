@@ -163,8 +163,8 @@ def send_push():
     title   = payload.get("title", "PTOX11")
     body    = payload.get("body", "")
     url     = payload.get("url", "")
-    icon    = payload.get("icon", "/PTOX11/icons/icon-192.png")
-    badge   = payload.get("badge", "/PTOX11/icons/icon-192.png")
+    icon    = payload.get("icon", "/icons/icon-192.png")
+    badge   = payload.get("badge", "/icons/icon-192.png")
 
     notification = {
         "title": title,
@@ -209,7 +209,7 @@ def _make_vapid_jwt(endpoint: str) -> str:
     payload = b64url(_json.dumps({
         "aud": aud,
         "exp": int(_time.time()) + 86400,
-        "sub": "https://ocx11.github.io/PTOX11/",
+        "sub": "https://www.rennmarkt.net/",
     }, separators=(",",":")).encode())
 
     signing_input = f"{header}.{payload}".encode()

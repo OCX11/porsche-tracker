@@ -25,7 +25,7 @@ LOG_DIR     = SCRIPT_DIR / "data" / "logs"
 SEEN_FILE   = DATA_DIR / "health_monitor_seen.json"
 
 PUSH_SERVER = "http://127.0.0.1:5055/send-push"
-DASHBOARD_URL = "https://ocx11.github.io/PTOX11/"
+DASHBOARD_URL = "https://www.rennmarkt.net/"
 
 # How many consecutive zero-result runs before alerting
 ZERO_RUN_THRESHOLD = 3

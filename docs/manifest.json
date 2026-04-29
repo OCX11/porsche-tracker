@@ -2,7 +2,7 @@
   "name": "Rennmarkt",
   "short_name": "Rennmarkt",
   "description": "Live Porsche market intelligence — 9 sources, FMV scoring, deal alerts",
-  "start_url": "/",
+  "start_url": "/dashboard.html",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
