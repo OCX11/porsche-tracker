@@ -452,7 +452,7 @@ def main():
             _sc.row_factory = sqlite3.Row
             _rows = _sc.execute('''SELECT year, make, model, trim, price, mileage, dealer,
                 status, vin, listing_url, image_url, date_first_seen, created_at,
-                source_category, tier, color, transmission FROM listings ORDER BY created_at DESC''').fetchall()
+                source_category, tier, color, transmission, body_style, drive_type FROM listings ORDER BY created_at DESC''').fetchall()
         _search_path = BASE_DIR / "docs" / "search_data.json"
         with open(_search_path, "w") as _sf:
             _json.dump([dict(r) for r in _rows], _sf, default=str)
