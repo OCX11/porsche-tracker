@@ -1179,6 +1179,12 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
       <button class="chip" data-val="Cabriolet" onclick="toggleBody(this,&apos;Cabriolet&apos;)">Cabriolet</button>
       <button class="chip" data-val="Targa"     onclick="toggleBody(this,&apos;Targa&apos;)">Targa</button>
     </div>
+    <span class="dd-theme-label" style="margin-top:10px">TRANSMISSION</span>
+    <div class="chip-row">
+      <button class="chip" data-val="Manual"    onclick="toggleTx(this,&apos;Manual&apos;)">Manual</button>
+      <button class="chip" data-val="PDK"       onclick="toggleTx(this,&apos;PDK&apos;)">PDK</button>
+      <button class="chip" data-val="Automatic" onclick="toggleTx(this,&apos;Automatic&apos;)">Automatic</button>
+    </div>
   </div>
 
   <div class="filter-group">
@@ -1371,6 +1377,12 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
         <button class="chip" data-val="Cabriolet" onclick="toggleBody(this,&apos;Cabriolet&apos;)">Cabriolet</button>
         <button class="chip" data-val="Targa"     onclick="toggleBody(this,&apos;Targa&apos;)">Targa</button>
       </div>
+      <span class="dd-theme-label" style="margin-top:10px">TRANSMISSION</span>
+      <div class="drawer-chips">
+        <button class="chip" data-val="Manual"    onclick="toggleTx(this,&apos;Manual&apos;)">Manual</button>
+        <button class="chip" data-val="PDK"       onclick="toggleTx(this,&apos;PDK&apos;)">PDK</button>
+        <button class="chip" data-val="Automatic" onclick="toggleTx(this,&apos;Automatic&apos;)">Automatic</button>
+      </div>
     </div>
     <div class="drawer-section">
       <span class="drawer-section-label">Generation</span>
@@ -1425,6 +1437,7 @@ var activeGens = [];
 var activeSrcs = [];
 var activeCooling = null;
 var activeBody    = null;
+var activeTx      = null;
 var filterNewToday = false;
 var filterStarredOnly = false;
 var _starred = {{}};  // url → true
@@ -1442,6 +1455,17 @@ function toggleCooling(btn, type) {{
   updateFabState();
 }}
 
+function toggleTx(btn, type) {{
+  if (activeTx === type) {{
+    activeTx = null;
+    document.querySelectorAll('.chip[data-val="Manual"],.chip[data-val="PDK"],.chip[data-val="Automatic"]').forEach(function(c) {{ c.classList.remove('active'); }});
+  }} else {{
+    document.querySelectorAll('.chip[data-val="Manual"],.chip[data-val="PDK"],.chip[data-val="Automatic"]').forEach(function(c) {{ c.classList.remove('active'); }});
+    activeTx = type;
+    document.querySelectorAll('.chip[data-val="' + type + '"]').forEach(function(c) {{ c.classList.add('active'); }});
+  }}
+  applyFilters();
+}}
 function toggleBody(btn, type) {{
   if (activeBody === type) {{
     activeBody = null;
@@ -1493,6 +1517,7 @@ function applyFilters() {{
     if (tier1Only && d.tier !== 'TIER1') return false;
     if (activeCooling && d.cool !== activeCooling) return false;
     if (activeBody && d.bs !== activeBody) return false;
+    if (activeTx && d.trans !== activeTx) return false;
     if (filterNewToday && !d.nt) return false;
     if (filterStarredOnly && !_starred[d.url]) return false;
     return true;
@@ -1925,6 +1950,7 @@ function resetFilters() {{
   activeGens = []; activeSrcs = [];
   activeCooling = null;
   activeBody = null;
+  activeTx = null;
   filterNewToday = false;
   filterStarredOnly = false;
   var sb = document.getElementById('filter-starred-btn'); if (sb) sb.classList.remove('active');
@@ -1980,7 +2006,7 @@ function updateFabState() {{
     document.getElementById('f-price-min').value ||
     document.getElementById('f-deals').checked ||
     document.getElementById('f-tier1').checked;
-  fab.classList.toggle('has-filters', !!(on || activeCooling));
+  fab.classList.toggle('has-filters', !!(on || activeCooling || activeTx));
 }}
 
 // ── View switcher ─────────────────────────────────────────────────────────────
