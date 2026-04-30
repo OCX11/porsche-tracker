@@ -265,6 +265,14 @@ SeriesModelGeneration logicAA2/AB2/AC2911 Carrera RWD≤2004=996, ≤2008=997.1,
 - BaT comp backfill: 6,024 comps
 - DataImpulse proxy, launchd scheduling, archive capture
 
+### 2026-04-29
+
+**FALLBACK CHECKPOINT — git: `9ee023a`**
+- Push notification fix: workers.dev subdomain was disabled after ptox11→rennmarkt worker rename. Fixed via POST /subdomain {enabled:true}. update_tunnel_url.sh patched to re-enable on every redeploy.
+- Data enrichment audit complete. Sold comps are rich (93% tx, 88% VIN, 86% color). Active listings thin (23% tx, 0% color, 35% no VIN). Root cause of bad FMV: listing data not granular enough.
+- **Next task:** Build `enrich_listing_detail.py` — fetches individual car pages for active listings missing transmission/color, extracts: transmission, color, body_style, drivetrain (C2 vs C4), engine. Priority order: PCA Mart → Rennlist → BaT → C&B → eBay → DuPont → AutoTrader → cars.com. Batch 50 at a time. DataImpulse proxy required for AT+eBay.
+- To roll back: `git checkout 9ee023a` — no DB schema changes made this session.
+
 ### 2026-04-26
 
 - CRITICAL BUG FIXED: [www.rennmarkt.net](http://www.rennmarkt.net) showing no car cards since April 25 gen-badge commit
