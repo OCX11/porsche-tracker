@@ -698,11 +698,45 @@ def _push_rennauktion(html: str) -> None:
                 check=True, capture_output=True
             )
             print("[rennauktion] pushed index.html")
+            _deploy_to_cloudflare(out, RENN_CLONE)
         else:
             print("[rennauktion] no changes, skipping push")
 
     except Exception as exc:
         print(f"[rennauktion] push failed (non-fatal): {exc}")
+
+
+def _deploy_to_cloudflare(index_html_path: Path, repo_dir: Path) -> None:
+    """Direct-upload the built site to Cloudflare Pages on every data change."""
+    import subprocess
+    CF_EMAIL = "openclawx1@protonmail.com"
+    CF_KEY   = "CF_KEY_REDACTED"
+    ACCOUNT  = "9dd4680b69035f1f6668ce0f44f632cc"
+    PROJECT  = "rennauktion"
+    auth_js  = repo_dir / "auth.js"
+
+    cmd = [
+        "curl", "-s", "-X", "POST",
+        f"https://api.cloudflare.com/client/v4/accounts/{ACCOUNT}/pages/projects/{PROJECT}/deployments",
+        "-H", f"X-Auth-Email: {CF_EMAIL}",
+        "-H", f"X-Auth-Key: {CF_KEY}",
+        "-F", "manifest={}",
+        "-F", f"index.html=@{index_html_path};type=text/html",
+    ]
+    if auth_js.exists():
+        cmd += ["-F", f"auth.js=@{auth_js};type=application/javascript"]
+
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        import json
+        data = json.loads(result.stdout)
+        if data.get("success"):
+            url = data["result"].get("url", "?")
+            print(f"[cloudflare] deployed → {url}")
+        else:
+            print(f"[cloudflare] deploy failed: {data.get('errors')}")
+    except Exception as exc:
+        print(f"[cloudflare] deploy error (non-fatal): {exc}")
 
 
 # ── HTML template ─────────────────────────────────────────────────────────────
