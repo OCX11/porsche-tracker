@@ -289,7 +289,8 @@ def _auction_card(car: dict, fmv_score: dict, is_hero: bool = False) -> str:
  data-gen="{_h(gen_str)}" data-src="{_h(src_label)}" data-tier="{_h(tier)}"
  data-price="{price or 0}" data-fmv="{fmv_sort_val}"
  data-mileage="{int(mileage) if mileage else 999999}"
- data-ends="{_h(ends_at)}" data-listed="{_h(listed)}" data-url="{_h(url)}">
+ data-ends="{_h(ends_at)}" data-listed="{_h(listed)}" data-url="{_h(url)}"
+ data-title="{_h(f'{year} {model} {trim}'.strip())}" data-img="{_h(img)}">
   <div class="card-main">
     <div class="img-wrap" onclick="window.open('{_h(url)}','_blank')">{img_tag}</div>
     <div class="card-body" onclick="cardClick(event,'{_h(url)}')">
@@ -668,6 +669,8 @@ def _push_rennauktion(html: str) -> None:
             .replace('RennMarkt \u2014 Auction Watcher',
                      'RennAuktion \u2014 Porsche Auction Intelligence')\
             .replace('RennMarkt Auctions', 'RennAuktion')\
+            .replace('RennMarkt &mdash; Auction Watcher',
+                     'RennAuktion &mdash; Porsche Auction Intelligence')\
             .replace('<a class="dd-item" href="index.html">\U0001f3ce\ufe0f Market</a>',
                      '<a class="dd-item" href="https://www.rennmarkt.net">\U0001f3ce\ufe0f RennMarkt</a>')\
             .replace('<a class="logo" href="index.html">', '<a class="logo" href="/">')\
@@ -1242,6 +1245,16 @@ function toggleFav(evt, btn) {{
       b.classList.toggle('active', adding);
     }}
   }});
+  // Supabase sync — works alongside localStorage, login prompted if not authed
+  if (window.RA) {{
+    var card = btn.closest('[data-title]') || btn.closest('[data-url]');
+    window.RA.toggleSave(url, {{
+      source: card ? card.dataset.src : null,
+      title:  card ? card.dataset.title : null,
+      url:    url,
+      img:    card ? card.dataset.img : null,
+    }});
+  }}
   _updateFavCount();
   if (_curView === 'favs') applyFilters();
 }}
