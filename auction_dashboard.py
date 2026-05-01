@@ -155,9 +155,196 @@ def _fmv_display(fmv_val, conf, comp_count) -> str:
         f'<span class="fmv-meta">{conf_span}{comp_str}</span>'
     )
 
-# ── Auction card — Concept D (wide horizontal) ────────────────────────────────
+# ── Auction card — Concept D + hover expand with dot graph ───────────────────
 
 def _auction_card(car: dict, fmv_score: dict, is_hero: bool = False) -> str:
+    import json as _json
+    dealer   = car.get("dealer", "")
+    year     = car.get("year", "")
+    model    = car.get("model", "") or ""
+    trim     = car.get("trim", "") or ""
+    price    = car.get("price")
+    mileage  = car.get("mileage")
+    url      = car.get("listing_url", "") or "#"
+    img      = car.get("image_url", "") or ""
+    ends_at  = car.get("auction_ends_at") or ""
+    trans    = car.get("transmission", "") or ""
+    color    = car.get("color", "") or ""
+    body     = car.get("body_style", "") or ""
+    tier     = car.get("tier", "") or ""
+    listed   = car.get("date_first_seen", "") or ""
+    notes    = car.get("notes", "") or ""
+
+    # CDN image path fix
+    if img and img.startswith("/static/img_cache/"):
+        img = "img_cache/" + img.split("/")[-1]
+
+    fmv_val    = fmv_score.get("fmv")
+    conf       = fmv_score.get("confidence", "NONE")
+    comp_count = fmv_score.get("comp_count", 0)
+    fmv_low    = fmv_score.get("price_low")
+    fmv_high   = fmv_score.get("price_high")
+    comp_prices = fmv_score.get("comp_prices", [])
+
+    gen_str   = _gen(year, model)
+    src_label = _badge_label(dealer)
+
+    # Parse end time
+    ends_dt = None
+    if ends_at:
+        try:
+            ends_dt = datetime.fromisoformat(ends_at.replace("Z", "+00:00"))
+        except Exception:
+            pass
+
+    now_utc = datetime.now(timezone.utc)
+    urg = _urgency(ends_dt, now_utc)
+    timer_cls = _URGENCY_TIMER_CLASS[urg]
+
+    urg_label = {
+        "critical": "ENDING NOW",
+        "soon":     "ENDING TODAY",
+        "live":     "",
+        "noend":    "NO END TIME",
+    }.get(urg, "")
+
+    # Image tag
+    is_pca = "mart.pca.org" in img
+    if img and is_pca:
+        img_id = f"pcaimg_{abs(hash(img)) % 999999}"
+        img_tag = (
+            f'<img id="{img_id}" src="{_PLACEHOLDER}" alt="" class="auc-img">'
+            f'<script>(function(){{'
+            f'var x=new XMLHttpRequest();x.open("GET","{_h(img)}",true);'
+            f'x.setRequestHeader("Referer","https://mart.pca.org/");'
+            f'x.responseType="blob";'
+            f'x.onload=function(){{if(x.status==200){{var u=URL.createObjectURL(x.response);document.getElementById("{img_id}").src=u;}}}};'
+            f'x.send();'
+            f'}})();</script>'
+        )
+    elif img:
+        img_tag = f'<img src="{_h(img)}" alt="" class="auc-img" loading="lazy" onerror="this.src=\'{_PLACEHOLDER}\'">'
+    else:
+        img_tag = f'<img src="{_PLACEHOLDER}" alt="" class="auc-img">'
+
+    # Meta
+    meta_parts = []
+    if trans:   meta_parts.append(_h(trans))
+    if mileage: meta_parts.append(f"{_m(mileage)} mi")
+    if color:   meta_parts.append(_h(color))
+    meta_html = ' <span class="dot">&middot;</span> '.join(meta_parts)
+
+    # Subtitle chips
+    subtitle_parts = [_badge(dealer)]
+    if gen_str:   subtitle_parts.append(f'<span class="gen-tag">{_h(gen_str)}</span>')
+    if urg_label: subtitle_parts.append(f'<span class="urg-tag urg-{urg}">{urg_label}</span>')
+    subtitle_html = ' '.join(subtitle_parts)
+
+    # Timer
+    timer_html = (f'<span class="countdown-timer {timer_cls}" data-ends="{_h(ends_at)}">…</span>'
+                  if ends_at else '<span class="countdown-timer timer-muted">—</span>')
+
+    # FMV display
+    fmv_html = _fmv_display(fmv_val, conf, comp_count)
+
+    # Sort values
+    fmv_sort_val = int(fmv_val) if fmv_val and conf != "NONE" else 0
+
+    # Deal badge for expand panel
+    deal_badge_html = ""
+    if fmv_val and price and conf != "NONE":
+        pct = (float(price) - float(fmv_val)) / float(fmv_val)
+        if pct <= -0.05:
+            deal_badge_html = f'<span class="deal-badge">{abs(round(pct*100))}% below FMV</span>'
+        elif pct >= 0.05:
+            deal_badge_html = f'<span class="above-badge">{round(pct*100)}% above FMV</span>'
+
+    # Expand panel stats
+    days_listed = ""
+    if listed:
+        try:
+            from datetime import date
+            d = date.fromisoformat(listed[:10])
+            days_listed = str((date.today() - d).days)
+        except Exception:
+            pass
+
+    fmv_range_str = (f"{_p_short(fmv_low)} &ndash; {_p_short(fmv_high)}"
+                     if fmv_low and fmv_high else "—")
+
+    # Tag chips for expand
+    tag_chips = []
+    if gen_str:  tag_chips.append(gen_str)
+    if body:     tag_chips.append(_h(body))
+    tags_html = "".join(f'<span class="etag">{t}</span>' for t in tag_chips[:6])
+
+    # Comp prices as JSON for JS dot graph
+    comp_json = _json.dumps(comp_prices[:60])  # cap at 60 dots
+    price_int = int(price) if price else 0
+
+    hero_cls = " auc-card--hero" if is_hero else ""
+
+    return f'''<div class="auc-card{hero_cls} auc-urg-{urg}"
+ data-gen="{_h(gen_str)}" data-src="{_h(src_label)}" data-tier="{_h(tier)}"
+ data-price="{price or 0}" data-fmv="{fmv_sort_val}"
+ data-mileage="{int(mileage) if mileage else 999999}"
+ data-ends="{_h(ends_at)}" data-listed="{_h(listed)}" data-url="{_h(url)}">
+  <div class="card-main">
+    <div class="img-wrap" onclick="window.open('{_h(url)}','_blank')">{img_tag}</div>
+    <div class="card-body" onclick="cardClick(event,'{_h(url)}')">
+      <div class="card-top">
+        <div class="card-subtitle">{subtitle_html}</div>
+        <div class="card-top-right">
+          <button class="fav-btn" data-url="{_h(url)}" onclick="toggleFav(event,this)" title="Watch">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="8" cy="8" r="4.5"/>
+              <circle cx="8" cy="8" r="1.8" fill="var(--bg2)" stroke="none"/>
+              <rect x="11.5" y="7" width="9" height="2.5" rx="1.25"/>
+              <rect x="17" y="9.5" width="2.5" height="2.5" rx="0.8"/>
+              <rect x="13.5" y="9.5" width="2.5" height="3.5" rx="0.8"/>
+            </svg>
+          </button>
+          <div class="card-timer">{timer_html}</div>
+        </div>
+      </div>
+      <div class="card-title">{year} Porsche {_h(_dedup_model_trim(model, trim))}</div>
+      <div class="card-bottom">
+        <div class="bid-block">
+          <div class="val-label">Current Bid</div>
+          <div class="bid-val">{_p(price)}</div>
+        </div>
+        <div class="divider-vert"></div>
+        <div class="fmv-block">
+          <div class="val-label">FMV Est.</div>
+          <div class="fmv-row">{fmv_html}</div>
+        </div>
+        <div class="meta-block">{meta_html}</div>
+        <a class="go-link" href="{_h(url)}" target="_blank" onclick="event.stopPropagation()">&#x2197; Go to auction</a>
+      </div>
+    </div>
+  </div>
+  <div class="expand-panel">
+    <div class="expand-inner">
+      <div class="stat-row">
+        <div class="estat"><div class="estat-label">FMV Range</div><div class="estat-val">{fmv_range_str}</div></div>
+        <div class="estat"><div class="estat-label">Comps</div><div class="estat-val">{comp_count} sales</div></div>
+        <div class="estat"><div class="estat-label">Days Listed</div><div class="estat-val">{days_listed or "—"}</div></div>
+        <div class="estat"><div class="estat-label">Mileage</div><div class="estat-val">{_m(mileage)} mi</div></div>
+        <div class="estat"><div class="estat-label">Transmission</div><div class="estat-val">{_h(trans) or "—"}</div></div>
+        <div class="estat"><div class="estat-label">Color</div><div class="estat-val">{_h(color) or "—"}</div></div>
+      </div>
+      <div class="graph-wrap">
+        <div class="graph-label">Sold comps vs FMV <span class="graph-sub">{comp_count} transactions</span></div>
+        <svg class="graph-svg" data-comps="{_h(comp_json)}" data-fmv="{int(fmv_val) if fmv_val else 0}" data-bid="{price_int}" data-low="{int(fmv_low) if fmv_low else 0}" data-high="{int(fmv_high) if fmv_high else 0}"></svg>
+      </div>
+      <div class="expand-footer">
+        <div class="etag-row">{tags_html}</div>
+        <div class="expand-actions">{deal_badge_html}<a class="go-btn" href="{_h(url)}" target="_blank" onclick="event.stopPropagation()">&#x2197; Go to auction</a></div>
+      </div>
+    </div>
+  </div>
+</div>'''
+
     dealer   = car.get("dealer", "")
     year     = car.get("year", "")
     model    = car.get("model", "") or ""
@@ -248,77 +435,6 @@ def _auction_card(car: dict, fmv_score: dict, is_hero: bool = False) -> str:
     # data-fmv for sort
     fmv_sort_val = int(fmv_val) if fmv_val and conf != "NONE" else 0
 
-    # Unique card id for favorites
-    card_id = f"{_h(url)}"
-
-    # Hero extra panel (dot graph placeholder + FMV range)
-    fmv_low  = fmv_score.get("price_low")
-    fmv_high = fmv_score.get("price_high")
-    hero_extra_html = ""
-    if is_hero:
-        range_str = f"{_p_short(fmv_low)} &ndash; {_p_short(fmv_high)}" if fmv_low and fmv_high else "—"
-        hero_extra_html = (
-            f'<div class="hero-extra">'
-            f'  <div><div class="hero-extra-lbl">FMV Range</div>'
-            f'  <div class="hero-fmv-range">{range_str}</div></div>'
-            f'  <div><div class="hero-extra-lbl">Comps</div>'
-            f'  <div class="hero-extra-val">{comp_count}</div></div>'
-            f'  <div class="hero-dot-placeholder">dot graph coming</div>'
-            f'</div>'
-        )
-
-    hero_cls = " auc-card--hero" if is_hero else ""
-
-    return (
-        f'<div class="auc-card{hero_cls} auc-urg-{urg}"'
-        f' style="border-left:3px solid {stripe_color}"'
-        f' data-gen="{_h(gen_str)}"'
-        f' data-src="{_h(src_label)}"'
-        f' data-tier="{_h(tier)}"'
-        f' data-price="{price or 0}"'
-        f' data-fmv="{fmv_sort_val}"'
-        f' data-mileage="{int(mileage) if mileage else 999999}"'
-        f' data-ends="{_h(ends_at)}"'
-        f' data-listed="{_h(car.get("date_first_seen","") or "")}"'
-        f' data-url="{_h(url)}"'
-        f' onclick="cardClick(event,\'{_h(url)}\')">\n'
-        f'  <div class="img-wrap">\n'
-        f'    {img_tag}\n'
-        f'  </div>\n'
-        f'  <div class="card-body">\n'
-        f'    <div class="card-top">\n'
-        f'      <div class="card-subtitle">{subtitle_html}</div>\n'
-        f'      <div class="card-top-right">\n'
-        f'        <button class="fav-btn" data-url="{_h(url)}" onclick="toggleFav(event,this)" title="Save to watch list">'
-        f'<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">'
-        f'<circle cx="8" cy="8" r="4.5"/>'
-        f'<circle cx="8" cy="8" r="1.8" fill="var(--bg2)" stroke="none"/>'
-        f'<rect x="11.5" y="7" width="9" height="2.5" rx="1.25"/>'
-        f'<rect x="17" y="9.5" width="2.5" height="2.5" rx="0.8"/>'
-        f'<rect x="13.5" y="9.5" width="2.5" height="3.5" rx="0.8"/>'
-        f'</svg>'
-        f'</button>\n'
-        f'        <div class="card-timer">{timer_html}</div>\n'
-        f'      </div>\n'
-        f'    </div>\n'
-        f'    <div class="card-title">{year} Porsche {_h(_dedup_model_trim(model, trim))}</div>\n'
-        f'    <div class="card-bottom">\n'
-        f'      <div class="bid-block">\n'
-        f'        <div class="val-label">Current Bid</div>\n'
-        f'        <div class="bid-val">{_p(price)}</div>\n'
-        f'      </div>\n'
-        f'      <div class="divider-vert"></div>\n'
-        f'      <div class="fmv-block">\n'
-        f'        <div class="val-label">FMV Est.</div>\n'
-        f'        <div class="fmv-row">{fmv_html}</div>\n'
-        f'      </div>\n'
-        f'      <div class="meta-block">{meta_html}</div>\n'
-        f'    </div>\n'
-        f'  </div>\n'
-        f'{hero_extra_html}'
-        f'</div>'
-    )
-
 
 # ── Section builder ───────────────────────────────────────────────────────────
 
@@ -361,11 +477,15 @@ def generate() -> str:
             fmv_obj = row.get("fmv")
             if fmv_obj:
                 fmv_by_id[row["id"]] = {
-                    "fmv":        getattr(fmv_obj, "weighted_median", None),
-                    "confidence": getattr(fmv_obj, "confidence", "NONE"),
-                    "comp_count": getattr(fmv_obj, "comp_count", 0),
-                    "price_low":  getattr(fmv_obj, "price_low", None),
-                    "price_high": getattr(fmv_obj, "price_high", None),
+                    "fmv":         getattr(fmv_obj, "weighted_median", None),
+                    "confidence":  getattr(fmv_obj, "confidence", "NONE"),
+                    "comp_count":  getattr(fmv_obj, "comp_count", 0),
+                    "price_low":   getattr(fmv_obj, "price_low", None),
+                    "price_high":  getattr(fmv_obj, "price_high", None),
+                    "comp_prices": sorted([
+                        int(c.sold_price) for c in getattr(fmv_obj, "comps", [])
+                        if getattr(c, "sold_price", None) and int(c.sold_price) > 0
+                    ]),
                 }
             else:
                 fmv_by_id[row["id"]] = {"fmv": None, "confidence": "NONE", "comp_count": 0}
@@ -614,81 +734,36 @@ a {{ color:inherit; text-decoration:none; }}
 /* ── Cards list — single column ── */
 .cards-list {{ display:flex; flex-direction:column; gap:6px; padding:4px 2px; }}
 
-/* ── Auction card — Concept D ── */
+/* ── Auction card ── */
 .auc-card {{
   background:var(--bg2); border:1px solid var(--border); border-radius:10px;
-  overflow:hidden; cursor:pointer; display:flex; height:130px;
+  overflow:hidden; cursor:default; display:flex; flex-direction:column;
   transition:border-color 0.35s cubic-bezier(0.34,1.56,0.64,1),
              box-shadow   0.35s cubic-bezier(0.34,1.56,0.64,1),
-             transform    0.35s cubic-bezier(0.34,1.56,0.64,1),
-             height       0.22s ease;
-  position:relative; transform:translateY(0) scale(1);
+             transform    0.35s cubic-bezier(0.34,1.56,0.64,1);
+  transform:translateY(0) scale(1);
 }}
 .auc-card:hover {{
   border-color:var(--red);
-  border-left-color:var(--red);
   box-shadow:0 12px 40px rgba(0,0,0,0.45), 0 4px 12px rgba(192,57,43,0.15);
   transform:translateY(-5px) scale(1.01);
 }}
-.auc-urg-critical {{ /* border-left handled via inline style */ }}
-.auc-urg-soon     {{ /* border-left handled via inline style */ }}
+.auc-card--hero {{ border-color:rgba(192,57,43,0.3); }}
 
-/* ── Hero expansion on hover (Layout B hybrid) ────────────────────────────── */
-/* The soonest-ending card gets .auc-card--hero class stamped in Python.
-   On hover it expands: taller image, wider layout, extra detail panel visible. */
-.auc-card--hero {{ border-color:rgba(192,57,43,0.4); }}
-.auc-card--hero:hover {{
-  border-color:var(--red);
-  box-shadow:0 12px 40px rgba(0,0,0,0.45), 0 4px 12px rgba(192,57,43,0.15);
-  transform:translateY(-5px) scale(1.01);
-}}
-.auc-card--hero:hover .img-wrap {{ width:320px; min-width:320px; }}
-.auc-card--hero:hover .hero-extra {{ display:flex; }}
-.hero-extra {{
-  display:none; flex-direction:column; justify-content:flex-end;
-  padding:11px 14px 11px 0; gap:5px; min-width:140px; border-left:1px solid var(--border2);
-}}
-.hero-extra-lbl {{ font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:0.5px; }}
-.hero-extra-val {{ font-family:'DM Mono',monospace; font-size:13px; color:var(--text); }}
-.hero-fmv-range {{ font-family:'DM Mono',monospace; font-size:11px; color:#888; }}
-.hero-dot-placeholder {{
-  height:44px; border:1px dashed var(--border2); border-radius:4px;
-  display:flex; align-items:center; justify-content:center;
-  font-family:'DM Mono',monospace; font-size:9px; color:#2a2a2a; margin-top:4px;
-}}
-
-/* Image */
-.img-wrap {{ width:200px; min-width:200px; overflow:hidden; background:var(--bg3); flex-shrink:0; transition:width 0.22s ease, min-width 0.22s ease; }}
+/* ── Card main row ── */
+.card-main {{ display:flex; height:130px; flex-shrink:0; }}
+.img-wrap {{ width:200px; min-width:200px; overflow:hidden; background:var(--bg3); flex-shrink:0; cursor:pointer; }}
 .auc-img {{ width:100%; height:100%; object-fit:cover; display:block; opacity:0.87; transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1),opacity 0.2s; }}
 .auc-card:hover .auc-img {{ transform:scale(1.08); opacity:0.95; }}
-
-/* Card body */
-.card-body {{ flex:1; padding:11px 14px; display:flex; flex-direction:column; justify-content:space-between; min-width:0; }}
-/* On hero hover, switch to gap-based top-down flow so nothing floats */
-.auc-card--hero:hover .card-body {{ justify-content:flex-start; gap:8px; padding:13px 16px; }}
+.card-body {{ flex:1; padding:11px 14px; display:flex; flex-direction:column; justify-content:space-between; min-width:0; cursor:pointer; }}
 .card-top {{ display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }}
 .card-subtitle {{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }}
-.card-timer {{ flex-shrink:0; }}
-
-/* Title */
-.card-title {{
-  font-family:'DM Sans',sans-serif; font-size:16px; font-weight:500;
-  color:#f0ece6; line-height:1.25;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  margin-bottom:0;
-}}
-.auc-card--hero:hover .card-title {{ font-size:18px; white-space:normal; }}
-
-/* Bottom row: bid | divider | FMV | meta */
+.card-top-right {{ display:flex; align-items:center; gap:8px; flex-shrink:0; }}
+.card-title {{ font-family:'DM Sans',sans-serif; font-size:16px; font-weight:500; color:#f0ece6; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:0; }}
 .card-bottom {{ display:flex; align-items:center; gap:16px; }}
 .bid-block, .fmv-block {{ flex-shrink:0; }}
 .val-label {{ font-family:'DM Mono',monospace; font-size:10px; color:#7a7570; letter-spacing:0.5px; margin-bottom:2px; }}
-.bid-val {{
-  font-family:'DM Mono',monospace; font-size:22px; font-weight:500; color:#fff;
-  letter-spacing:-0.5px; line-height:1.1;
-  transition:color 0.2s ease, transform 0.2s ease;
-  display:inline-block;
-}}
+.bid-val {{ font-family:'DM Mono',monospace; font-size:22px; font-weight:500; color:#fff; letter-spacing:-0.5px; line-height:1.1; transition:color 0.2s ease, transform 0.2s ease; display:inline-block; }}
 .auc-card:hover .bid-val {{ color:var(--red); transform:scale(1.04); }}
 .fmv-row {{ display:flex; align-items:center; gap:5px; }}
 .fmv-est {{ font-family:'DM Mono',monospace; font-size:17px; color:#9a958f; letter-spacing:-0.3px; }}
@@ -697,22 +772,41 @@ a {{ color:inherit; text-decoration:none; }}
 .divider-vert {{ width:1px; height:32px; background:var(--border2); flex-shrink:0; }}
 .meta-block {{ font-family:'DM Mono',monospace; font-size:10px; color:#5a5652; margin-left:auto; text-align:right; line-height:1.7; }}
 .dot {{ color:#3a3a3a; }}
+.go-link {{ font-family:'DM Mono',monospace; font-size:10px; color:#555; border:1px solid #2a2a2a; border-radius:4px; padding:3px 9px; white-space:nowrap; text-decoration:none; transition:all 0.15s; flex-shrink:0; }}
+.go-link:hover {{ color:var(--red); border-color:var(--red); }}
 
-/* Badges + tags */
+/* ── Expand panel ── */
+.expand-panel {{ max-height:0; overflow:hidden; transition:max-height 0.32s cubic-bezier(0.4,0,0.2,1); border-top:0px solid var(--border); background:#0f0f0f; }}
+.auc-card:hover .expand-panel {{ max-height:260px; border-top-width:1px; }}
+.expand-inner {{ padding:14px 18px 16px; display:flex; flex-direction:column; gap:12px; }}
+.stat-row {{ display:flex; gap:0; }}
+.estat {{ flex:1; padding:0 14px; border-right:1px solid #1e1e1e; }}
+.estat:first-child {{ padding-left:0; }}
+.estat:last-child {{ border-right:none; }}
+.estat-label {{ font-family:'DM Mono',monospace; font-size:9px; color:#4a4a4a; letter-spacing:.8px; text-transform:uppercase; margin-bottom:3px; }}
+.estat-val {{ font-family:'DM Mono',monospace; font-size:13px; color:#c8c4be; font-weight:500; }}
+.graph-wrap {{ width:100%; }}
+.graph-label {{ font-family:'DM Mono',monospace; font-size:9px; color:#4a4a4a; letter-spacing:.8px; text-transform:uppercase; margin-bottom:6px; display:flex; justify-content:space-between; }}
+.graph-sub {{ color:#333; letter-spacing:0; text-transform:none; }}
+.graph-svg {{ width:100%; height:80px; display:block; }}
+.expand-footer {{ display:flex; align-items:center; justify-content:space-between; }}
+.etag-row {{ display:flex; gap:5px; flex-wrap:wrap; }}
+.etag {{ font-family:'DM Mono',monospace; font-size:9px; color:#4a4a4a; background:#1a1a1a; border:1px solid #242424; padding:2px 7px; border-radius:3px; }}
+.expand-actions {{ display:flex; align-items:center; gap:10px; }}
+.deal-badge {{ font-family:'DM Mono',monospace; font-size:10px; color:#4ade80; background:rgba(74,222,128,.08); border:1px solid rgba(74,222,128,.2); padding:3px 10px; border-radius:4px; }}
+.above-badge {{ font-family:'DM Mono',monospace; font-size:10px; color:#F87171; background:rgba(248,113,113,.08); border:1px solid rgba(248,113,113,.2); padding:3px 10px; border-radius:4px; }}
+.go-btn {{ display:inline-flex; align-items:center; gap:5px; font-family:'DM Mono',monospace; font-size:11px; color:#fff; background:var(--red); border:none; border-radius:5px; padding:6px 14px; cursor:pointer; text-decoration:none; transition:background .15s; }}
+.go-btn:hover {{ background:#a93226; }}
+
+/* ── Badges + tags ── */
 .src-badge {{ font-family:'DM Mono',monospace; font-size:10px; font-weight:500; padding:2px 7px; border-radius:3px; }}
 .gen-tag {{ font-family:'DM Mono',monospace; font-size:10px; color:#4a4a4a; }}
 .urg-tag {{ font-family:'DM Mono',monospace; font-size:9px; font-weight:700; letter-spacing:1px; padding:1px 5px; border-radius:2px; }}
 .urg-critical {{ color:var(--red); background:rgba(192,57,43,0.12); }}
 .urg-soon {{ color:var(--amber); background:rgba(234,179,8,0.1); }}
 
-/* Card top row — fav + timer grouped right */
-.card-top-right {{ display:flex; align-items:center; gap:8px; flex-shrink:0; }}
-
-/* Favorites button — key silhouette SVG */
-.fav-btn {{
-  background:transparent; border:none; cursor:pointer; padding:0 2px;
-  line-height:1; transition:transform 0.12s; flex-shrink:0; display:flex; align-items:center;
-}}
+/* ── Fav button ── */
+.fav-btn {{ background:transparent; border:none; cursor:pointer; padding:0 2px; line-height:1; transition:transform 0.12s; flex-shrink:0; display:flex; align-items:center; }}
 .fav-btn:hover {{ transform:scale(1.15); }}
 .fav-btn svg {{ width:15px; height:15px; transition:fill 0.15s, stroke 0.15s; }}
 .fav-btn:not(.active) svg {{ fill:none; stroke:#3a3a3a; stroke-width:1.5; }}
@@ -1041,6 +1135,92 @@ function cardClick(evt, url) {{
     }} else {{ setP(0); }}
   }}, {{passive:true}});
 }})();
+
+// ── Dot graph renderer ────────────────────────────────────────────────────────
+function drawDotGraph(svg) {{
+  if (svg._drawn) return;
+  var comps = JSON.parse(svg.dataset.comps || '[]');
+  var fmv   = +svg.dataset.fmv  || 0;
+  var bid   = +svg.dataset.bid  || 0;
+  var low   = +svg.dataset.low  || 0;
+  var high  = +svg.dataset.high || 0;
+  if (!comps.length && !fmv) return;
+
+  var W = svg.getBoundingClientRect().width || 700;
+  var H = 80;
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+
+  // Price range
+  var allPrices = comps.concat(fmv ? [fmv] : [], bid ? [bid] : []);
+  var minP = Math.min.apply(null, allPrices) * 0.92;
+  var maxP = Math.max.apply(null, allPrices) * 1.08;
+  var range = maxP - minP || 1;
+
+  function px(price) {{ return 20 + ((price - minP) / range) * (W - 40); }}
+
+  var ns = 'http://www.w3.org/2000/svg';
+
+  function el(tag, attrs) {{
+    var e = document.createElementNS(ns, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }}
+
+  // Axis
+  svg.appendChild(el('line', {{x1:0, y1:H-12, x2:W, y2:H-12, stroke:'#1e1e1e', 'stroke-width':1}}));
+
+  // FMV median line
+  if (fmv) {{
+    var fx = px(fmv);
+    svg.appendChild(el('line', {{x1:fx, y1:4, x2:fx, y2:H-14, stroke:'#333', 'stroke-width':1, 'stroke-dasharray':'5,3'}}));
+    var ft = el('text', {{x:fx, y:3, 'text-anchor':'middle', fill:'#444', 'font-family':'DM Mono,monospace', 'font-size':'8'}});
+    ft.textContent = 'FMV $' + Math.round(fmv/1000) + 'K';
+    svg.appendChild(ft);
+  }}
+
+  // Comp dots — jitter vertically so overlapping dots are visible
+  var buckets = {{}};
+  comps.forEach(function(p) {{
+    var bx = Math.round(px(p));
+    buckets[bx] = (buckets[bx] || 0) + 1;
+    var jitter = (buckets[bx] - 1) * 5;
+    var cy = H - 18 - jitter;
+    if (cy < 8) cy = 8;
+    var c = el('circle', {{cx:bx, cy:cy, r:3.5, fill:'#1e3a1e', stroke:'#2a5a2a', 'stroke-width':1, opacity:0.9}});
+    svg.appendChild(c);
+  }});
+
+  // Price range labels
+  if (low && high) {{
+    var lt = el('text', {{x:2, y:H-1, fill:'#333', 'font-family':'DM Mono,monospace', 'font-size':'8'}});
+    lt.textContent = '$' + Math.round(low/1000) + 'K';
+    svg.appendChild(lt);
+    var ht = el('text', {{x:W-2, y:H-1, 'text-anchor':'end', fill:'#333', 'font-family':'DM Mono,monospace', 'font-size':'8'}});
+    ht.textContent = '$' + Math.round(high/1000) + 'K';
+    svg.appendChild(ht);
+  }}
+
+  // Current bid — red line + dot
+  if (bid) {{
+    var bx = px(bid);
+    svg.appendChild(el('line', {{x1:bx, y1:6, x2:bx, y2:H-14, stroke:'#c0392b', 'stroke-width':1.5, 'stroke-dasharray':'3,2', opacity:0.8}}));
+    svg.appendChild(el('circle', {{cx:bx, cy:H-20, r:5.5, fill:'#c0392b'}}));
+    var bt = el('text', {{x:bx+8, y:H-16, fill:'#c0392b', 'font-family':'DM Mono,monospace', 'font-size':'8', 'font-weight':'500'}});
+    bt.textContent = 'Bid $' + Math.round(bid/1000) + 'K';
+    svg.appendChild(bt);
+  }}
+
+  svg._drawn = true;
+}}
+
+// Draw graph when card is hovered
+document.querySelectorAll('.auc-card').forEach(function(card) {{
+  var drawn = false;
+  card.addEventListener('mouseenter', function() {{
+    var svg = card.querySelector('.graph-svg');
+    if (svg && !drawn) {{ drawn = true; setTimeout(function(){{ drawDotGraph(svg); }}, 50); }}
+  }});
+}});
 
 // ── Nav + theme ───────────────────────────────────────────────────────────────
 function openListing(url) {{ window.open(url, '_blank'); }}
