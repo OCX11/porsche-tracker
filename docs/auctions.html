@@ -158,44 +158,41 @@ a { color:inherit; text-decoration:none; }
 .urgency-stripe { width:3px; min-width:3px; flex-shrink:0; }
 
 /* Image */
-.img-wrap { width:200px; min-width:200px; overflow:hidden; background:var(--bg3); flex-shrink:0; transition:width 0.22s ease, min-width 0.22s ease; }
+.img-wrap { width:200px; min-width:200px; overflow:hidden; background:var(--bg3); flex-shrink:0; }
 .auc-img { width:100%; height:100%; object-fit:cover; display:block; opacity:0.87; transition:transform 0.2s,opacity 0.2s; }
 .auc-card:hover .auc-img { transform:scale(1.03); opacity:0.95; }
 
 /* Card body */
 .card-body { flex:1; padding:11px 14px; display:flex; flex-direction:column; justify-content:space-between; min-width:0; }
-/* On hero hover, switch to gap-based top-down flow so nothing floats */
-.auc-card--hero:hover .card-body { justify-content:flex-start; gap:8px; padding:13px 16px; }
 .card-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
 .card-subtitle { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
 .card-timer { flex-shrink:0; }
 
 /* Title */
 .card-title {
-  font-family:'DM Sans',sans-serif; font-size:16px; font-weight:500;
-  color:#f0ece6; line-height:1.25;
+  font-family:'DM Sans',sans-serif; font-size:15px; font-weight:400;
+  color:var(--text); line-height:1.25;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  margin-bottom:0;
+  margin-bottom:2px;
 }
-.auc-card--hero:hover .card-title { font-size:18px; white-space:normal; }
 
 /* Bottom row: bid | divider | FMV | meta */
 .card-bottom { display:flex; align-items:center; gap:16px; }
 .bid-block, .fmv-block { flex-shrink:0; }
-.val-label { font-family:'DM Mono',monospace; font-size:10px; color:#7a7570; letter-spacing:0.5px; margin-bottom:2px; }
-.bid-val { font-family:'DM Mono',monospace; font-size:22px; font-weight:500; color:#fff; letter-spacing:-0.5px; line-height:1.1; }
+.val-label { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:0.5px; margin-bottom:1px; }
+.bid-val { font-family:'DM Mono',monospace; font-size:20px; font-weight:500; color:#fff; letter-spacing:-0.5px; line-height:1.1; }
 .fmv-row { display:flex; align-items:center; gap:5px; }
-.fmv-est { font-family:'DM Mono',monospace; font-size:17px; color:#9a958f; letter-spacing:-0.3px; }
-.fmv-meta { font-family:'DM Mono',monospace; font-size:10px; color:#555; display:flex; align-items:center; gap:3px; }
-.fmv-none { font-family:'DM Mono',monospace; font-size:11px; color:#444; }
+.fmv-est { font-family:'DM Mono',monospace; font-size:15px; color:#888; letter-spacing:-0.3px; }
+.fmv-meta { font-family:'DM Mono',monospace; font-size:9px; color:#444; display:flex; align-items:center; gap:3px; }
+.fmv-none { font-family:'DM Mono',monospace; font-size:11px; color:#333; }
 .divider-vert { width:1px; height:32px; background:var(--border2); flex-shrink:0; }
-.meta-block { font-family:'DM Mono',monospace; font-size:10px; color:#5a5652; margin-left:auto; text-align:right; line-height:1.7; }
-.dot { color:#3a3a3a; }
+.meta-block { font-family:'DM Mono',monospace; font-size:10px; color:#3a3a3a; margin-left:auto; text-align:right; line-height:1.6; }
+.dot { color:#2a2a2a; }
 
 /* Badges + tags */
-.src-badge { font-family:'DM Mono',monospace; font-size:10px; font-weight:500; padding:2px 7px; border-radius:3px; }
-.gen-tag { font-family:'DM Mono',monospace; font-size:10px; color:#4a4a4a; }
-.urg-tag { font-family:'DM Mono',monospace; font-size:9px; font-weight:700; letter-spacing:1px; padding:1px 5px; border-radius:2px; }
+.src-badge { font-family:'DM Mono',monospace; font-size:9px; font-weight:500; padding:2px 6px; border-radius:3px; }
+.gen-tag { font-family:'DM Mono',monospace; font-size:9px; color:#3a3a3a; }
+.urg-tag { font-family:'DM Mono',monospace; font-size:8px; font-weight:700; letter-spacing:1px; padding:1px 5px; border-radius:2px; }
 .urg-critical { color:var(--red); background:rgba(192,57,43,0.12); }
 .urg-soon { color:var(--amber); background:rgba(234,179,8,0.1); }
 
@@ -236,12 +233,12 @@ a { color:inherit; text-decoration:none; }
 .conf-low  { background:#F87171; }
 
 /* Countdown timer */
-.countdown-timer { font-family:'DM Mono',monospace; font-size:14px; font-weight:500; font-variant-numeric:tabular-nums; }
+.countdown-timer { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; font-variant-numeric:tabular-nums; }
 .timer-red   { color:var(--red); animation:timerPulse 1s infinite; }
 .timer-amber { color:var(--amber); }
 .timer-green { color:var(--green); }
-.timer-muted { color:#555; }
-@keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:0.45} }
+.timer-muted { color:var(--muted); }
+@keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
 
 /* Empty state */
 .empty-state { padding:32px 20px; text-align:center; }
@@ -273,7 +270,7 @@ a { color:inherit; text-decoration:none; }
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64"><g transform="translate(8,6)"><circle cx="26" cy="26" r="22" fill="none" stroke="#242424" stroke-width="2.5"/><path d="M6,38 A22,22 0 0,1 43.5,8.5" fill="none" stroke="#D85A30" stroke-width="2.5" stroke-linecap="round"/><g stroke="#333" stroke-width="1.2" stroke-linecap="round"><line x1="4" y1="26" x2="8.5" y2="26" transform="rotate(-80,26,26)"/><line x1="4" y1="26" x2="8.5" y2="26" transform="rotate(-55,26,26)"/><line x1="4" y1="26" x2="8.5" y2="26" transform="rotate(-30,26,26)"/><line x1="4" y1="26" x2="8.5" y2="26" transform="rotate(-5,26,26)"/><line x1="4" y1="26" x2="8.5" y2="26" transform="rotate(20,26,26)"/><line x1="4" y1="26" x2="8.5" y2="26" transform="rotate(45,26,26)"/><line x1="4" y1="26" x2="8.5" y2="26" transform="rotate(70,26,26)"/><line x1="4" y1="26" x2="8.5" y2="26" transform="rotate(95,26,26)"/></g><line x1="26" y1="26" x2="43.5" y2="8.5" stroke="white" stroke-width="1.8" stroke-linecap="round"/><circle cx="26" cy="26" r="4" fill="#D85A30"/><circle cx="26" cy="26" r="1.6" fill="#0d0d0d"/><text x="62" y="34" font-family="'Helvetica Neue',Arial,sans-serif" font-size="32" letter-spacing="-0.5"><tspan font-weight="800" fill="white">Renn</tspan><tspan font-weight="300" fill="#D85A30">Markt</tspan></text></g></svg>
   </a>
   <div class="topbar-right">
-    <span class="topbar-time"><span class="live-dot"></span>May 01 02:50 UTC</span>
+    <span class="topbar-time"><span class="live-dot"></span>May 01 02:55 UTC</span>
     <button class="more-btn" onclick="toggleDD()">More &#x25BE;</button>
   </div>
 </header>
@@ -497,7 +494,7 @@ a { color:inherit; text-decoration:none; }
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-soon" data-gen="G-Series" data-src="BaT" data-tier="TIER1" data-price="81000" data-fmv="94500" data-mileage="999999" data-ends="2026-05-01T18:16:00Z" data-listed="2026-04-28" data-url="https://bringatrailer.com/listing/1988-porsche-911-carrera-coupe-89/" onclick="cardClick(event,'https://bringatrailer.com/listing/1988-porsche-911-carrera-coupe-89/')">
+<div class="auc-card auc-urg-soon" data-gen="G-Series" data-src="BaT" data-tier="TIER1" data-price="81000" data-fmv="94500" data-mileage="1100" data-ends="2026-05-01T18:16:00Z" data-listed="2026-04-28" data-url="https://bringatrailer.com/listing/1988-porsche-911-carrera-coupe-89/" onclick="cardClick(event,'https://bringatrailer.com/listing/1988-porsche-911-carrera-coupe-89/')">
   <div class="urgency-stripe" style="background:#EAB308"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/04/1988_porsche_911-carrera-coupe_88carrera-ggb-3-34628.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -521,7 +518,7 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$94K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>92c</span></div>
       </div>
-      <div class="meta-block">Manual <span class="dot">&middot;</span> Venetian Blue Metallic</div>
+      <div class="meta-block">Manual <span class="dot">&middot;</span> 1,100 mi <span class="dot">&middot;</span> Venetian Blue Metallic</div>
     </div>
   </div>
 </div>
@@ -553,7 +550,7 @@ a { color:inherit; text-decoration:none; }
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-soon" data-gen="997.2" data-src="BaT" data-tier="TIER2" data-price="32000" data-fmv="75500" data-mileage="999999" data-ends="2026-05-01T18:32:00Z" data-listed="2026-04-24" data-url="https://bringatrailer.com/listing/2012-porsche-911-991-carrera-s-cabriolet-16/" onclick="cardClick(event,'https://bringatrailer.com/listing/2012-porsche-911-991-carrera-s-cabriolet-16/')">
+<div class="auc-card auc-urg-soon" data-gen="997.2" data-src="BaT" data-tier="TIER2" data-price="32000" data-fmv="75500" data-mileage="508" data-ends="2026-05-01T18:32:00Z" data-listed="2026-04-24" data-url="https://bringatrailer.com/listing/2012-porsche-911-991-carrera-s-cabriolet-16/" onclick="cardClick(event,'https://bringatrailer.com/listing/2012-porsche-911-991-carrera-s-cabriolet-16/')">
   <div class="urgency-stripe" style="background:#EAB308"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/03/2012_porsche_911-991-carrera-s-cabriolet_porsche_6-60729.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -577,11 +574,11 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$76K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>21c</span></div>
       </div>
-      <div class="meta-block">PDK <span class="dot">&middot;</span> Carrara White</div>
+      <div class="meta-block">PDK <span class="dot">&middot;</span> 508 mi <span class="dot">&middot;</span> Carrara White</div>
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-soon" data-gen="987" data-src="pcarmarket" data-tier="TIER2" data-price="40250" data-fmv="0" data-mileage="999999" data-ends="2026-05-01T18:39:26Z" data-listed="2026-04-24" data-url="https://www.pcarmarket.com/auction/2010-porsche-cayman-s-5" onclick="cardClick(event,'https://www.pcarmarket.com/auction/2010-porsche-cayman-s-5')">
+<div class="auc-card auc-urg-soon" data-gen="987" data-src="pcarmarket" data-tier="TIER2" data-price="40250" data-fmv="0" data-mileage="18602" data-ends="2026-05-01T18:39:26Z" data-listed="2026-04-24" data-url="https://www.pcarmarket.com/auction/2010-porsche-cayman-s-5" onclick="cardClick(event,'https://www.pcarmarket.com/auction/2010-porsche-cayman-s-5')">
   <div class="urgency-stripe" style="background:#EAB308"></div>
   <div class="img-wrap">
     <img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY1Mjk1IC0gMjAxMCBQb3JzY2hlIENheW1hbiBTIiwic2x1ZyI6IjY1Mjk1LTIwMTAtcG9yc2NoZS1jYXltYW4tcy05MjZkN2MwMSJ9/.thumbnails/c6946084-b6fa-4e6f-aaf9-7e8808fc9df3.webp/c6946084-b6fa-4e6f-aaf9-7e8808fc9df3-tiny-380x0.webp" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -605,11 +602,11 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-none">FMV: no data</span></div>
       </div>
-      <div class="meta-block"></div>
+      <div class="meta-block">18,602 mi</div>
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-soon" data-gen="987" data-src="BaT" data-tier="TIER1" data-price="65000" data-fmv="0" data-mileage="999999" data-ends="2026-05-01T18:48:00Z" data-listed="2026-04-27" data-url="https://bringatrailer.com/listing/2012-porsche-cayman-r-80/" onclick="cardClick(event,'https://bringatrailer.com/listing/2012-porsche-cayman-r-80/')">
+<div class="auc-card auc-urg-soon" data-gen="987" data-src="BaT" data-tier="TIER1" data-price="65000" data-fmv="0" data-mileage="12000" data-ends="2026-05-01T18:48:00Z" data-listed="2026-04-27" data-url="https://bringatrailer.com/listing/2012-porsche-cayman-r-80/" onclick="cardClick(event,'https://bringatrailer.com/listing/2012-porsche-cayman-r-80/')">
   <div class="urgency-stripe" style="background:#EAB308"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/04/2012_porsche_cayman-r_dino-cayman-r-67-of-70-72475.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -633,7 +630,7 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-none">FMV: no data</span></div>
       </div>
-      <div class="meta-block">Manual <span class="dot">&middot;</span> Peridot Metallic</div>
+      <div class="meta-block">Manual <span class="dot">&middot;</span> 12,000 mi <span class="dot">&middot;</span> Peridot Metallic</div>
     </div>
   </div>
 </div>
@@ -665,7 +662,7 @@ a { color:inherit; text-decoration:none; }
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-soon" data-gen="992" data-src="pcarmarket" data-tier="TIER2" data-price="150000" data-fmv="347000" data-mileage="999999" data-ends="2026-05-01T18:59:26Z" data-listed="2026-04-24" data-url="https://www.pcarmarket.com/auction/2021-porsche-911-turbo-1" onclick="cardClick(event,'https://www.pcarmarket.com/auction/2021-porsche-911-turbo-1')">
+<div class="auc-card auc-urg-soon" data-gen="992" data-src="pcarmarket" data-tier="TIER2" data-price="150000" data-fmv="347000" data-mileage="19825" data-ends="2026-05-01T18:59:26Z" data-listed="2026-04-24" data-url="https://www.pcarmarket.com/auction/2021-porsche-911-turbo-1" onclick="cardClick(event,'https://www.pcarmarket.com/auction/2021-porsche-911-turbo-1')">
   <div class="urgency-stripe" style="background:#EAB308"></div>
   <div class="img-wrap">
     <img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/.thumbnails/4197cab8-5d13-4613-b963-7c2ce900a72a-Screenshot-2026-04-24-at-6.52.16-PM.webp/4197cab8-5d13-4613-b963-7c2ce900a72a-Screenshot-2026-04-24-at-6.52.16-PM-tiny-380x0.webp" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -689,7 +686,7 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$347K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>9c</span></div>
       </div>
-      <div class="meta-block">Automatic</div>
+      <div class="meta-block">Automatic <span class="dot">&middot;</span> 19,825 mi</div>
     </div>
   </div>
 </div>
@@ -749,7 +746,7 @@ a { color:inherit; text-decoration:none; }
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-soon" data-gen="996" data-src="BaT" data-tier="TIER2" data-price="16000" data-fmv="40250" data-mileage="999999" data-ends="2026-05-01T19:00:00Z" data-listed="2026-04-30" data-url="https://bringatrailer.com/listing/2003-porsche-911-carrera-4s-coupe-62/" onclick="cardClick(event,'https://bringatrailer.com/listing/2003-porsche-911-carrera-4s-coupe-62/')">
+<div class="auc-card auc-urg-soon" data-gen="996" data-src="BaT" data-tier="TIER2" data-price="16000" data-fmv="40250" data-mileage="12000" data-ends="2026-05-01T19:00:00Z" data-listed="2026-04-30" data-url="https://bringatrailer.com/listing/2003-porsche-911-carrera-4s-coupe-62/" onclick="cardClick(event,'https://bringatrailer.com/listing/2003-porsche-911-carrera-4s-coupe-62/')">
   <div class="urgency-stripe" style="background:#EAB308"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2025/12/2003_porsche_911-carrera-4s-coupe_2003_porsche_911-carrera-4s-coupe_609afe72-6fe8-4ba3-8d7a-ba59714c84ce-jzygzb-19636-20941.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -773,7 +770,7 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$40K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>101c</span></div>
       </div>
-      <div class="meta-block"></div>
+      <div class="meta-block">12,000 mi</div>
     </div>
   </div>
 </div>
@@ -805,7 +802,7 @@ a { color:inherit; text-decoration:none; }
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-soon" data-gen="993" data-src="pcarmarket" data-tier="TIER1" data-price="200000" data-fmv="268071" data-mileage="999999" data-ends="2026-05-01T19:09:26Z" data-listed="2026-04-24" data-url="https://www.pcarmarket.com/auction/1997-porsche-911-turbo-16" onclick="cardClick(event,'https://www.pcarmarket.com/auction/1997-porsche-911-turbo-16')">
+<div class="auc-card auc-urg-soon" data-gen="993" data-src="pcarmarket" data-tier="TIER1" data-price="200000" data-fmv="268071" data-mileage="52000" data-ends="2026-05-01T19:09:26Z" data-listed="2026-04-24" data-url="https://www.pcarmarket.com/auction/1997-porsche-911-turbo-16" onclick="cardClick(event,'https://www.pcarmarket.com/auction/1997-porsche-911-turbo-16')">
   <div class="urgency-stripe" style="background:#EAB308"></div>
   <div class="img-wrap">
     <img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY1MTQyIC0gMTk5NyBQb3JzY2hlIDk5MyBUdXJibyIsInNsdWciOiI2NTE0Mi0xOTk3LXBvcnNjaGUtOTkzLXR1cmJvLTY2NzdkODBmIn0/.thumbnails/3956f2e8-f5b5-459a-a3a1-5ecd97e6f148.webp/3956f2e8-f5b5-459a-a3a1-5ecd97e6f148-tiny-380x0.webp" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -829,7 +826,7 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$268K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>33c</span></div>
       </div>
-      <div class="meta-block"></div>
+      <div class="meta-block">52,000 mi</div>
     </div>
   </div>
 </div>
@@ -845,7 +842,7 @@ a { color:inherit; text-decoration:none; }
     <div class="section-sub">Ending beyond 24h</div>
   </div>
   <div class="cards-list">
-    <div class="auc-card auc-urg-live" data-gen="992" data-src="BaT" data-tier="TIER2" data-price="200993" data-fmv="204204" data-mileage="999999" data-ends="2026-05-02T17:00:00Z" data-listed="2026-04-29" data-url="https://bringatrailer.com/listing/2024-porsche-911-targa-4-gts-21/" onclick="cardClick(event,'https://bringatrailer.com/listing/2024-porsche-911-targa-4-gts-21/')">
+    <div class="auc-card auc-urg-live" data-gen="992" data-src="BaT" data-tier="TIER2" data-price="200993" data-fmv="204204" data-mileage="3400" data-ends="2026-05-02T17:00:00Z" data-listed="2026-04-29" data-url="https://bringatrailer.com/listing/2024-porsche-911-targa-4-gts-21/" onclick="cardClick(event,'https://bringatrailer.com/listing/2024-porsche-911-targa-4-gts-21/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/03/180A3184-10212-scaled.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -869,11 +866,11 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$204K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>17c</span></div>
       </div>
-      <div class="meta-block">PDK <span class="dot">&middot;</span> GT Silver Metallic</div>
+      <div class="meta-block">PDK <span class="dot">&middot;</span> 3,400 mi <span class="dot">&middot;</span> GT Silver Metallic</div>
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="987" data-src="BaT" data-tier="TIER2" data-price="15000" data-fmv="0" data-mileage="999999" data-ends="2026-05-02T17:04:00Z" data-listed="2026-04-29" data-url="https://bringatrailer.com/listing/2007-porsche-cayman-s-152/" onclick="cardClick(event,'https://bringatrailer.com/listing/2007-porsche-cayman-s-152/')">
+<div class="auc-card auc-urg-live" data-gen="987" data-src="BaT" data-tier="TIER2" data-price="15000" data-fmv="0" data-mileage="12000" data-ends="2026-05-02T17:04:00Z" data-listed="2026-04-29" data-url="https://bringatrailer.com/listing/2007-porsche-cayman-s-152/" onclick="cardClick(event,'https://bringatrailer.com/listing/2007-porsche-cayman-s-152/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/04/2007_porsche_cayman-s_2007_porsche_cayman-s_2efd2050-d12d-4140-8d3a-eb1a3b004668-wz80bp-99699-92428.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -897,11 +894,11 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-none">FMV: no data</span></div>
       </div>
-      <div class="meta-block">Manual <span class="dot">&middot;</span> Carmon Red Metallic</div>
+      <div class="meta-block">Manual <span class="dot">&middot;</span> 12,000 mi <span class="dot">&middot;</span> Carmon Red Metallic</div>
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="997.1" data-src="BaT" data-tier="TIER2" data-price="26000" data-fmv="42000" data-mileage="999999" data-ends="2026-05-02T17:13:00Z" data-listed="2026-04-30" data-url="https://bringatrailer.com/listing/2007-porsche-911-carrera-coupe-38/" onclick="cardClick(event,'https://bringatrailer.com/listing/2007-porsche-911-carrera-coupe-38/')">
+<div class="auc-card auc-urg-live" data-gen="997.1" data-src="BaT" data-tier="TIER2" data-price="26000" data-fmv="42000" data-mileage="12000" data-ends="2026-05-02T17:13:00Z" data-listed="2026-04-30" data-url="https://bringatrailer.com/listing/2007-porsche-911-carrera-coupe-38/" onclick="cardClick(event,'https://bringatrailer.com/listing/2007-porsche-911-carrera-coupe-38/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/04/IMG_2157-12282-scaled.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -925,11 +922,11 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$42K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>68c</span></div>
       </div>
-      <div class="meta-block"></div>
+      <div class="meta-block">12,000 mi</div>
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="996" data-src="BaT" data-tier="TIER2" data-price="15000" data-fmv="28000" data-mileage="999999" data-ends="2026-05-02T17:22:00Z" data-listed="2026-04-30" data-url="https://bringatrailer.com/listing/1999-porsche-911-carrera-cabriolet-130-2/" onclick="cardClick(event,'https://bringatrailer.com/listing/1999-porsche-911-carrera-cabriolet-130-2/')">
+<div class="auc-card auc-urg-live" data-gen="996" data-src="BaT" data-tier="TIER2" data-price="15000" data-fmv="28000" data-mileage="12000" data-ends="2026-05-02T17:22:00Z" data-listed="2026-04-30" data-url="https://bringatrailer.com/listing/1999-porsche-911-carrera-cabriolet-130-2/" onclick="cardClick(event,'https://bringatrailer.com/listing/1999-porsche-911-carrera-cabriolet-130-2/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/04/1999_porsche_911-carrera-cabriolet_1999_porsche_911-carrera-cabriolet_94775c62-9234-45a6-a3f2-f1cbac253589-FJvKw9-55018-55019-scaled-mJ8KGY.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -953,11 +950,11 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$28K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>342c</span></div>
       </div>
-      <div class="meta-block"></div>
+      <div class="meta-block">12,000 mi</div>
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="964" data-src="BaT" data-tier="TIER1" data-price="101000" data-fmv="94500" data-mileage="999999" data-ends="2026-05-02T17:38:00Z" data-listed="2026-04-27" data-url="https://bringatrailer.com/listing/1990-porsche-911-carrera-2-coupe-72/" onclick="cardClick(event,'https://bringatrailer.com/listing/1990-porsche-911-carrera-2-coupe-72/')">
+<div class="auc-card auc-urg-live" data-gen="964" data-src="BaT" data-tier="TIER1" data-price="101000" data-fmv="94500" data-mileage="12000" data-ends="2026-05-02T17:38:00Z" data-listed="2026-04-27" data-url="https://bringatrailer.com/listing/1990-porsche-911-carrera-2-coupe-72/" onclick="cardClick(event,'https://bringatrailer.com/listing/1990-porsche-911-carrera-2-coupe-72/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/04/1990_porsche_911-carrera-2-coupe_103-94553.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -981,11 +978,11 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$94K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>92c</span></div>
       </div>
-      <div class="meta-block">Manual <span class="dot">&middot;</span> Marine Blue Metallic</div>
+      <div class="meta-block">Manual <span class="dot">&middot;</span> 12,000 mi <span class="dot">&middot;</span> Marine Blue Metallic</div>
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="718" data-src="BaT" data-tier="TIER1" data-price="69069" data-fmv="121000" data-mileage="999999" data-ends="2026-05-02T18:07:00Z" data-listed="2026-04-25" data-url="https://bringatrailer.com/listing/2019-porsche-718-cayman-gt4-clubsport-2/" onclick="cardClick(event,'https://bringatrailer.com/listing/2019-porsche-718-cayman-gt4-clubsport-2/')">
+<div class="auc-card auc-urg-live" data-gen="718" data-src="BaT" data-tier="TIER1" data-price="69069" data-fmv="121000" data-mileage="9400" data-ends="2026-05-02T18:07:00Z" data-listed="2026-04-25" data-url="https://bringatrailer.com/listing/2019-porsche-718-cayman-gt4-clubsport-2/" onclick="cardClick(event,'https://bringatrailer.com/listing/2019-porsche-718-cayman-gt4-clubsport-2/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/04/2019_porsche_718-cayman-gt4-clubsport-competition_porsche-gt4-cs-6540-54119.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -1009,11 +1006,11 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$121K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>29c</span></div>
       </div>
-      <div class="meta-block">PDK <span class="dot">&middot;</span> White</div>
+      <div class="meta-block">PDK <span class="dot">&middot;</span> 9,400 mi <span class="dot">&middot;</span> White</div>
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="996" data-src="BaT" data-tier="TIER2" data-price="911" data-fmv="28000" data-mileage="999999" data-ends="2026-05-03T17:30:00Z" data-listed="2026-04-30" data-url="https://bringatrailer.com/listing/2000-porsche-911-carrera-cabriolet-98/" onclick="cardClick(event,'https://bringatrailer.com/listing/2000-porsche-911-carrera-cabriolet-98/')">
+<div class="auc-card auc-urg-live" data-gen="996" data-src="BaT" data-tier="TIER2" data-price="911" data-fmv="28000" data-mileage="12000" data-ends="2026-05-03T17:30:00Z" data-listed="2026-04-30" data-url="https://bringatrailer.com/listing/2000-porsche-911-carrera-cabriolet-98/" onclick="cardClick(event,'https://bringatrailer.com/listing/2000-porsche-911-carrera-cabriolet-98/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/04/2000_porsche_911-carrera-cabriolet_img_3893-17526.jpeg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -1037,7 +1034,7 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$28K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>342c</span></div>
       </div>
-      <div class="meta-block"></div>
+      <div class="meta-block">12,000 mi</div>
     </div>
   </div>
 </div>
@@ -1069,7 +1066,7 @@ a { color:inherit; text-decoration:none; }
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="991.2" data-src="BaT" data-tier="TIER2" data-price="78500" data-fmv="156000" data-mileage="999999" data-ends="2026-05-04T17:06:00Z" data-listed="2026-04-27" data-url="https://bringatrailer.com/listing/2019-porsche-911-targa-4-gts-43/" onclick="cardClick(event,'https://bringatrailer.com/listing/2019-porsche-911-targa-4-gts-43/')">
+<div class="auc-card auc-urg-live" data-gen="991.2" data-src="BaT" data-tier="TIER2" data-price="78500" data-fmv="156000" data-mileage="12000" data-ends="2026-05-04T17:06:00Z" data-listed="2026-04-27" data-url="https://bringatrailer.com/listing/2019-porsche-911-targa-4-gts-43/" onclick="cardClick(event,'https://bringatrailer.com/listing/2019-porsche-911-targa-4-gts-43/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/03/2019_porsche_911-carrera-4s-cabriolet_001_2-94680.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -1093,7 +1090,7 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$156K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>10c</span></div>
       </div>
-      <div class="meta-block">PDK <span class="dot">&middot;</span> GT Silver Metallic</div>
+      <div class="meta-block">PDK <span class="dot">&middot;</span> 12,000 mi <span class="dot">&middot;</span> GT Silver Metallic</div>
     </div>
   </div>
 </div>
@@ -1125,7 +1122,7 @@ a { color:inherit; text-decoration:none; }
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="997.2" data-src="BaT" data-tier="TIER2" data-price="70000" data-fmv="110007" data-mileage="999999" data-ends="2026-05-04T18:48:00Z" data-listed="2026-04-27" data-url="https://bringatrailer.com/listing/2009-porsche-911-turbo-coupe-38/" onclick="cardClick(event,'https://bringatrailer.com/listing/2009-porsche-911-turbo-coupe-38/')">
+<div class="auc-card auc-urg-live" data-gen="997.2" data-src="BaT" data-tier="TIER2" data-price="70000" data-fmv="110007" data-mileage="12000" data-ends="2026-05-04T18:48:00Z" data-listed="2026-04-27" data-url="https://bringatrailer.com/listing/2009-porsche-911-turbo-coupe-38/" onclick="cardClick(event,'https://bringatrailer.com/listing/2009-porsche-911-turbo-coupe-38/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/02/2009_porsche_911-turbo-coupe_106t7__5249-46759.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -1149,7 +1146,7 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$110K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>18c</span></div>
       </div>
-      <div class="meta-block">Manual <span class="dot">&middot;</span> Basalt Black Metallic</div>
+      <div class="meta-block">Manual <span class="dot">&middot;</span> 12,000 mi <span class="dot">&middot;</span> Basalt Black Metallic</div>
     </div>
   </div>
 </div>
@@ -1209,7 +1206,7 @@ a { color:inherit; text-decoration:none; }
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="997.1" data-src="pcarmarket" data-tier="TIER1" data-price="50000" data-fmv="73000" data-mileage="999999" data-ends="2026-05-04T18:59:26Z" data-listed="2026-04-27" data-url="https://www.pcarmarket.com/auction/2005-porsche-911-turbo-s-cabriolet-11" onclick="cardClick(event,'https://www.pcarmarket.com/auction/2005-porsche-911-turbo-s-cabriolet-11')">
+<div class="auc-card auc-urg-live" data-gen="997.1" data-src="pcarmarket" data-tier="TIER1" data-price="50000" data-fmv="73000" data-mileage="51000" data-ends="2026-05-04T18:59:26Z" data-listed="2026-04-27" data-url="https://www.pcarmarket.com/auction/2005-porsche-911-turbo-s-cabriolet-11" onclick="cardClick(event,'https://www.pcarmarket.com/auction/2005-porsche-911-turbo-s-cabriolet-11')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY1MzE1IC0gMjAwNSBQb3JzY2hlIDkxMSBUdXJibyBTIENhYnJpb2xldCIsInNsdWciOiI2NTMxNS0yMDA1LXBvcnNjaGUtOTExLXR1cmJvLXMtY2FicmlvbGV0LWY3MmUzZTE4In0/.thumbnails/52d4343d-1bb4-414c-a984-b75425e89a16.webp/52d4343d-1bb4-414c-a984-b75425e89a16-tiny-380x0.webp" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -1233,7 +1230,7 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$73K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>20c</span></div>
       </div>
-      <div class="meta-block"></div>
+      <div class="meta-block">51,000 mi</div>
     </div>
   </div>
 </div>
@@ -1265,7 +1262,7 @@ a { color:inherit; text-decoration:none; }
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="964" data-src="BaT" data-tier="TIER1" data-price="1025000" data-fmv="94500" data-mileage="999999" data-ends="2026-05-05T17:00:00Z" data-listed="2026-04-24" data-url="https://bringatrailer.com/listing/1991-porsche-911-carrera-2-coupe-by-singer/" onclick="cardClick(event,'https://bringatrailer.com/listing/1991-porsche-911-carrera-2-coupe-by-singer/')">
+<div class="auc-card auc-urg-live" data-gen="964" data-src="BaT" data-tier="TIER1" data-price="1025000" data-fmv="94500" data-mileage="2400" data-ends="2026-05-05T17:00:00Z" data-listed="2026-04-24" data-url="https://bringatrailer.com/listing/1991-porsche-911-carrera-2-coupe-by-singer/" onclick="cardClick(event,'https://bringatrailer.com/listing/1991-porsche-911-carrera-2-coupe-by-singer/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/04/1991_porsche_singer-classic_photo-apr-02-2026-7-04-06-pm-87205.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -1289,11 +1286,11 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$94K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>92c</span></div>
       </div>
-      <div class="meta-block">Manual <span class="dot">&middot;</span> Dom Pérignon</div>
+      <div class="meta-block">Manual <span class="dot">&middot;</span> 2,400 mi <span class="dot">&middot;</span> Dom Pérignon</div>
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="964" data-src="BaT" data-tier="TIER1" data-price="57000" data-fmv="72000" data-mileage="999999" data-ends="2026-05-05T18:26:00Z" data-listed="2026-04-28" data-url="https://bringatrailer.com/listing/1994-porsche-911-100/" onclick="cardClick(event,'https://bringatrailer.com/listing/1994-porsche-911-100/')">
+<div class="auc-card auc-urg-live" data-gen="964" data-src="BaT" data-tier="TIER1" data-price="57000" data-fmv="72000" data-mileage="12000" data-ends="2026-05-05T18:26:00Z" data-listed="2026-04-28" data-url="https://bringatrailer.com/listing/1994-porsche-911-100/" onclick="cardClick(event,'https://bringatrailer.com/listing/1994-porsche-911-100/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/04/T7__3021-27546-scaled.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -1317,11 +1314,11 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$72K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>22c</span></div>
       </div>
-      <div class="meta-block">Manual</div>
+      <div class="meta-block">Manual <span class="dot">&middot;</span> 12,000 mi</div>
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="G-Series" data-src="BaT" data-tier="TIER1" data-price="32000" data-fmv="73000" data-mileage="999999" data-ends="2026-05-05T19:41:00Z" data-listed="2026-04-28" data-url="https://bringatrailer.com/listing/1984-porsche-911-carrera-cabriolet-33/" onclick="cardClick(event,'https://bringatrailer.com/listing/1984-porsche-911-carrera-cabriolet-33/')">
+<div class="auc-card auc-urg-live" data-gen="G-Series" data-src="BaT" data-tier="TIER1" data-price="32000" data-fmv="73000" data-mileage="12000" data-ends="2026-05-05T19:41:00Z" data-listed="2026-04-28" data-url="https://bringatrailer.com/listing/1984-porsche-911-carrera-cabriolet-33/" onclick="cardClick(event,'https://bringatrailer.com/listing/1984-porsche-911-carrera-cabriolet-33/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/04/1984_porsche_911-carrera-cabriolet_img_1496-36970.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -1345,11 +1342,11 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$73K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>274c</span></div>
       </div>
-      <div class="meta-block">Manual <span class="dot">&middot;</span> Platinum Metallic</div>
+      <div class="meta-block">Manual <span class="dot">&middot;</span> 12,000 mi <span class="dot">&middot;</span> Platinum Metallic</div>
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="993" data-src="BaT" data-tier="TIER1" data-price="96993" data-fmv="164993" data-mileage="999999" data-ends="2026-05-05T20:05:00Z" data-listed="2026-04-28" data-url="https://bringatrailer.com/listing/1996-porsche-911-carrera-4s-142/" onclick="cardClick(event,'https://bringatrailer.com/listing/1996-porsche-911-carrera-4s-142/')">
+<div class="auc-card auc-urg-live" data-gen="993" data-src="BaT" data-tier="TIER1" data-price="96993" data-fmv="164993" data-mileage="12000" data-ends="2026-05-05T20:05:00Z" data-listed="2026-04-28" data-url="https://bringatrailer.com/listing/1996-porsche-911-carrera-4s-142/" onclick="cardClick(event,'https://bringatrailer.com/listing/1996-porsche-911-carrera-4s-142/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/02/1996_porsche_911-carrera-4s_BaT_1996Porsche911Carerra4S-1-06440-scaled.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -1373,7 +1370,7 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$165K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>41c</span></div>
       </div>
-      <div class="meta-block">Manual <span class="dot">&middot;</span> Polar Silver Metallic</div>
+      <div class="meta-block">Manual <span class="dot">&middot;</span> 12,000 mi <span class="dot">&middot;</span> Polar Silver Metallic</div>
     </div>
   </div>
 </div>
@@ -1489,7 +1486,7 @@ a { color:inherit; text-decoration:none; }
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="993" data-src="BaT" data-tier="TIER1" data-price="30000" data-fmv="86961" data-mileage="999999" data-ends="2026-05-06T20:55:00Z" data-listed="2026-04-30" data-url="https://bringatrailer.com/listing/1995-porsche-911-carrera-coupe-142/" onclick="cardClick(event,'https://bringatrailer.com/listing/1995-porsche-911-carrera-coupe-142/')">
+<div class="auc-card auc-urg-live" data-gen="993" data-src="BaT" data-tier="TIER1" data-price="30000" data-fmv="86961" data-mileage="12000" data-ends="2026-05-06T20:55:00Z" data-listed="2026-04-30" data-url="https://bringatrailer.com/listing/1995-porsche-911-carrera-coupe-142/" onclick="cardClick(event,'https://bringatrailer.com/listing/1995-porsche-911-carrera-coupe-142/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/04/952091120race20car20282429-03057-scaled.jpeg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -1513,7 +1510,7 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$87K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>161c</span></div>
       </div>
-      <div class="meta-block"></div>
+      <div class="meta-block">12,000 mi</div>
     </div>
   </div>
 </div>
@@ -1545,7 +1542,7 @@ a { color:inherit; text-decoration:none; }
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="991.1" data-src="BaT" data-tier="TIER2" data-price="24444" data-fmv="72230" data-mileage="999999" data-ends="2026-05-07T17:43:00Z" data-listed="2026-04-30" data-url="https://bringatrailer.com/listing/2013-porsche-911-carrera-cabriolet-18/" onclick="cardClick(event,'https://bringatrailer.com/listing/2013-porsche-911-carrera-cabriolet-18/')">
+<div class="auc-card auc-urg-live" data-gen="991.1" data-src="BaT" data-tier="TIER2" data-price="24444" data-fmv="72230" data-mileage="12000" data-ends="2026-05-07T17:43:00Z" data-listed="2026-04-30" data-url="https://bringatrailer.com/listing/2013-porsche-911-carrera-cabriolet-18/" onclick="cardClick(event,'https://bringatrailer.com/listing/2013-porsche-911-carrera-cabriolet-18/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/04/2013_porsche_911-carrera-cabriolet_13-911-carrera-10-12607.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -1569,11 +1566,11 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$72K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>30c</span></div>
       </div>
-      <div class="meta-block"></div>
+      <div class="meta-block">12,000 mi</div>
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="986" data-src="BaT" data-tier="TIER2" data-price="1000" data-fmv="0" data-mileage="999999" data-ends="2026-05-07T17:45:00Z" data-listed="2026-04-30" data-url="https://bringatrailer.com/listing/1998-porsche-boxster-137/" onclick="cardClick(event,'https://bringatrailer.com/listing/1998-porsche-boxster-137/')">
+<div class="auc-card auc-urg-live" data-gen="986" data-src="BaT" data-tier="TIER2" data-price="1000" data-fmv="0" data-mileage="12000" data-ends="2026-05-07T17:45:00Z" data-listed="2026-04-30" data-url="https://bringatrailer.com/listing/1998-porsche-boxster-137/" onclick="cardClick(event,'https://bringatrailer.com/listing/1998-porsche-boxster-137/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/04/1998_porsche_boxster_img_6838-47893.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -1597,7 +1594,7 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-none">FMV: no data</span></div>
       </div>
-      <div class="meta-block"></div>
+      <div class="meta-block">12,000 mi</div>
     </div>
   </div>
 </div>
@@ -1629,7 +1626,7 @@ a { color:inherit; text-decoration:none; }
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="993" data-src="pcarmarket" data-tier="TIER1" data-price="25000" data-fmv="164993" data-mileage="999999" data-ends="2026-05-07T18:59:32Z" data-listed="2026-04-30" data-url="https://www.pcarmarket.com/auction/1996-porsche-911-carrera-4s-19" onclick="cardClick(event,'https://www.pcarmarket.com/auction/1996-porsche-911-carrera-4s-19')">
+<div class="auc-card auc-urg-live" data-gen="993" data-src="pcarmarket" data-tier="TIER1" data-price="25000" data-fmv="164993" data-mileage="14794" data-ends="2026-05-07T18:59:32Z" data-listed="2026-04-30" data-url="https://www.pcarmarket.com/auction/1996-porsche-911-carrera-4s-19" onclick="cardClick(event,'https://www.pcarmarket.com/auction/1996-porsche-911-carrera-4s-19')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY0OTU1IC0gMTk5NiBQb3JzY2hlIDkxMSBDYXJyZXJhIDRTIiwic2x1ZyI6IjY0OTU1LTE5OTYtcG9yc2NoZS05MTEtY2FycmVyYS00cy0xMjY1ZDhlYiJ9/.thumbnails/bea894fc-3f87-4550-81e8-e58517775d43.webp/bea894fc-3f87-4550-81e8-e58517775d43-tiny-380x0.webp" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -1653,11 +1650,11 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$165K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>41c</span></div>
       </div>
-      <div class="meta-block"></div>
+      <div class="meta-block">14,794 mi</div>
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="718" data-src="pcarmarket" data-tier="TIER1" data-price="0" data-fmv="0" data-mileage="999999" data-ends="2026-05-07T18:59:32Z" data-listed="2026-04-30" data-url="https://www.pcarmarket.com/auction/2024-porsche-718-spyder-rs-3" onclick="cardClick(event,'https://www.pcarmarket.com/auction/2024-porsche-718-spyder-rs-3')">
+<div class="auc-card auc-urg-live" data-gen="718" data-src="pcarmarket" data-tier="TIER1" data-price="0" data-fmv="0" data-mileage="194" data-ends="2026-05-07T18:59:32Z" data-listed="2026-04-30" data-url="https://www.pcarmarket.com/auction/2024-porsche-718-spyder-rs-3" onclick="cardClick(event,'https://www.pcarmarket.com/auction/2024-porsche-718-spyder-rs-3')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY1MzY3IC0gMjAyNCBQb3JzY2hlIDcxOCBTcHlkZXIgUlMiLCJzbHVnIjoiNjUzNjctMjAyNC1wb3JzY2hlLTcxOC1zcHlkZXItcnMtODAxZjk0Y2IifQ/.thumbnails/c5249c72-cee9-402e-b936-0877984cfad8.webp/c5249c72-cee9-402e-b936-0877984cfad8-tiny-380x0.webp" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -1681,11 +1678,11 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-none">FMV: no data</span></div>
       </div>
-      <div class="meta-block"></div>
+      <div class="meta-block">194 mi</div>
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-live" data-gen="G-Series" data-src="BaT" data-tier="TIER1" data-price="25000" data-fmv="94500" data-mileage="999999" data-ends="2026-05-07T19:54:00Z" data-listed="2026-04-30" data-url="https://bringatrailer.com/listing/1986-porsche-911-carrera-coupe-80/" onclick="cardClick(event,'https://bringatrailer.com/listing/1986-porsche-911-carrera-coupe-80/')">
+<div class="auc-card auc-urg-live" data-gen="G-Series" data-src="BaT" data-tier="TIER1" data-price="25000" data-fmv="94500" data-mileage="12000" data-ends="2026-05-07T19:54:00Z" data-listed="2026-04-30" data-url="https://bringatrailer.com/listing/1986-porsche-911-carrera-coupe-80/" onclick="cardClick(event,'https://bringatrailer.com/listing/1986-porsche-911-carrera-coupe-80/')">
   <div class="urgency-stripe" style="background:#4ade80"></div>
   <div class="img-wrap">
     <img src="https://bringatrailer.com/wp-content/uploads/2026/04/1986_porsche_911-carrera-coupe_mg_0710-00987.jpg" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -1709,7 +1706,7 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-est">~$94K</span><span class="fmv-meta"><span class="conf-pip conf-high"></span>92c</span></div>
       </div>
-      <div class="meta-block"></div>
+      <div class="meta-block">12,000 mi</div>
     </div>
   </div>
 </div>
@@ -3109,7 +3106,7 @@ a { color:inherit; text-decoration:none; }
     </div>
   </div>
 </div>
-<div class="auc-card auc-urg-noend" data-gen="997.2" data-src="pcarmarket" data-tier="TIER2" data-price="80000" data-fmv="0" data-mileage="999999" data-ends="" data-listed="2026-04-28" data-url="https://www.pcarmarket.com/auction/marketplace-2011-porsche-911-carrera-gts-10" onclick="cardClick(event,'https://www.pcarmarket.com/auction/marketplace-2011-porsche-911-carrera-gts-10')">
+<div class="auc-card auc-urg-noend" data-gen="997.2" data-src="pcarmarket" data-tier="TIER2" data-price="80000" data-fmv="0" data-mileage="73067" data-ends="" data-listed="2026-04-28" data-url="https://www.pcarmarket.com/auction/marketplace-2011-porsche-911-carrera-gts-10" onclick="cardClick(event,'https://www.pcarmarket.com/auction/marketplace-2011-porsche-911-carrera-gts-10')">
   <div class="urgency-stripe" style="background:#2a2a2a"></div>
   <div class="img-wrap">
     <img src="https://d2niwqq19lf86s.cloudfront.net/htwritable/media/prod/eyJ0aXRsZSI6IjY1MjcyIC0gMjAxMSBQb3JzY2hlIDkxMSBHVFMgQ291cGUiLCJzbHVnIjoiNjUyNzItMjAxMS1wb3JzY2hlLTkxMS1ndHMtY291cGUtOTA1MTk4NjQifQ/.thumbnails/fb5f333c-45a7-45fb-afdd-91fc12f8e8b6.webp/fb5f333c-45a7-45fb-afdd-91fc12f8e8b6-tiny-380x0.webp" alt="" class="auc-img" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='220'%3E%3Crect width='400' height='220' fill='%2318181F'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-size='12' fill='%2325252E'%3ENo photo%3C/text%3E%3C/svg%3E'">
@@ -3133,7 +3130,7 @@ a { color:inherit; text-decoration:none; }
         <div class="val-label">FMV Est.</div>
         <div class="fmv-row"><span class="fmv-none">FMV: no data</span></div>
       </div>
-      <div class="meta-block"></div>
+      <div class="meta-block">73,067 mi</div>
     </div>
   </div>
 </div>
