@@ -185,6 +185,7 @@ def _auction_card(car: dict, fmv_score: dict, is_hero: bool = False) -> str:
     fmv_low    = fmv_score.get("price_low")
     fmv_high   = fmv_score.get("price_high")
     comp_prices = fmv_score.get("comp_prices", [])
+    comp_dots   = fmv_score.get("comp_dots", [])
 
     gen_str   = _gen(year, model)
     src_label = _badge_label(dealer)
@@ -278,8 +279,8 @@ def _auction_card(car: dict, fmv_score: dict, is_hero: bool = False) -> str:
     if body:     tag_chips.append(_h(body))
     tags_html = "".join(f'<span class="etag">{t}</span>' for t in tag_chips[:6])
 
-    # Comp prices as JSON for JS dot graph
-    comp_json = _json.dumps(comp_prices[:60])  # cap at 60 dots
+    # Comp dots as JSON for JS scatter graph
+    comp_json = _json.dumps(comp_dots)
     price_int = int(price) if price else 0
 
     hero_cls = " auc-card--hero" if is_hero else ""
@@ -486,6 +487,21 @@ def generate() -> str:
                         int(c.sold_price) for c in getattr(fmv_obj, "comps", [])
                         if getattr(c, "sold_price", None) and int(c.sold_price) > 0
                     ]),
+                    "comp_dots": [
+                        {
+                            "price": int(c.sold_price),
+                            "date":  getattr(c, "sold_date", None) or "",
+                            "img":   getattr(c, "image_url", None) or "",
+                            "url":   getattr(c, "listing_url", None) or "",
+                            "year":  getattr(c, "year", None) or "",
+                            "model": getattr(c, "model", None) or "",
+                            "trim":  getattr(c, "trim", None) or "",
+                            "mi":    getattr(c, "mileage", None) or "",
+                        }
+                        for c in getattr(fmv_obj, "comps", [])
+                        if getattr(c, "sold_price", None) and int(c.sold_price) > 0
+                           and getattr(c, "sold_date", None)
+                    ][:60],
                 }
             else:
                 fmv_by_id[row["id"]] = {"fmv": None, "confidence": "NONE", "comp_count": 0}
@@ -1136,91 +1152,177 @@ function cardClick(evt, url) {{
   }}, {{passive:true}});
 }})();
 
-// ── Dot graph renderer ────────────────────────────────────────────────────────
-function drawDotGraph(svg) {{
+// ── Dot graph — date × price scatter with photo tooltip (classic.com style) ──
+var _ttDiv = null;
+function _getTooltip() {{
+  if (!_ttDiv) {{
+    _ttDiv = document.createElement('div');
+    _ttDiv.id = 'auc-tt';
+    _ttDiv.style.cssText = [
+      'position:fixed;z-index:9999;pointer-events:none;',
+      'display:none;flex-direction:column;gap:0;',
+      'background:#111;border:1px solid #2a2a2a;border-radius:8px;overflow:hidden;',
+      'box-shadow:0 8px 32px rgba(0,0,0,0.7);width:220px;'
+    ].join('');
+    document.body.appendChild(_ttDiv);
+  }}
+  return _ttDiv;
+}}
+
+function _showTooltip(dot, evt) {{
+  var tt = _getTooltip();
+  var price = '$' + Number(dot.price).toLocaleString();
+  var date  = dot.date ? dot.date.slice(0,10) : '';
+  var label = [dot.year, dot.model, dot.trim].filter(Boolean).join(' ').slice(0,36);
+  var mi    = dot.mi ? Number(dot.mi).toLocaleString() + ' mi' : '';
+  tt.innerHTML = (dot.img
+    ? '<img src="' + dot.img + '" style="width:100%;height:120px;object-fit:cover;display:block;opacity:0.9">'
+    : '<div style="width:100%;height:80px;background:#1c1c1c"></div>')
+    + '<div style="padding:10px 12px">'
+    + '<div style="font-family:DM Mono,monospace;font-size:16px;font-weight:500;color:#fff;margin-bottom:4px">' + price + '</div>'
+    + '<div style="font-family:DM Mono,monospace;font-size:10px;color:#888;margin-bottom:2px">' + date + (mi ? ' · ' + mi : '') + '</div>'
+    + (label ? '<div style="font-family:DM Sans,sans-serif;font-size:11px;color:#666">' + label + '</div>' : '')
+    + '</div>';
+  tt.style.display = 'flex';
+  _posTooltip(evt);
+}}
+
+function _posTooltip(evt) {{
+  var tt = _getTooltip();
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var ttW = 220, ttH = tt.offsetHeight || 200;
+  var x = evt.clientX + 14, y = evt.clientY - ttH / 2;
+  if (x + ttW > vw - 10) x = evt.clientX - ttW - 14;
+  if (y < 10) y = 10;
+  if (y + ttH > vh - 10) y = vh - ttH - 10;
+  tt.style.left = x + 'px';
+  tt.style.top  = y + 'px';
+}}
+
+function _hideTooltip() {{
+  var tt = _getTooltip();
+  tt.style.display = 'none';
+}}
+
+function drawDotGraph(svg, card) {{
   if (svg._drawn) return;
-  var comps = JSON.parse(svg.dataset.comps || '[]');
+  var raw   = svg.dataset.comps || '[]';
+  var dots  = [];
+  try {{ dots = JSON.parse(raw); }} catch(e) {{ return; }}
   var fmv   = +svg.dataset.fmv  || 0;
   var bid   = +svg.dataset.bid  || 0;
   var low   = +svg.dataset.low  || 0;
   var high  = +svg.dataset.high || 0;
-  if (!comps.length && !fmv) return;
 
-  var W = svg.getBoundingClientRect().width || 700;
+  if (!dots.length && !fmv) return;
+
+  var W = svg.parentElement.getBoundingClientRect().width || 700;
   var H = 80;
   svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
-
-  // Price range
-  var allPrices = comps.concat(fmv ? [fmv] : [], bid ? [bid] : []);
-  var minP = Math.min.apply(null, allPrices) * 0.92;
-  var maxP = Math.max.apply(null, allPrices) * 1.08;
-  var range = maxP - minP || 1;
-
-  function px(price) {{ return 20 + ((price - minP) / range) * (W - 40); }}
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+  svg.style.overflow = 'visible';
 
   var ns = 'http://www.w3.org/2000/svg';
-
-  function el(tag, attrs) {{
+  function mk(tag, attrs, parent) {{
     var e = document.createElementNS(ns, tag);
     for (var k in attrs) e.setAttribute(k, attrs[k]);
+    (parent || svg).appendChild(e);
     return e;
   }}
 
-  // Axis
-  svg.appendChild(el('line', {{x1:0, y1:H-12, x2:W, y2:H-12, stroke:'#1e1e1e', 'stroke-width':1}}));
+  // ── Scales ──
+  // X = date (left=oldest, right=newest)
+  var dates = dots.map(function(d) {{ return d.date ? new Date(d.date).getTime() : 0; }}).filter(Boolean);
+  var prices = dots.map(function(d) {{ return d.price; }});
+  if (bid) prices.push(bid);
+  if (fmv) prices.push(fmv);
 
-  // FMV median line
-  if (fmv) {{
-    var fx = px(fmv);
-    svg.appendChild(el('line', {{x1:fx, y1:4, x2:fx, y2:H-14, stroke:'#333', 'stroke-width':1, 'stroke-dasharray':'5,3'}}));
-    var ft = el('text', {{x:fx, y:3, 'text-anchor':'middle', fill:'#444', 'font-family':'DM Mono,monospace', 'font-size':'8'}});
-    ft.textContent = 'FMV $' + Math.round(fmv/1000) + 'K';
-    svg.appendChild(ft);
-  }}
+  var PAD_L = 38, PAD_R = 12, PAD_T = 14, PAD_B = 18;
+  var plotW = W - PAD_L - PAD_R;
+  var plotH = H - PAD_T - PAD_B;
 
-  // Comp dots — jitter vertically so overlapping dots are visible
-  var buckets = {{}};
-  comps.forEach(function(p) {{
-    var bx = Math.round(px(p));
-    buckets[bx] = (buckets[bx] || 0) + 1;
-    var jitter = (buckets[bx] - 1) * 5;
-    var cy = H - 18 - jitter;
-    if (cy < 8) cy = 8;
-    var c = el('circle', {{cx:bx, cy:cy, r:3.5, fill:'#1e3a1e', stroke:'#2a5a2a', 'stroke-width':1, opacity:0.9}});
-    svg.appendChild(c);
+  var minDate = dates.length ? Math.min.apply(null, dates) : Date.now() - 365*86400000;
+  var maxDate = dates.length ? Math.max.apply(null, dates) : Date.now();
+  var dateRange = maxDate - minDate || 1;
+
+  var minPrice = Math.min.apply(null, prices) * 0.88;
+  var maxPrice = Math.max.apply(null, prices) * 1.08;
+  var priceRange = maxPrice - minPrice || 1;
+
+  function scaleX(ts) {{ return PAD_L + ((ts - minDate) / dateRange) * plotW; }}
+  function scaleY(p)  {{ return PAD_T + plotH - ((p - minPrice) / priceRange) * plotH; }}
+
+  // ── Axes ──
+  // Y axis line
+  mk('line', {{x1:PAD_L, y1:PAD_T, x2:PAD_L, y2:PAD_T+plotH, stroke:'#222', 'stroke-width':1}});
+  // X axis line
+  mk('line', {{x1:PAD_L, y1:PAD_T+plotH, x2:W-PAD_R, y2:PAD_T+plotH, stroke:'#222', 'stroke-width':1}});
+
+  // Y axis labels (3 ticks)
+  [minPrice, (minPrice+maxPrice)/2, maxPrice].forEach(function(p, i) {{
+    var y = scaleY(p);
+    mk('line', {{x1:PAD_L-3, y1:y, x2:PAD_L, y2:y, stroke:'#333', 'stroke-width':1}});
+    var t = mk('text', {{x:PAD_L-5, y:y+3, 'text-anchor':'end', fill:'#444', 'font-family':'DM Mono,monospace', 'font-size':'7'}});
+    t.textContent = '$' + Math.round(p/1000) + 'K';
   }});
 
-  // Price range labels
-  if (low && high) {{
-    var lt = el('text', {{x:2, y:H-1, fill:'#333', 'font-family':'DM Mono,monospace', 'font-size':'8'}});
-    lt.textContent = '$' + Math.round(low/1000) + 'K';
-    svg.appendChild(lt);
-    var ht = el('text', {{x:W-2, y:H-1, 'text-anchor':'end', fill:'#333', 'font-family':'DM Mono,monospace', 'font-size':'8'}});
-    ht.textContent = '$' + Math.round(high/1000) + 'K';
-    svg.appendChild(ht);
+  // X axis labels (date range)
+  if (dates.length) {{
+    var fmtD = function(ts) {{
+      var d = new Date(ts);
+      return (d.getMonth()+1) + '/' + d.getFullYear().toString().slice(2);
+    }};
+    [[minDate, 'start'], [maxDate, 'end']].forEach(function(pair) {{
+      var tx = scaleX(pair[0]);
+      var anchor = pair[1] === 'start' ? 'start' : 'end';
+      var t = mk('text', {{x:tx, y:H-2, 'text-anchor':anchor, fill:'#333', 'font-family':'DM Mono,monospace', 'font-size':'7'}});
+      t.textContent = fmtD(pair[0]);
+    }});
   }}
 
-  // Current bid — red line + dot
-  if (bid) {{
-    var bx = px(bid);
-    svg.appendChild(el('line', {{x1:bx, y1:6, x2:bx, y2:H-14, stroke:'#c0392b', 'stroke-width':1.5, 'stroke-dasharray':'3,2', opacity:0.8}}));
-    svg.appendChild(el('circle', {{cx:bx, cy:H-20, r:5.5, fill:'#c0392b'}}));
-    var bt = el('text', {{x:bx+8, y:H-16, fill:'#c0392b', 'font-family':'DM Mono,monospace', 'font-size':'8', 'font-weight':'500'}});
+  // ── FMV horizontal line ──
+  if (fmv) {{
+    var fy = scaleY(fmv);
+    mk('line', {{x1:PAD_L, y1:fy, x2:W-PAD_R, y2:fy, stroke:'#3a3a3a', 'stroke-width':1, 'stroke-dasharray':'5,3'}});
+    var ft = mk('text', {{x:W-PAD_R-2, y:fy-3, 'text-anchor':'end', fill:'#555', 'font-family':'DM Mono,monospace', 'font-size':'7'}});
+    ft.textContent = 'FMV $' + Math.round(fmv/1000) + 'K';
+  }}
+
+  // ── Comp dots ──
+  dots.forEach(function(dot) {{
+    if (!dot.date) return;
+    var ts = new Date(dot.date).getTime();
+    var cx = scaleX(ts), cy = scaleY(dot.price);
+    var c = mk('circle', {{cx:cx, cy:cy, r:4, fill:'#1e3a1e', stroke:'#3a6a3a', 'stroke-width':1, opacity:0.85, style:'cursor:pointer'}});
+    c.addEventListener('mouseenter', function(e) {{ _showTooltip(dot, e); c.setAttribute('fill','#4ade80'); c.setAttribute('r','5.5'); }});
+    c.addEventListener('mousemove',  function(e) {{ _posTooltip(e); }});
+    c.addEventListener('mouseleave', function()  {{ _hideTooltip(); c.setAttribute('fill','#1e3a1e'); c.setAttribute('r','4'); }});
+    if (dot.url) c.addEventListener('click', function(e) {{ e.stopPropagation(); window.open(dot.url,'_blank'); }});
+  }});
+
+  // ── Current bid dot ──
+  if (bid && fmv) {{
+    // Place bid at rightmost position (today)
+    var bx = scaleX(maxDate), by = scaleY(bid);
+    mk('line', {{x1:bx, y1:PAD_T, x2:bx, y2:PAD_T+plotH, stroke:'#c0392b', 'stroke-width':1, 'stroke-dasharray':'3,2', opacity:0.5}});
+    mk('circle', {{cx:bx, cy:by, r:6, fill:'#c0392b', stroke:'#ff6b6b', 'stroke-width':1}});
+    var bt = mk('text', {{x:bx-8, y:by-9, 'text-anchor':'end', fill:'#c0392b', 'font-family':'DM Mono,monospace', 'font-size':'8', 'font-weight':'500'}});
     bt.textContent = 'Bid $' + Math.round(bid/1000) + 'K';
-    svg.appendChild(bt);
   }}
 
   svg._drawn = true;
 }}
 
-// Draw graph when card is hovered
+// Wire hover on every card to draw its graph
 document.querySelectorAll('.auc-card').forEach(function(card) {{
-  var drawn = false;
   card.addEventListener('mouseenter', function() {{
     var svg = card.querySelector('.graph-svg');
-    if (svg && !drawn) {{ drawn = true; setTimeout(function(){{ drawDotGraph(svg); }}, 50); }}
+    if (svg) setTimeout(function() {{ drawDotGraph(svg, card); }}, 40);
   }});
+  card.addEventListener('mouseleave', function() {{ _hideTooltip(); }});
 }});
+
 
 // ── Nav + theme ───────────────────────────────────────────────────────────────
 function openListing(url) {{ window.open(url, '_blank'); }}
