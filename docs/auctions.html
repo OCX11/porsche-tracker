@@ -121,7 +121,7 @@ a { color:inherit; text-decoration:none; }
 /* ── Auction card — Concept D ── */
 .auc-card {
   background:var(--bg2); border:1px solid var(--border); border-radius:10px;
-  overflow:visible; cursor:pointer; display:flex; height:130px;
+  overflow:hidden; cursor:pointer; display:flex; height:130px;
   transition:border-color 0.35s cubic-bezier(0.34,1.56,0.64,1),
              box-shadow   0.35s cubic-bezier(0.34,1.56,0.64,1),
              transform    0.35s cubic-bezier(0.34,1.56,0.64,1),
@@ -133,15 +133,6 @@ a { color:inherit; text-decoration:none; }
   box-shadow:0 12px 40px rgba(0,0,0,0.45), 0 4px 12px rgba(192,57,43,0.15);
   transform:translateY(-5px) scale(1.01);
 }
-/* clip content inside card without clipping the outer shadow */
-.auc-card > .urgency-stripe,
-.auc-card > .img-wrap,
-.auc-card > .card-body,
-.auc-card > .hero-extra { overflow:hidden; }
-.auc-card { clip-path:none; }
-/* inner corners to match card */
-.img-wrap { border-radius:9px 0 0 9px; }
-/* urgency — left stripe only, no card border tinting */
 .auc-urg-critical { /* left stripe handles it */ }
 .auc-urg-soon     { /* left stripe handles it */ }
 
@@ -173,7 +164,7 @@ a { color:inherit; text-decoration:none; }
 .urgency-stripe { width:3px; min-width:3px; flex-shrink:0; }
 
 /* Image */
-.img-wrap { width:200px; min-width:200px; overflow:hidden; background:var(--bg3); flex-shrink:0; transition:width 0.22s ease, min-width 0.22s ease; border-radius:9px 0 0 9px; }
+.img-wrap { width:200px; min-width:200px; overflow:hidden; background:var(--bg3); flex-shrink:0; transition:width 0.22s ease, min-width 0.22s ease; }
 .auc-img { width:100%; height:100%; object-fit:cover; display:block; opacity:0.87; transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1),opacity 0.2s; }
 .auc-card:hover .auc-img { transform:scale(1.08); opacity:0.95; }
 
@@ -294,7 +285,7 @@ a { color:inherit; text-decoration:none; }
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64"><g transform="translate(8,6)"><circle cx="26" cy="26" r="22" fill="none" stroke="#242424" stroke-width="2.5"/><path d="M6,38 A22,22 0 0,1 43.5,8.5" fill="none" stroke="#D85A30" stroke-width="2.5" stroke-linecap="round"/><g stroke="#333" stroke-width="1.2" stroke-linecap="round"><line x1="4" y1="26" x2="8.5" y2="26" transform="rotate(-80,26,26)"/><line x1="4" y1="26" x2="8.5" y2="26" transform="rotate(-55,26,26)"/><line x1="4" y1="26" x2="8.5" y2="26" transform="rotate(-30,26,26)"/><line x1="4" y1="26" x2="8.5" y2="26" transform="rotate(-5,26,26)"/><line x1="4" y1="26" x2="8.5" y2="26" transform="rotate(20,26,26)"/><line x1="4" y1="26" x2="8.5" y2="26" transform="rotate(45,26,26)"/><line x1="4" y1="26" x2="8.5" y2="26" transform="rotate(70,26,26)"/><line x1="4" y1="26" x2="8.5" y2="26" transform="rotate(95,26,26)"/></g><line x1="26" y1="26" x2="43.5" y2="8.5" stroke="white" stroke-width="1.8" stroke-linecap="round"/><circle cx="26" cy="26" r="4" fill="#D85A30"/><circle cx="26" cy="26" r="1.6" fill="#0d0d0d"/><text x="62" y="34" font-family="'Helvetica Neue',Arial,sans-serif" font-size="32" letter-spacing="-0.5"><tspan font-weight="800" fill="white">Renn</tspan><tspan font-weight="300" fill="#D85A30">Markt</tspan></text></g></svg>
   </a>
   <div class="topbar-right">
-    <span class="topbar-time"><span class="live-dot"></span>May 01 13:52 UTC</span>
+    <span class="topbar-time"><span class="live-dot"></span>May 01 13:55 UTC</span>
     <button class="more-btn" onclick="toggleDD()">More &#x25BE;</button>
   </div>
 </header>
