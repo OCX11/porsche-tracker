@@ -289,8 +289,7 @@ def _auction_card(car: dict, fmv_score: dict, is_hero: bool = False) -> str:
  data-gen="{_h(gen_str)}" data-src="{_h(src_label)}" data-tier="{_h(tier)}"
  data-price="{price or 0}" data-fmv="{fmv_sort_val}"
  data-mileage="{int(mileage) if mileage else 999999}"
- data-ends="{_h(ends_at)}" data-listed="{_h(listed)}" data-url="{_h(url)}"
- data-title="{_h(f'{year} {model} {trim}'.strip())}" data-img="{_h(img)}">
+ data-ends="{_h(ends_at)}" data-listed="{_h(listed)}" data-url="{_h(url)}">
   <div class="card-main">
     <div class="img-wrap" onclick="window.open('{_h(url)}','_blank')">{img_tag}</div>
     <div class="card-body" onclick="cardClick(event,'{_h(url)}')">
@@ -669,32 +668,37 @@ def _push_rennauktion(html: str) -> None:
             .replace('RennMarkt \u2014 Auction Watcher',
                      'RennAuktion \u2014 Porsche Auction Intelligence')\
             .replace('RennMarkt Auctions', 'RennAuktion')\
-            .replace('RennMarkt &mdash; Auction Watcher',
-                     'RennAuktion &mdash; Porsche Auction Intelligence')\
             .replace('<a class="dd-item" href="index.html">\U0001f3ce\ufe0f Market</a>',
                      '<a class="dd-item" href="https://www.rennmarkt.net">\U0001f3ce\ufe0f RennMarkt</a>')\
             .replace('<a class="logo" href="index.html">', '<a class="logo" href="/">')\
             .replace('href="index.html"', 'href="/"')
 
-        # Inject auth button into topbar-right
+        # Fix nav links (point to rennmarkt.net equivalents) + add My Saved
+        branded = branded \
+            .replace('href="search.html"',       'href="https://rennmarkt.net/search.html"') \
+            .replace('href="calculator.html"',   'href="https://rennmarkt.net/calculator.html"') \
+            .replace('href="market_report.html"','href="https://rennmarkt.net/market_report.html"') \
+            .replace('href="notify.html"',        'href="https://rennmarkt.net/notify.html"')
+
+        # Add My Saved link to dropdown (after Market link, first occurrence only)
         branded = branded.replace(
-            '<button class="more-btn" onclick="toggleDD()">More &#x25BE;</button>',
-            '<button class="more-btn" onclick="toggleDD()">More &#x25BE;</button>'
-            '<button class="auth-login-btn" onclick="window.RA&&window.RA.openLoginModal()" style="'
-            'background:none;border:1px solid #333;color:#e2ddd8;font-size:11px;'
-            'font-family:\'DM Mono\',monospace;letter-spacing:1px;padding:5px 10px;'
-            'border-radius:6px;cursor:pointer;margin-left:8px;">Sign in</button>'
-            '<button class="auth-logout-btn" onclick="window.RA&&window.RA.signOut()" style="'
-            'display:none;background:none;border:1px solid #333;color:#888;font-size:11px;'
-            'font-family:\'DM Mono\',monospace;letter-spacing:1px;padding:5px 10px;'
-            'border-radius:6px;cursor:pointer;margin-left:8px;">'
-            '<span class="auth-user-label"></span> &middot; Sign out</button>'
+            '<a class="dd-item" href="https://www.rennmarkt.net">\U0001f3ce\ufe0f RennMarkt</a>',
+            '<a class="dd-item" href="https://www.rennmarkt.net">\U0001f3ce\ufe0f RennMarkt</a>\n    <a class="dd-item" href="saved.html">&#x2665; My Saved</a>',
+            1
         )
 
-        # Inject Supabase CDN + auth.js before </body>
+        # Inject Supabase CDN + auth.js + live stats loader before </body>
         auth_scripts = (
             '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\n'
             '<script src="/auth.js"></script>\n'
+            '<script>\n'
+            '(async()=>{try{const r=await fetch(\'https://raw.githubusercontent.com/OCX11/rennmarkt/main/docs/stats.json\',{cache:\'no-store\'});'
+            'if(!r.ok)return;const s=await r.json();'
+            'const fmt=n=>n>=1000?n.toLocaleString():String(n);'
+            'const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.textContent=fmt(v);};'
+            'set(\'s-active\',s.n_active);set(\'s-new\',s.n_new);set(\'s-auctions\',s.n_auctions);'
+            'set(\'s-comps\',s.n_comps);set(\'s-deals\',s.n_deals);}catch(e){}})();\n'
+            '</script>\n'
         )
         branded = branded.replace('</body>', auth_scripts + '</body>')
 
@@ -716,45 +720,11 @@ def _push_rennauktion(html: str) -> None:
                 check=True, capture_output=True
             )
             print("[rennauktion] pushed index.html")
-            _deploy_to_cloudflare(out, RENN_CLONE)
         else:
             print("[rennauktion] no changes, skipping push")
 
     except Exception as exc:
         print(f"[rennauktion] push failed (non-fatal): {exc}")
-
-
-def _deploy_to_cloudflare(index_html_path: Path, repo_dir: Path) -> None:
-    """Direct-upload the built site to Cloudflare Pages on every data change."""
-    import subprocess
-    CF_EMAIL = "openclawx1@protonmail.com"
-    CF_KEY   = "CF_KEY_REDACTED"
-    ACCOUNT  = "9dd4680b69035f1f6668ce0f44f632cc"
-    PROJECT  = "rennauktion"
-    auth_js  = repo_dir / "auth.js"
-
-    cmd = [
-        "curl", "-s", "-X", "POST",
-        f"https://api.cloudflare.com/client/v4/accounts/{ACCOUNT}/pages/projects/{PROJECT}/deployments",
-        "-H", f"X-Auth-Email: {CF_EMAIL}",
-        "-H", f"X-Auth-Key: {CF_KEY}",
-        "-F", "manifest={}",
-        "-F", f"index.html=@{index_html_path};type=text/html",
-    ]
-    if auth_js.exists():
-        cmd += ["-F", f"auth.js=@{auth_js};type=application/javascript"]
-
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-        import json
-        data = json.loads(result.stdout)
-        if data.get("success"):
-            url = data["result"].get("url", "?")
-            print(f"[cloudflare] deployed → {url}")
-        else:
-            print(f"[cloudflare] deploy failed: {data.get('errors')}")
-    except Exception as exc:
-        print(f"[cloudflare] deploy error (non-fatal): {exc}")
 
 
 # ── HTML template ─────────────────────────────────────────────────────────────
@@ -1046,6 +1016,7 @@ a {{ color:inherit; text-decoration:none; }}
   <div class="dd-backdrop" onclick="closeDD()"></div>
   <div class="dd">
     <a class="dd-item" href="index.html">&#x1F3CE; Market</a>
+    <a class="dd-item" href="https://rennauktion.com/saved.html">&#x2665; My Saved</a>
     <a class="dd-item" href="search.html">&#x1F50D; Search</a>
     <div class="dd-divider"></div>
     <a class="dd-item" href="calculator.html">&#x1F4B0; FMV Calculator</a>
@@ -1058,23 +1029,23 @@ a {{ color:inherit; text-decoration:none; }}
 
 <div class="stats-bar">
   <a class="stat-cell" href="index.html">
-    <div class="stat-num">{n_listings_total:,}</div>
+    <div class="stat-num" id="s-active">{n_listings_total:,}</div>
     <div class="stat-lbl">Active</div>
   </a>
   <a class="stat-cell" href="index.html">
-    <div class="stat-num">{n_new_today}</div>
+    <div class="stat-num" id="s-new">{n_new_today}</div>
     <div class="stat-lbl">New Today</div>
   </a>
   <div class="stat-cell active">
-    <div class="stat-num c-red">{total}</div>
+    <div class="stat-num c-red" id="s-auctions">{total}</div>
     <div class="stat-lbl">Auctions</div>
   </div>
   <a class="stat-cell" href="index.html#comps">
-    <div class="stat-num">{n_comps_total:,}</div>
+    <div class="stat-num" id="s-comps">{n_comps_total:,}</div>
     <div class="stat-lbl">Comps</div>
   </a>
   <a class="stat-cell" href="index.html">
-    <div class="stat-num c-green">{n_deals}</div>
+    <div class="stat-num c-green" id="s-deals">{n_deals}</div>
     <div class="stat-lbl">Deals</div>
   </a>
 </div>
@@ -1260,16 +1231,6 @@ function toggleFav(evt, btn) {{
       b.classList.toggle('active', adding);
     }}
   }});
-  // Supabase sync — works alongside localStorage, login prompted if not authed
-  if (window.RA) {{
-    var card = btn.closest('[data-title]') || btn.closest('[data-url]');
-    window.RA.toggleSave(url, {{
-      source: card ? card.dataset.src : null,
-      title:  card ? card.dataset.title : null,
-      url:    url,
-      img:    card ? card.dataset.img : null,
-    }});
-  }}
   _updateFavCount();
   if (_curView === 'favs') applyFilters();
 }}
@@ -1529,6 +1490,24 @@ function cycleTheme() {{
 }}
 </script>
 </body>
+
+<script>
+/* Live stats loader — overwrites baked-in counts with live stats.json on page load */
+(async () => {{
+  try {{
+    const r = await fetch('/stats.json', {{cache:'no-store'}});
+    if (!r.ok) return;
+    const s = await r.json();
+    const fmt = n => n >= 1000 ? n.toLocaleString() : String(n);
+    const set = (id, val) => {{ const el = document.getElementById(id); if (el && val != null) el.textContent = fmt(val); }};
+    set('s-active',   s.n_active);
+    set('s-new',      s.n_new);
+    set('s-auctions', s.n_auctions);
+    set('s-comps',    s.n_comps);
+    set('s-deals',    s.n_deals);
+  }} catch(e) {{}}
+}})();
+</script>
 </html>"""
 
 
