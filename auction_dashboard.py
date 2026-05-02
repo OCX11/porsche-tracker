@@ -673,10 +673,32 @@ def _push_rennauktion(html: str) -> None:
             .replace('<a class="logo" href="index.html">', '<a class="logo" href="/">')\
             .replace('href="index.html"', 'href="/"')
 
-        # Inject Supabase CDN + auth.js before </body>
+        # Fix nav links (point to rennmarkt.net equivalents) + add My Saved
+        branded = branded \
+            .replace('href="search.html"',       'href="https://rennmarkt.net/search.html"') \
+            .replace('href="calculator.html"',   'href="https://rennmarkt.net/calculator.html"') \
+            .replace('href="market_report.html"','href="https://rennmarkt.net/market_report.html"') \
+            .replace('href="notify.html"',        'href="https://rennmarkt.net/notify.html"')
+
+        # Add My Saved link to dropdown (after Market link, first occurrence only)
+        branded = branded.replace(
+            '<a class="dd-item" href="https://www.rennmarkt.net">\U0001f3ce\ufe0f RennMarkt</a>',
+            '<a class="dd-item" href="https://www.rennmarkt.net">\U0001f3ce\ufe0f RennMarkt</a>\n    <a class="dd-item" href="saved.html">&#x2665; My Saved</a>',
+            1
+        )
+
+        # Inject Supabase CDN + auth.js + live stats loader before </body>
         auth_scripts = (
             '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\n'
             '<script src="/auth.js"></script>\n'
+            '<script>\n'
+            '(async()=>{try{const r=await fetch(\'https://raw.githubusercontent.com/OCX11/rennmarkt/main/docs/stats.json\',{cache:\'no-store\'});'
+            'if(!r.ok)return;const s=await r.json();'
+            'const fmt=n=>n>=1000?n.toLocaleString():String(n);'
+            'const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.textContent=fmt(v);};'
+            'set(\'s-active\',s.n_active);set(\'s-new\',s.n_new);set(\'s-auctions\',s.n_auctions);'
+            'set(\'s-comps\',s.n_comps);set(\'s-deals\',s.n_deals);}catch(e){}})();\n'
+            '</script>\n'
         )
         branded = branded.replace('</body>', auth_scripts + '</body>')
 
