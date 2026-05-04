@@ -496,7 +496,7 @@ button { cursor:pointer; border:none; background:none; font:inherit; color:inher
     <div class="stat-label">Active</div>
   </div>
   <div class="stat-cell" onclick="switchView('listings',this);filterToday()">
-    <div class="stat-number">141</div>
+    <div class="stat-number">143</div>
     <div class="stat-label">New Today</div>
   </div>
   <a class="stat-cell" href="auctions.html" style="text-decoration:none;color:inherit">
@@ -508,7 +508,7 @@ button { cursor:pointer; border:none; background:none; font:inherit; color:inher
     <div class="stat-label">Comps</div>
   </div>
   <div class="stat-cell" onclick="switchView('listings',this);filterDeals()">
-    <div class="stat-number green">539</div>
+    <div class="stat-number green">540</div>
     <div class="stat-label">Deals</div>
   </div>
 </div>
@@ -1655,20 +1655,21 @@ function closeDropdown() {
   document.getElementById('dd-overlay').classList.remove('show');
 }
 
-// ── Smart auto-refresh (no reload, no filter wipe) ───────────────────────────
+// ── Smart auto-refresh — re-fetch listings.json (not HTML scrape) ────────────
 function _autoRefresh() {
-  fetch(location.href + '?_nc=' + Date.now(), {cache:'no-store'})
-    .then(function(r) { return r.text(); })
-    .then(function(html) {
-      var m = html.match(/var CARD_DATA = (\[[\s\S]*?\]);/);
-      if (!m) return;
-      var fresh = JSON.parse(m[1]);
-      if (fresh.length === CARD_DATA.length) return;
+  fetch('listings.json?_nc=' + Date.now(), {cache:'no-store'})
+    .then(function(r) { return r.json(); })
+    .then(function(fresh) {
+      if (!Array.isArray(fresh) || fresh.length === 0) return;
+      // Update if count changed OR if newest listing ID changed
+      var oldTop = CARD_DATA.length > 0 ? CARD_DATA[0].id : null;
+      var newTop = fresh.length > 0 ? fresh[0].id : null;
+      if (fresh.length === CARD_DATA.length && oldTop === newTop) return;
       CARD_DATA = fresh;
       applyFilters();
     }).catch(function() {});
 }
-setInterval(_autoRefresh, 180000);
+setInterval(_autoRefresh, 120000);
 
 
 // ── Pull-to-refresh ───────────────────────────────────────────────────────────
