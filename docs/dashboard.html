@@ -1791,25 +1791,16 @@ function openListing(url) {
 }
 
 window.addEventListener('pageshow', function(e) {
-  if (e.persisted) {
-    // iOS WKWebView can blank its render layer on bfcache restore.
-    // Force a reflow to repaint, then re-render cards if data is loaded.
-    document.body.style.display = 'none';
-    void document.body.offsetHeight;
-    document.body.style.display = '';
-    if (CARD_DATA.length > 0 && typeof applyFilters === 'function') applyFilters();
-  }
+  if (e.persisted) { /* page restored from bfcache — no action needed */ }
 });
 
 // PWA visibility restore — when returning from an external app (eBay, BaT, etc.)
-// iOS fires visibilitychange. Re-fetch listings.json (hits SW cache instantly)
-// and re-render, which cures the blank WKWebView on iOS 16.4+.
+// iOS fires visibilitychange. Re-apply filters and scroll position so the
+// PWA doesn't appear blank or jump.
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'visible') {
-    fetch('listings.json?_=' + Date.now())
-      .then(function(r) { return r.json(); })
-      .then(function(data) { CARD_DATA = data; if (typeof applyFilters === 'function') applyFilters(); })
-      .catch(function() { if (CARD_DATA.length > 0 && typeof applyFilters === 'function') applyFilters(); });
+    // Re-render the active view with current filter state
+    if (typeof applyFilters === 'function') applyFilters();
   }
 });
 
