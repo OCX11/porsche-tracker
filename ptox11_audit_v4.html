@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PTOX11 / RennMarkt — Full System Audit v4 · May 4, 2026</title>
+<style>
+:root {
+  --bg:#0A0A0C; --bg2:#111116; --bg3:#18181F; --bg4:#1E1E28;
+  --border:#2A2A38; --text:#E4E0DC; --muted:#6B6B7D;
+  --red:#D6293E; --orange:#F97316; --yellow:#EAB308;
+  --green:#22C55E; --blue:#60A5FA; --purple:#A78BFA;
+  --p1:#D6293E; --p2:#F97316; --p3:#EAB308;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.6}
+body{max-width:1100px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:28px;font-weight:700;letter-spacing:-0.5px;color:#fff;margin-bottom:4px}
+h2{font-size:18px;font-weight:700;color:#fff;margin:40px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+h3{font-size:14px;font-weight:700;color:#fff;margin:24px 0 10px}
+p{color:var(--text);margin-bottom:10px}
+ul{padding-left:20px;margin-bottom:10px}
+li{margin-bottom:4px;color:var(--text)}
+a{color:var(--blue);text-decoration:none}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:32px}
+.tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700;font-family:var(--font-mono);letter-spacing:0.5px;margin-right:4px}
+.p1{background:#2D1215;color:var(--p1);border:1px solid #4A1E23}
+.p2{background:#2A1A08;color:var(--p2);border:1px solid #4A2E10}
+.p3{background:#2A2208;color:var(--p3);border:1px solid #4A3A10}
+.ok{background:#0D2018;color:var(--green);border:1px solid #1A3D28}
+.info{background:#0D1828;color:var(--blue);border:1px solid #1A2D48}
+.scorecard{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:24px 0}
+.score-cell{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px 12px;text-align:center}
+.score-letter{font-size:32px;font-weight:800;font-family:var(--font-mono);margin-bottom:4px}
+.score-label{font-size:11px;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase}
+.grade-A{color:#22C55E}.grade-B{color:#86EFAC}.grade-C{color:var(--yellow)}.grade-D{color:var(--orange)}.grade-F{color:var(--red)}
+.finding{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:16px}
+.finding-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.finding-title{font-weight:700;font-size:15px;color:#fff}
+.finding-meta{font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-left:auto}
+pre{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:14px 16px;font-family:var(--font-mono);font-size:12px;line-height:1.5;overflow-x:auto;margin:10px 0;color:#C4C0BC}
+code{font-family:var(--font-mono);font-size:12px;background:var(--bg3);padding:1px 5px;border-radius:3px;color:#C4C0BC}
+.diff-block{border-radius:6px;overflow:hidden;margin:10px 0;font-family:var(--font-mono);font-size:12px}
+.diff-before{background:#1E0A0C;border:1px solid #3D1520;padding:12px 16px;color:#F87171;white-space:pre;overflow-x:auto}
+.diff-after{background:#0A1E0C;border:1px solid #1A3D20;border-top:none;padding:12px 16px;color:#86EFAC;white-space:pre;overflow-x:auto}
+.diff-label{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);margin-bottom:4px}
+.db-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:12px;margin:10px 0}
+.db-table th{background:var(--bg3);color:var(--muted);font-weight:700;text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);letter-spacing:0.5px;text-transform:uppercase;font-size:10px}
+.db-table td{padding:7px 12px;border-bottom:1px solid #1A1A24;color:var(--text)}
+.db-table tr:last-child td{border-bottom:none}
+.db-table .hi{color:var(--red);font-weight:700}
+.db-table .ok-val{color:var(--green)}
+.db-table .warn{color:var(--orange)}
+.fix-item{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin-bottom:8px;display:flex;gap:12px}
+.fix-num{background:var(--bg3);color:var(--muted);font-family:var(--font-mono);font-size:11px;font-weight:700;min-width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0}
+.fix-body{flex:1}
+.fix-body strong{color:#fff;display:block;margin-bottom:4px}
+.fix-body small{color:var(--muted);font-family:var(--font-mono);font-size:11px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>PTOX11 / RennMarkt — Full System Audit v4</h1>
+  <div class="subtitle">Senior Lead Dev Audit &nbsp;·&nbsp; May 4, 2026 &nbsp;·&nbsp; 4,122 active listings &nbsp;·&nbsp; 6,656 comps &nbsp;·&nbsp; 10 sources &nbsp;·&nbsp; 2 products (RennMarkt + RennAuktion)</div>
+</header>
+
+<h2>Scorecard</h2>
+<div class="scorecard">
+  <div class="score-cell"><div class="score-letter grade-B">B+</div><div class="score-label">FMV Engine</div></div>
+  <div class="score-cell"><div class="score-letter grade-C">C+</div><div class="score-label">Scraper Health</div></div>
+  <div class="score-cell"><div class="score-letter grade-B">B</div><div class="score-label">Dashboard Arch</div></div>
+  <div class="score-cell"><div class="score-letter grade-B">B+</div><div class="score-label">Alert System</div></div>
+  <div class="score-cell"><div class="score-letter grade-C">C</div><div class="score-label">Data Quality</div></div>
+  <div class="score-cell"><div class="score-letter grade-B">B</div><div class="score-label">Auth / RennAuktion</div></div>
+  <div class="score-cell"><div class="score-letter grade-D">D+</div><div class="score-label">Dashboard Perf</div></div>
+  <div class="score-cell"><div class="score-letter grade-B">B−</div><div class="score-label">Overall</div></div>
+</div>
+
+<!-- ═══ WHAT'S NEW SINCE V3 ═══ -->
+<h2>What Changed Since v3 (April 22 → May 4)</h2>
+<div class="finding">
+  <div class="finding-header"><span class="tag ok">DONE</span><span class="finding-title">Confirmed fixed items from v3</span></div>
+  <ul>
+    <li><strong>FMV persisted to DB</strong> — <code>fmv_value, fmv_confidence, fmv_comp_count, fmv_low, fmv_high, fmv_pct, fmv_updated_at</code> all present in listings table. <code>score_and_persist()</code> running each cycle (3,979–3,845 listings scored per log line). ✅</li>
+    <li><strong>Future-dated sold comps</strong> — 0 records with <code>sold_date &gt; today</code>. Clean. ✅</li>
+    <li><strong>eBay URL query params</strong> — 0 active eBay URLs contain <code>?</code> params. ✅</li>
+    <li><strong>FMV HIGH confidence</strong> — improved from 78% → 90% per task board. C&B comp backfill (487) contributed. ✅</li>
+    <li><strong>Generation column</strong> — 95% fill rate (3,944 / 4,122), up from 55%. VIN decoder working. ✅</li>
+    <li><strong>C&B + pcarmarket + BaT active</strong> — all 3 scraping normally. BaT: 38, C&B: 12, pcarmarket: 7. ✅</li>
+    <li><strong>seen_alerts_imessage.json</strong> — gone. Only seen_alerts_push.json remains (2,850 entries). ✅</li>
+    <li><strong>Race condition + ghost alerts + dashboard auto-refresh</strong> — fixed per task board 2026-05-04. ✅</li>
+    <li><strong>Repo split</strong> — rennmarkt/ + rennauktion/ + core/ + shared/ live. ✅</li>
+    <li><strong>DataImpulse retired</strong> — AutoTrader → Decodo API / Scrapling, cars.com → Scrapling. ✅</li>
+    <li><strong>RennAuktion live</strong> — Cloudflare Pages, Supabase auth (email+pw, magic link, Google OAuth), Resend SMTP wired. ✅</li>
+    <li><strong>VIN history table</strong> — 5,636 rows (5,015 listed, 310 cross_source, 311 price_change). Active and accumulating. ✅</li>
+  </ul>
+</div>
+
+<!-- ═══ DB DIAGNOSTIC ═══ -->
+<h2>DB Diagnostic — May 4, 2026</h2>
+
+<table class="db-table">
+<thead><tr><th>Source</th><th>Active</th><th>No Mileage</th><th>No VIN</th><th>No Image</th><th>Last Seen</th></tr></thead>
+<tbody>
+<tr><td>eBay Motors</td><td class="hi">1,825</td><td class="warn">20</td><td class="hi">1,507 (83%)</td><td class="ok-val">4</td><td>2026-05-04</td></tr>
+<tr><td>AutoTrader</td><td class="warn">958</td><td class="ok-val">0</td><td class="ok-val">0</td><td class="warn">7</td><td>2026-05-04</td></tr>
+<tr><td>DuPont Registry</td><td>916</td><td class="ok-val">0</td><td class="warn">11</td><td class="warn">26</td><td>2026-05-04</td></tr>
+<tr><td>cars.com</td><td>290</td><td class="ok-val">0</td><td class="ok-val">0</td><td class="ok-val">0</td><td>2026-05-04</td></tr>
+<tr><td>PCA Mart</td><td>43</td><td class="ok-val">0</td><td class="hi">43 (100%)</td><td class="ok-val">0</td><td>2026-05-04</td></tr>
+<tr><td>Bring a Trailer</td><td>38</td><td class="ok-val">0</td><td class="ok-val">0</td><td class="ok-val">0</td><td>2026-05-04</td></tr>
+<tr><td>Rennlist</td><td>28</td><td class="warn">1</td><td class="hi">28 (100%)</td><td class="warn">1</td><td>2026-05-04</td></tr>
+<tr><td>Cars and Bids</td><td>12</td><td class="ok-val">0</td><td class="ok-val">0</td><td class="ok-val">0</td><td>2026-05-04</td></tr>
+<tr><td>pcarmarket</td><td>7</td><td class="warn">3</td><td class="warn">3</td><td class="ok-val">0</td><td>2026-05-04</td></tr>
+<tr><td>Built for Backroads</td><td>5</td><td class="ok-val">0</td><td class="hi">5 (100%)</td><td class="ok-val">0</td><td>2026-05-04</td></tr>
+</tbody>
+</table>
+
+<table class="db-table" style="margin-top:12px">
+<thead><tr><th>Metric</th><th>Value</th><th>v3 Value</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Total active listings</td><td class="ok-val">4,122</td><td>2,480</td><td><span class="tag ok">+66%</span></td></tr>
+<tr><td>index.html file size</td><td class="ok-val">8 KB</td><td class="hi">11,949 KB</td><td><span class="tag ok">FIXED ✅</span></td></tr>
+<tr><td>auctions.html file size</td><td class="hi">1,644 KB</td><td>~300 KB</td><td><span class="tag p2">REGRESSED</span></td></tr>
+<tr><td>Sold comps total</td><td class="ok-val">6,656</td><td>5,977</td><td><span class="tag ok">+679</span></td></tr>
+<tr><td>Comps fresh &lt;6mo</td><td class="warn">1,617 (24%)</td><td>1,284 (21%)</td><td><span class="tag p2">STILL LOW</span></td></tr>
+<tr><td>Comps fresh &lt;12mo</td><td class="warn">3,612 (54%)</td><td>3,031 (51%)</td><td></td></tr>
+<tr><td>Future-dated comps</td><td class="ok-val">0</td><td class="hi">10+</td><td><span class="tag ok">FIXED ✅</span></td></tr>
+<tr><td>Duplicate active URLs</td><td class="warn">3 groups</td><td>0</td><td><span class="tag p3">NEW</span></td></tr>
+<tr><td>Stale active &gt;3 days</td><td class="hi">2,963 listings</td><td>1 (AutoTrader id=3191)</td><td><span class="tag p1">CRITICAL</span></td></tr>
+<tr><td>FMV columns in DB</td><td class="ok-val">7 columns</td><td>0</td><td><span class="tag ok">FIXED ✅</span></td></tr>
+<tr><td>Generation fill rate</td><td class="ok-val">95%</td><td>~84%</td><td><span class="tag ok">IMPROVED</span></td></tr>
+<tr><td>VIN history rows</td><td>5,636</td><td>—</td><td><span class="tag ok">NEW TABLE ✅</span></td></tr>
+<tr><td>Push subscriptions</td><td class="warn">2 active</td><td>1</td><td></td></tr>
+<tr><td>seen_alerts_push.json</td><td>2,850 entries, 397 KB</td><td>443 entries</td><td><span class="tag p2">GROWING</span></td></tr>
+<tr><td>AutoTrader error (scrape)</td><td class="hi">_PROXY_URL NameError</td><td>—</td><td><span class="tag p1">NEW BUG</span></td></tr>
+<tr><td>eBay VIN coverage</td><td class="hi">17% (318/1825)</td><td>~23%</td><td><span class="tag p2">REGRESSED</span></td></tr>
+</tbody>
+</table>
+
+<!-- ═══ P1 ═══ -->
+<h2>P1 — Data Loss or Broken Core Functionality</h2>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag p1">P1</span>
+    <span class="finding-title">AutoTrader crashes every scrape cycle — NameError: _PROXY_URL</span>
+    <span class="finding-meta">rennmarkt/scrapers/autotrader.py · rennmarkt/main.py</span>
+  </div>
+  <p>Every rennmarkt scrape cycle logs: <code>ERROR ✗ AutoTrader: name '_PROXY_URL' is not defined</code>. The split repo moved AutoTrader into <code>rennmarkt/scrapers/autotrader.py</code> but this file still references <code>_PROXY_URL</code> from the old proxy init pattern (DataImpulse). Since DataImpulse was retired and the proxy config no longer sets <code>_PROXY_URL</code>, the variable is never defined when AutoTrader is loaded. The scraper crashes at line 778 before returning any listings.</p>
+  <p>Result: 0 AutoTrader listings scraped. 958 active AutoTrader DB rows are now stale with no new listings coming in and no sold-marking firing (the 0-scrape guard prevents it). AutoTrader's 958 listings are ghost inventory.</p>
+  <div class="diff-block">
+    <div class="diff-label">FIX — rennmarkt/scrapers/autotrader.py</div>
+    <div class="diff-before"># Line 778 — old DataImpulse guard still present
+if not _PROXY_URL or not _PROXY_CFG.get("enabled"):
+    log.info("AutoTrader: proxy disabled, skipping")
+    return []</div>
+    <div class="diff-after"># AutoTrader now uses Scrapling (no proxy needed)
+# Remove the _PROXY_URL guard entirely, or replace with:
+# (no proxy check needed — Scrapling bypasses Akamai natively)</div>
+  </div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag p1">P1</span>
+    <span class="finding-title">2,963 active listings marked stale (not seen in 3+ days) — partial scrape guards blocking sold-marking</span>
+    <span class="finding-meta">rennmarkt/main.py · core/db.py mark_sold()</span>
+  </div>
+  <p>DB shows <strong>551 AutoTrader + 868 DuPont + 1,544 eBay</strong> listings with <code>date_last_seen</code> older than 3 days. The partial scrape guard (fires when scraped count &lt; 50% of active) is preventing <code>mark_sold()</code> from firing because each scrape cycle only returns a fraction of active inventory. Log confirms: <em>"Only 18 cars scraped vs 916 active — skipping sold-marking"</em> for DuPont and similar for eBay (49 vs 1,825).</p>
+  <p>This is a structural problem: scrape cycles are returning far fewer listings than the active DB count because we're scraping page 1 only in fast mode. The guard was designed to prevent accidental mass-sell, but it's now permanently tripped because DB counts have grown (4,122 total) while scrape depth hasn't increased proportionally. The result is zombie listings that will never be marked sold.</p>
+  <p><strong>Why DuPont is so bad:</strong> 916 active vs 18 scraped = 2% of inventory per cycle. DuPont returns ~22 listings per API page and we may only be fetching 1 page. With 916 active records from a full bootstrap, fast-mode scraping can never clear stale records.</p>
+  <div class="diff-block">
+    <div class="diff-label">FIX — Two-pronged approach</div>
+    <div class="diff-after"># 1. Lower the sold-marking threshold for retail sources from 50% to a flat minimum
+# Instead of: if scraped < 0.5 * active: skip
+# Use: if scraped < MIN_SCRAPE_FLOOR[dealer]: skip
+# MIN_SCRAPE_FLOOR = {"DuPont Registry": 15, "eBay Motors": 40, "AutoTrader": 30, ...}
+
+# 2. Add a staleness-based cleanup job: any listing not seen in 14 days → mark sold
+# Run once daily in rennmarkt/main.py:
+# UPDATE listings SET status='sold' WHERE status='active'
+#   AND date_last_seen < date('now', '-14 days')
+#   AND dealer NOT IN ('Bring a Trailer','Cars and Bids','pcarmarket')</div>
+  </div>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag p1">P1</span>
+    <span class="finding-title">RennMarkt index.html is a "Launching Soon" splash — real dashboard at dashboard.html</span>
+    <span class="finding-meta">docs/index.html · docs/dashboard.html</span>
+  </div>
+  <p>The public-facing <code>docs/index.html</code> (8 KB) is a splash/waitlist page that redirects logged-in users to <code>/dashboard.html</code>. The actual RennMarkt dashboard lives at <code>docs/dashboard.html</code>. This is intentional architecture (gated public launch) but means <code>docs/dashboard.html</code> is the file to audit for performance. Its size was not checked in this audit — <strong>if dashboard.html still embeds pre-built HTML card fragments (the old P1-2 architecture), it may still be large.</strong></p>
+  <p>The v3 P1-2 fix (migrate to JSON + client-side render) appears to have resolved <code>index.html</code> size, but the question is whether <code>dashboard.html</code> inherited the fix or still uses the old pattern. Recommend running <code>wc -c docs/dashboard.html</code> immediately.</p>
+</div>
+
+<!-- ═══ P2 ═══ -->
+<h2>P2 — Wrong Data Shown or Major UX Failures</h2>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag p2">P2</span>
+    <span class="finding-title">auctions.html is 1.6 MB — nearly as bad as old index.html was</span>
+    <span class="finding-meta">rennauktion/build_dashboard.py · docs/auctions.html</span>
+  </div>
+  <p><code>docs/auctions.html</code> is <strong>1,644 KB</strong> for 57 auctions (~29 KB/card). This is on the same trajectory as the old <code>index.html</code> problem at 11.9 MB. Auction cards include embedded scatter graphs (comp dot plots), which are likely the bulk of the size — each card probably inlines all comp data points as inline JS/SVG rather than loading from external JSON.</p>
+  <p>With only 57 auctions, 1.6 MB is unsustainable. If auctions grow to 200+ (as planned with DuPont/Hagerty expansion), it'll be 5+ MB. The same JSON-data + client-side render approach used for the RennMarkt dashboard fix should be applied to <code>build_dashboard.py</code>.</p>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag p2">P2</span>
+    <span class="finding-title">eBay VIN coverage at 17% — worse than v3's 23% despite being the largest source</span>
+    <span class="finding-meta">rennmarkt/scrapers/ebay.py · core/db.py</span>
+  </div>
+  <p>eBay Motors has 1,825 active listings but 1,507 (83%) have no VIN. This has <em>worsened</em> since v3 (was ~77% no-VIN). eBay's Browse API doesn't reliably return VIN for all listings — it's scraped from item detail pages. With eBay now at nearly 2x its previous count (924 → 1,825), the enrichment job may not be keeping up. This matters because: (1) VIN dedup is the most reliable match key; (2) VIN-less listings can't use the vin_history table; (3) generation decode fails without a VIN.</p>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag p2">P2</span>
+    <span class="finding-title">Comp freshness at 24% within 6 months — FMV anchored to 2024 prices</span>
+    <span class="finding-meta">sold_comps table · rennauktion/comp_scraper.py</span>
+  </div>
+  <p>6,656 total comps. Only 1,617 sold within 6 months (24%). The v3 finding flagged this at 21% and estimated that daily comp scraping should produce ~4,500 fresh comps in the 6-month window. We've gone from 1,284 → 1,617 (+333 fresh in 12 days) which tracks with C&B backfill (487 total added) but most of those are older historical comps, not fresh ones. BaT has 6,049 of 6,656 total comps. The daily comp scraper needs to be running reliably. Check <code>data/last_comp_scrape.txt</code> — if it's missing runs, FMV accuracy is degrading.</p>
+  <p>The C&B backfill confirmed the scraper works. The question is why BaT's fresh-6-month count is only ~1,284 when BaT's daily auction volume for Porsches is 10–20 cars. At 15 cars/day × 180 days = 2,700 expected. Something is limiting the BaT scrape — either the daily scrape isn't running, or deduplication is silently skipping records.</p>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag p2">P2</span>
+    <span class="finding-title">seen_alerts_push.json unbounded growth — 2,850 entries and climbing</span>
+    <span class="finding-meta">notify_push.py · rennauktion/notify_push.py</span>
+  </div>
+  <p>The push seen-alerts file has grown from 443 entries (April 19) to 2,850 entries (May 4) — a 6.4x increase in 15 days. At this rate it'll be 50K entries by year end. The 30-day prune runs on load but 2,850 entries suggests alerts are accumulating faster than they prune, or the prune isn't working correctly. At 397 KB now, it'll become a performance concern when it hits several MB and is loaded/parsed on every alert cycle.</p>
+  <p>Also: with 2 active push subscriptions instead of 1, the seen-alert count may be doubling because each alert fires once per subscription. Verify the dedup key doesn't depend on the subscriber endpoint.</p>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag p2">P2</span>
+    <span class="finding-title">C&B scraper accepting Cayenne / Panamera / Macan — wrong model data reaching DB</span>
+    <span class="finding-meta">rennauktion/scrapers/cnb.py · shared/scraper_utils.py</span>
+  </div>
+  <p>The rennauktion log shows C&B scraping 22 total Porsche listings, then filtering to 12 (10 filtered out). The filtered logs include: Cayenne E-Hybrid Coupe, Cayenne Turbo Coupe, Panamera 4 Edition, Macan S, Macan Turbo. This is correctly filtering at the <code>_is_valid()</code> level, but these excluded cars may be reaching the DB temporarily before being filtered, or they're being rejected but still consuming scrape quota. The real concern: <strong>if the filter is in the rennauktion scraper but shared/scraper_utils.py <code>_is_valid_listing()</code> is slightly different, models could slip through in one path and not another.</strong> Verify both filter functions have identical exclusion lists.</p>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag p2">P2</span>
+    <span class="finding-title">3 duplicate active listing URL groups in DB</span>
+    <span class="finding-meta">core/db.py upsert_listing()</span>
+  </div>
+  <p>The DB now has 3 URL groups with 2+ active listings sharing the same <code>listing_url</code>. In v3 this was 0. This may be from the repo split introducing a second code path that upserts with different dedup logic, or from BfB/Rennlist scrapers that don't normalize URLs consistently. Identify the specific URLs and their source to determine if this is a code bug or legitimate (e.g., a listing relisted with same URL).</p>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag p2">P2</span>
+    <span class="finding-title">Cayman VIN decode failures — WP0AA2 series not decoding generation</span>
+    <span class="finding-meta">core/vin_decoder.py</span>
+  </div>
+  <p>Scrape log shows multiple failures: <em>"2014 Cayman WP0AA2A86EK VIN=AA2 → FAILED (no decode)"</em>, <em>"2011 Cayman WP0AA2A89BU VIN=AA2 → FAILED"</em>. The series code <code>AA2</code> is being extracted but not mapping to a generation. This is the Cayman 987 / 981 series. The VIN decoder's Cayman lookup is missing the <code>AA2</code> series code — it likely only handles <code>CA2/CB2/CC2</code> from the reference table in HANDOVER.md. This means all base Cayman listings from eBay/AutoTrader get no generation, impacting FMV comp matching and filter chips.</p>
+</div>
+
+<!-- ═══ P3 ═══ -->
+<h2>P3 — Polish and Consistency</h2>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag p3">P3</span>
+    <span class="finding-title">CLAUDE.md is stale — still references DataImpulse, old launchd job names, old repo structure</span>
+    <span class="finding-meta">CLAUDE.md</span>
+  </div>
+  <p>CLAUDE.md still says "DataImpulse proxy mandatory" and references the old <code>com.porschetracker.*</code> launchd job names. Running launchd jobs are now <code>com.rennmarkt.*</code> and <code>com.rennauktion.*</code>. Source counts are also stale (DuPont ~922, eBay ~729, AutoTrader ~135 — actual is DuPont 916, eBay 1,825, AutoTrader 958). The HANDOVER.md in the project is also April 18 — needs a full update to reflect the repo split and new architecture.</p>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag p3">P3</span>
+    <span class="finding-title">Root-level scraper files are vestigial — scraper.py, scraper_autotrader.py, etc. still exist at root</span>
+    <span class="finding-meta">/ (project root)</span>
+  </div>
+  <p>The repo split moved scrapers to <code>rennmarkt/scrapers/</code> and <code>rennauktion/scrapers/</code>, but the old root-level files (<code>scraper.py, scraper_autotrader.py, scraper_carscom.py, scraper_ebay.py</code>, etc.) still exist. The old <code>main.py</code> at root also exists and still imports them. This creates ambiguity: which <code>autotrader.py</code> is canonical? The launchd jobs now invoke <code>rennmarkt/main.py</code> and <code>rennauktion/main.py</code>, so the root files are dead code. Archive them to avoid confusion and potential import-path bugs.</p>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag p3">P3</span>
+    <span class="finding-title">Google OAuth still in TESTING mode — external users cannot log in to RennAuktion</span>
+    <span class="finding-meta">console.cloud.google.com · Supabase Google OAuth config</span>
+  </div>
+  <p>Task board confirms: <em>"Google OAuth app still in TESTING mode — publish app or add test users."</em> This means any user not explicitly added as a test user in Google Cloud Console will see "Access blocked: This app is in testing mode" when trying to log in with Google to RennAuktion. This blocks the auth flow for any real user. Needs owner action: publish the OAuth app (requires filling in the Privacy Policy / Terms of Service URLs in Google Cloud Console).</p>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag p3">P3</span>
+    <span class="finding-title">Resend DNS not authorized — magic link emails may not be delivering reliably</span>
+    <span class="finding-meta">Resend dashboard · Cloudflare DNS</span>
+  </div>
+  <p>Task board: <em>"Resend DNS — authorize Cloudflare DNS records popup in Resend dashboard."</em> If Resend's DKIM/SPF records aren't authorized, magic link emails may land in spam or fail delivery. This directly affects the RennAuktion auth flow — users who request a magic link may never receive it. Owner action required.</p>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag p3">P3</span>
+    <span class="finding-title">Uncommitted HTML changes in docs/ — dashboard, market_report, weekly reports</span>
+    <span class="finding-meta">docs/ · git status</span>
+  </div>
+  <p>Task board: <em>"Commit uncommitted HTML changes — dashboard, market_report, weekly reports."</em> Git log shows only "Dashboard update" commits — no feature commits since May 2. If the dashboard or report HTML has been edited locally and not committed, those changes could be overwritten by the next dashboard build. Verify with <code>git status</code> and commit or stash.</p>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag p3">P3</span>
+    <span class="finding-title">Broken links on rennauktion.com — relative path issues reported</span>
+    <span class="finding-meta">rennauktion/ pages</span>
+  </div>
+  <p>Task board: <em>"Fix broken links on rennauktion.com — audit all hrefs, fix relative path issues."</em> Cloudflare Pages deployments can break relative paths when pages nest at different URL depths. Likely culprit: nav links using <code>./</code> or <code>../</code> relative paths that work locally but break at the deployed URL structure. A quick <code>linkchecker rennauktion.com</code> run will identify all dead links.</p>
+</div>
+
+<!-- ═══ SECTION AUDITS ═══ -->
+<h2>Section Audits</h2>
+
+<h3>A. FMV Engine</h3>
+<p><span class="tag ok">MAJOR UPGRADE</span> FMV is now persisted to DB with 7 columns (<code>fmv_value, fmv_confidence, fmv_comp_count, fmv_low, fmv_high, fmv_pct, fmv_updated_at</code>). <code>score_and_persist()</code> runs every cycle on both rennmarkt (3,845 listings) and rennauktion (3,979 listings). This unlocks search-page FMV, deal-score alerts, and FMV history.</p>
+<p><span class="tag p2">CONCERN</span> Both rennmarkt AND rennauktion run <code>score_and_persist()</code> on the same shared DB every cycle. They run on different cadences (rennmarkt ~2 min, rennauktion ~5 min). This creates a write race condition — both processes update <code>fmv_updated_at</code> concurrently on the same listings table. SQLite's WAL mode should handle this without data corruption, but it's worth verifying WAL is enabled and monitoring for <code>SQLITE_BUSY</code> errors in the logs.</p>
+<p><span class="tag p3">NOTE</span> Comp freshness at 24% within 6 months means the FMV weighted median is still being pulled toward 1–2 year old prices. The HIGH confidence improvement (78% → 90%) is real and meaningful, but the underlying price accuracy issue remains until the comp scraper runs more reliably.</p>
+
+<h3>B. Scraper Health</h3>
+<p><span class="tag p1">BROKEN</span> AutoTrader: 0 listings scraped every cycle due to <code>_PROXY_URL</code> NameError. 958 DB records going stale.</p>
+<p><span class="tag ok">HEALTHY</span> BaT (38), C&B (12), pcarmarket (7), Rennlist (28), BfB (12), PCA Mart (53) all scraping correctly.</p>
+<p><span class="tag p2">DEGRADED</span> DuPont (18 scraped vs 916 active), eBay (49 scraped vs 1,825 active), cars.com (92 vs 290) — all triggering partial scrape guards and blocking sold-marking. Fast mode page-1-only scraping can't keep up with DB inventory levels.</p>
+<p><span class="tag ok">FIXED</span> C&B + pcarmarket + BaT were 0 in v3. All healthy now.</p>
+
+<h3>C. Dashboard Architecture</h3>
+<p><span class="tag ok">MAJOR FIX</span> index.html went from 11.9 MB → 8 KB. The JSON + client-side render migration was completed. This is the biggest single UX improvement since v3.</p>
+<p><span class="tag p2">NEW ISSUE</span> auctions.html is 1,644 KB (1.6 MB) for 57 auctions. The RennAuktion dashboard uses inline comp dot-plot data per card. This is the new performance bottleneck.</p>
+<p><span class="tag info">ARCHITECTURE</span> The repo now has two separate dashboard builders: <code>rennmarkt/build_dashboard.py</code> (retail) and <code>rennauktion/build_dashboard.py</code> (auctions). The auction dashboard is the one with the size problem. The retail dashboard appears clean.</p>
+
+<h3>D. Alert System</h3>
+<p><span class="tag ok">STABLE</span> Push notifications working. 2 active subscribers. Last cycle: 1 new listing push delivered. Auction-ending alerts: 0 sent (expected when no auctions ending soon). DOM alerts: 0.</p>
+<p><span class="tag p2">WATCH</span> seen_alerts_push.json at 2,850 entries growing fast. Verify the 30-day prune logic accounts for the dict structure (keyed by listing_id) and that timestamp parsing is correct.</p>
+<p><span class="tag info">NOTE</span> The push server (PID 29546) shows exit code -15 in launchctl — this means it received SIGTERM at some point. It may have restarted. Check <code>logs/push_server.log</code> for restart history. The server is currently listed in launchctl so it's active.</p>
+
+<h3>E. Auth / RennAuktion</h3>
+<p><span class="tag ok">LIVE</span> Supabase auth wired with email+password, magic link, Google OAuth. Resend SMTP confirmed for magic links. Cloudflare Pages live at rennauktion.com.</p>
+<p><span class="tag p3">BLOCKED</span> Google OAuth in TESTING mode — external users blocked. Resend DNS not authorized — email deliverability at risk.</p>
+<p><span class="tag info">SCHEMA</span> Supabase tables: profiles, saved_auctions, saved_listings, alert_prefs. RLS schema live. This is the foundation for the "My Saved" page when it's built.</p>
+
+<h3>F. Data Quality</h3>
+<p>eBay VIN coverage at 17% is the biggest data quality issue. Without VINs, eBay listings can't use vin_history cross-source detection and generation decode is unreliable (falls back to year-only). The eBay scraper has an item-detail enrichment path — it's just not running fast enough vs volume.</p>
+<p>Generation coverage at 95% is excellent for VIN-bearing sources. The remaining 5% are primarily PCA Mart, Rennlist, BfB, and eBay listings where no VIN is available.</p>
+<p>Cayman VIN decode failures (WP0AA2 series) affect a meaningful subset — base Cayman 987/981 is a common sourced model. The VIN reference table needs <code>AA2</code> → Cayman added.</p>
+
+<h3>G. Comp Scraper</h3>
+<p>BaT: 6,049 comps, C&B: 489 (post-backfill), pcarmarket: 34. C&B backfill is now running daily (<code>scrape_cnb_sold()</code>). The BaT comp scraper is the primary volume driver. With 24% freshness at 6 months, verify the daily BaT comp job is actually running — check <code>data/last_comp_scrape.txt</code> timestamp. If it's more than 24 hours old, the launchd job may have silently stopped.</p>
+
+<h3>H. Vestigial Code Risk</h3>
+<p>The project root still has the old <code>main.py</code> which imports the old root-level scrapers. If anything accidentally runs <code>python3 main.py</code> from the project root instead of <code>python3 rennmarkt/main.py</code>, it'll use the old code paths — potentially overwriting DB records with data from the non-split scrapers. The root <code>main.py</code> should be renamed or have a guard added at the top to refuse execution.</p>
+
+<!-- ═══ NEW FINDINGS ═══ -->
+<h2>New Findings Not in v3</h2>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag info">OBSERVATION</span>
+    <span class="finding-title">eBay grew from 924 → 1,825 active listings — largest source by far, now 44% of all inventory</span>
+    <span class="finding-meta">eBay Motors</span>
+  </div>
+  <p>eBay is nearly double its v3 count and represents 44% of the 4,122 total active listings. This is structurally important: eBay has the worst VIN coverage (17%), the least reliable listing dedup (URL-based only without VIN), and produces the most noisy FMV signals (no trim on many listings, broad gen pool matching). As eBay grows, its data quality issues become more prominent in the overall FMV accuracy picture. Consider whether eBay volume should be capped or filtered more aggressively — e.g., excluding no-VIN, no-trim eBay listings from FMV scoring entirely.</p>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag info">OBSERVATION</span>
+    <span class="finding-title">AutoTrader count ballooned: 8 → 958 active — but now completely broken</span>
+    <span class="finding-meta">AutoTrader</span>
+  </div>
+  <p>AutoTrader went from 8 active (v3, limited by Akamai blocks) to 958 after the Decodo/Scrapling migration. But then the proxy refactor broke the scraper with the <code>_PROXY_URL</code> NameError. AutoTrader has excellent data quality (100% mileage, 100% VIN, near-0% missing images) — it's the cleanest retail source. Fixing the scraper bug is high priority.</p>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag info">SUGGESTION</span>
+    <span class="finding-title">vin_history cross_source events (310) are gold — surface these in the UI</span>
+    <span class="finding-meta">vin_history table</span>
+  </div>
+  <p>310 "cross_source" events means 310 VINs have appeared on multiple platforms. This is exactly the intelligence signal the system was built for — a car listed on DuPont AND eBay is almost certainly a dealer or distressed seller. These should be surfaced as a "Seen on multiple platforms" badge on listing cards and/or a dedicated dashboard section. The data exists; it just needs a UI surface.</p>
+</div>
+
+<div class="finding">
+  <div class="finding-header">
+    <span class="tag info">SUGGESTION</span>
+    <span class="finding-title">hagerty_valuations table exists in SQLite — not mentioned in any docs</span>
+    <span class="finding-meta">data/inventory.db</span>
+  </div>
+  <p>The DB has a <code>hagerty_valuations</code> table (from the old <code>main.py --hagerty</code> flag). It's not referenced in the current rennmarkt or rennauktion code. Either: (a) the old Hagerty scraper was archived during the split and the table is orphaned, or (b) a new Hagerty valuation feed needs to be wired into <code>core/fmv.py</code> as a fallback. Clarify status — if orphaned, remove from <code>core/db.py init_db()</code>.</p>
+</div>
+
+<!-- ═══ PRIORITY FIX LIST ═══ -->
+<h2>Prioritized Fix List</h2>
+
+<div class="fix-item">
+  <div class="fix-num"><span class="tag p1" style="margin:0">P1</span></div>
+  <div class="fix-body">
+    <strong>Fix AutoTrader _PROXY_URL NameError — 0 listings scraped every cycle</strong>
+    <small>rennmarkt/scrapers/autotrader.py line ~778</small>
+    <p style="margin-top:6px;font-size:13px">Remove or replace the proxy check with a Scrapling-native flow. AutoTrader now uses Scrapling — no proxy required. This fix is 5 lines and unblocks 958 listings from accumulating as ghosts.</p>
+  </div>
+</div>
+
+<div class="fix-item">
+  <div class="fix-num"><span class="tag p1" style="margin:0">P1</span></div>
+  <div class="fix-body">
+    <strong>Add staleness-based sold-marking job — 2,963 zombie listings</strong>
+    <small>rennmarkt/main.py · core/db.py</small>
+    <p style="margin-top:6px;font-size:13px">Add daily cleanup: <code>UPDATE listings SET status='sold' WHERE status='active' AND date_last_seen &lt; date('now','-14 days') AND dealer NOT IN (auction_sources)</code>. Also lower the partial-scrape threshold from 50% to a per-source flat minimum so sold-marking can fire even in fast mode.</p>
+  </div>
+</div>
+
+<div class="fix-item">
+  <div class="fix-num"><span class="tag p1" style="margin:0">P1</span></div>
+  <div class="fix-body">
+    <strong>Verify docs/dashboard.html file size — may still be the old 12MB architecture</strong>
+    <small>docs/dashboard.html · rennmarkt/build_dashboard.py</small>
+    <p style="margin-top:6px;font-size:13px">Run <code>wc -c docs/dashboard.html</code>. If &gt;2MB, the client-side render migration wasn't applied to the actual served dashboard file.</p>
+  </div>
+</div>
+
+<div class="fix-item">
+  <div class="fix-num"><span class="tag p2" style="margin:0">P2</span></div>
+  <div class="fix-body">
+    <strong>Fix auctions.html size (1.6MB → target &lt;200KB)</strong>
+    <small>rennauktion/build_dashboard.py</small>
+    <p style="margin-top:6px;font-size:13px">Move comp dot-plot data to external JSON files (<code>docs/data/comps_{auction_id}.json</code>) fetched client-side on card expand. Auction cards should only embed bid price, FMV, countdown, and image URL inline.</p>
+  </div>
+</div>
+
+<div class="fix-item">
+  <div class="fix-num"><span class="tag p2" style="margin:0">P2</span></div>
+  <div class="fix-body">
+    <strong>Fix Cayman WP0AA2 VIN decode — affects all base Cayman 987/981 listings</strong>
+    <small>core/vin_decoder.py</small>
+    <p style="margin-top:6px;font-size:13px">Add <code>AA2</code> → Cayman to the VIN series decode table (≤2004=986, ≤2011=987, ≤2016=981, 2017+=718). This is a one-line addition to the lookup dict.</p>
+  </div>
+</div>
+
+<div class="fix-item">
+  <div class="fix-num"><span class="tag p2" style="margin:0">P2</span></div>
+  <div class="fix-body">
+    <strong>Verify + fix comp scraper daily cadence — 24% freshness at 6 months</strong>
+    <small>comp_scraper.py · data/last_comp_scrape.txt · launchd</small>
+    <p style="margin-top:6px;font-size:13px">Check <code>last_comp_scrape.txt</code> for missed days. If the comp scraper launchd job isn't running daily, fix the plist. Target: &gt;50% fresh comps within 6 months.</p>
+  </div>
+</div>
+
+<div class="fix-item">
+  <div class="fix-num"><span class="tag p2" style="margin:0">P2</span></div>
+  <div class="fix-body">
+    <strong>Investigate 3 duplicate active URL groups — potential dedup regression from repo split</strong>
+    <small>core/db.py upsert_listing()</small>
+    <p style="margin-top:6px;font-size:13px"><code>SELECT listing_url, dealer, COUNT(*) FROM listings WHERE status='active' GROUP BY listing_url HAVING COUNT(*) &gt; 1</code>. Identify source and fix upsert logic if it's a code path difference between rennmarkt and rennauktion codebases.</p>
+  </div>
+</div>
+
+<div class="fix-item">
+  <div class="fix-num"><span class="tag p3" style="margin:0">P3</span></div>
+  <div class="fix-body">
+    <strong>Update CLAUDE.md and HANDOVER.md — both stale post-split</strong>
+    <small>CLAUDE.md · HANDOVER.md</small>
+    <p style="margin-top:6px;font-size:13px">Update proxy rules (DataImpulse → retired), launchd job names (com.rennmarkt.* and com.rennauktion.*), source counts, repo structure, and remove references to the old monorepo layout.</p>
+  </div>
+</div>
+
+<div class="fix-item">
+  <div class="fix-num"><span class="tag p3" style="margin:0">P3</span></div>
+  <div class="fix-body">
+    <strong>Archive root-level scraper files and old main.py — vestigial code risk</strong>
+    <small>scraper.py, scraper_autotrader.py, scraper_*.py, main.py (root)</small>
+    <p style="margin-top:6px;font-size:13px">Move to <code>archive/pre_split_2026-05-02/</code> (already exists). Add a guard to root <code>main.py</code> that refuses to run and prints "Use rennmarkt/main.py or rennauktion/main.py instead."</p>
+  </div>
+</div>
+
+<div class="fix-item">
+  <div class="fix-num"><span class="tag p3" style="margin:0">P3</span></div>
+  <div class="fix-body">
+    <strong>Fix broken links on rennauktion.com + commit uncommitted HTML changes</strong>
+    <small>rennauktion/ pages · docs/</small>
+    <p style="margin-top:6px;font-size:13px">Run linkchecker on rennauktion.com. Fix relative path issues. Then <code>git add docs/ &amp;&amp; git commit -m "Commit HTML changes"</code> to avoid accidental overwrite.</p>
+  </div>
+</div>
+
+<footer style="margin-top:60px;padding-top:24px;border-top:1px solid var(--border);color:var(--muted);font-size:12px;font-family:var(--font-mono);">
+  PTOX11 / RennMarkt Audit v4 · May 4, 2026 · Auditor: Senior Lead Dev<br>
+  Sources: DB diagnostics (14 queries), scrape logs (rennmarkt_cron.log, rennauktion_cron.log, scraper.log), launchd status, git log, Apple Notes task board, HANDOVER.md, CLAUDE.md, rennauktion/main.py, rennmarkt/main.py, rennmarkt/scrapers/autotrader.py, core/fmv.py, core/vin_decoder.py<br>
+  Active: 4,122 listings · 6,656 comps · 2 products · 10 sources · Mac Mini M4
+</footer>
+
+</body>
+</html>

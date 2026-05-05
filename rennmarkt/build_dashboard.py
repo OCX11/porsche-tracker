@@ -2128,10 +2128,25 @@ document.addEventListener('click', function(e) {{
     if ((editTrigger || noneTrigger) && !IS_PUBLIC) {{ openFmvInput(e, wrap); }}
     return;  // stop — never navigate when clicking fmv-wrap
   }}
-  // Card click → navigate to listing
+  // expand-goto link → let it navigate naturally
+  if (e.target.closest('.expand-goto')) return;
+  // star-btn, fmv-override-input already handled above via stopPropagation
+  // Card click → toggle expand panel
   var card = e.target.closest('.card');
-  if (card && card.dataset.url) {{
-    openListing(card.dataset.url);
+  if (card) {{
+    var expand = card.querySelector('.card-expand');
+    if (expand) {{
+      var opening = !card.classList.contains('expanded');
+      // close any other open card
+      document.querySelectorAll('.card.expanded').forEach(function(c) {{
+        c.classList.remove('expanded');
+      }});
+      if (opening) {{
+        card.classList.add('expanded');
+        var svg = expand.querySelector('.expand-graph-svg');
+        if (svg && !svg._drawn) _drawRetailGraph(svg);
+      }}
+    }}
   }}
 }});
 
@@ -2372,6 +2387,98 @@ function sortComps(col) {{
   }});
   var body = document.getElementById('comps-body');
   rows.forEach(function(r) {{ body.appendChild(r); }});
+}}
+
+// ── Retail hover comp graph ──────────────────────────────────────────────────
+var _RETAIL_COMPS_CACHE = null;
+var _RETAIL_COMPS_PENDING = [];
+
+function _getRetailComps(cb) {{
+  if (_RETAIL_COMPS_CACHE !== null) {{ cb(_RETAIL_COMPS_CACHE); return; }}
+  _RETAIL_COMPS_PENDING.push(cb);
+  if (_RETAIL_COMPS_PENDING.length > 1) return;
+  fetch('retail_comps.json?v=' + Date.now(), {{cache:'no-store'}})
+    .then(function(r) {{ return r.json(); }})
+    .then(function(data) {{
+      _RETAIL_COMPS_CACHE = data;
+      _RETAIL_COMPS_PENDING.forEach(function(fn) {{ fn(data); }});
+      _RETAIL_COMPS_PENDING = [];
+    }})
+    .catch(function() {{
+      _RETAIL_COMPS_CACHE = {{}};
+      _RETAIL_COMPS_PENDING.forEach(function(fn) {{ fn({{}}); }});
+      _RETAIL_COMPS_PENDING = [];
+    }});
+}}
+
+function _drawRetailGraph(svg) {{
+  svg._drawn = true;
+  var lid  = svg.dataset.lid || '';
+  var fmv  = +svg.dataset.fmv  || 0;
+  var bid  = +svg.dataset.bid  || 0;
+  var low  = +svg.dataset.low  || 0;
+  var high = +svg.dataset.high || 0;
+  _getRetailComps(function(cache) {{
+    var dots = cache[lid] || [];
+    _drawRetailDots(svg, dots, fmv, bid, low, high);
+  }});
+}}
+
+function _drawRetailDots(svg, dots, fmv, bid, low, high) {{
+  if (!dots.length && !fmv) {{
+    svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#444" font-size="11" font-family='DM Mono,monospace'>No comp data</text>';
+    return;
+  }}
+  var ns = 'http://www.w3.org/2000/svg';
+  var W = svg.parentElement ? (svg.parentElement.getBoundingClientRect().width || 500) : 500;
+  var H = 130;
+  svg.setAttribute('viewBox','0 0 ' + W + ' ' + H);
+  svg.setAttribute('width', W); svg.setAttribute('height', H);
+  svg.style.overflow = 'visible';
+  function mk(tag, attrs, parent) {{
+    var e = document.createElementNS(ns, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    (parent||svg).appendChild(e); return e;
+  }}
+  var prices = dots.map(function(d){{return d.p;}}).concat(bid ? [bid] : []).concat(fmv ? [fmv] : []);
+  var pMin = Math.min.apply(null, prices), pMax = Math.max.apply(null, prices);
+  var pRange = pMax - pMin || 1;
+  var dates = dots.map(function(d){{return d.d;}}).filter(Boolean).sort();
+  var dMin = dates[0]||'', dMax = dates[dates.length-1]||'';
+  var pad = {{l:40,r:16,t:10,b:20}};
+  var gW = W - pad.l - pad.r, gH = H - pad.t - pad.b;
+  function xp(dateStr) {{
+    if (!dateStr||!dMin||!dMax||dMin===dMax) return pad.l + gW/2;
+    var t=(new Date(dateStr)-new Date(dMin))/(new Date(dMax)-new Date(dMin)||1);
+    return pad.l + t*gW;
+  }}
+  function yp(price) {{ return pad.t + (1-(price-pMin)/pRange)*gH; }}
+  // FMV band
+  if (low && high) mk('rect',{{x:pad.l,y:yp(high),width:gW,height:Math.max(1,yp(low)-yp(high)),fill:'rgba(96,165,250,0.06)',stroke:'none'}});
+  // FMV line
+  if (fmv) mk('line',{{x1:pad.l,y1:yp(fmv),x2:pad.l+gW,y2:yp(fmv),stroke:'#60A5FA',opacity:'0.45','stroke-width':'1','stroke-dasharray':'4,3'}});
+  // Comp dots
+  dots.forEach(function(d) {{
+    var cx=xp(d.d), cy=yp(d.p);
+    var g=mk('g',{{}});
+    mk('circle',{{cx:cx,cy:cy,r:'4',fill:'#3A3A5C',stroke:'#6B6B9D','stroke-width':'1'}},g);
+    g.style.cursor='pointer';
+    g.addEventListener('mouseenter',function(ev) {{
+      var tt=document.getElementById('retail-comp-tt');
+      if(!tt){{tt=document.createElement('div');tt.id='retail-comp-tt';tt.style.cssText='position:fixed;background:#18181F;border:1px solid #2A2A38;border-radius:6px;padding:7px 10px;font-family:DM Mono,monospace;font-size:11px;color:#E4E0DC;pointer-events:none;z-index:9999;max-width:200px;line-height:1.5;';document.body.appendChild(tt);}}
+      tt.innerHTML='<b>$'+Number(d.p).toLocaleString()+'</b><br>'+(d.yr?d.yr+' ':'')+((d.t||'')).trim().slice(0,30)+(d.d?'<br>'+d.d.slice(0,10):'')+(d.mi?'<br>'+Number(d.mi).toLocaleString()+' mi':'');
+      tt.style.display='block';tt.style.left=(ev.clientX+12)+'px';tt.style.top=(ev.clientY-10)+'px';
+    }});
+    g.addEventListener('mousemove',function(ev){{var tt=document.getElementById('retail-comp-tt');if(tt){{tt.style.left=(ev.clientX+12)+'px';tt.style.top=(ev.clientY-10)+'px';}}}});
+    g.addEventListener('mouseleave',function(){{var tt=document.getElementById('retail-comp-tt');if(tt)tt.style.display='none';}});
+    if(d.url) g.addEventListener('click',function(ev){{ev.stopPropagation();window.open(d.url,'_blank');}});
+  }});
+  // Current bid/ask dot
+  if (bid && dMax) {{ mk('circle',{{cx:xp(dMax),cy:yp(bid),r:'5',fill:'#F97316',stroke:'#FFF','stroke-width':'1.5'}}); }}
+  // Y axis labels
+  var fmt=function(v){{return v>=1000?'$'+(v/1000).toFixed(0)+'k':'$'+v;}};
+  mk('text',{{x:pad.l-4,y:pad.t+4,'text-anchor':'end',fill:'#555','font-size':'9','font-family':'DM Mono,monospace'}}).textContent=fmt(pMax);
+  mk('text',{{x:pad.l-4,y:pad.t+gH,'text-anchor':'end',fill:'#555','font-size':'9','font-family':'DM Mono,monospace'}}).textContent=fmt(pMin);
 }}
 
 // ── PWA-safe listing navigation ───────────────────────────────────────────────

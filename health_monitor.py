@@ -194,11 +194,11 @@ def _check_stale_log(log_path, seen):
 # ---------------------------------------------------------------------------
 
 _LAUNCHD_SERVICES = {
-    'com.porschetracker.scrape': 'run_daily.sh',
-    'com.porschetracker.archive-capture': 'archive_capture.py',
-    'com.porschetracker.distill-poller': 'distill_poller.py',
-    'com.porschetracker.distill-receiver': 'distill_receiver.py',
-    'com.porschetracker.distill-watcher': 'distill_watcher.py',
+    'com.rennmarkt.scrape':        'run_rennmarkt.sh',
+    'com.rennauktion.scrape':      'run_rennauktion.sh',
+    'com.rennmarkt.gitpush':       'git_push_dashboard.sh',
+    'com.rennmarkt.pushserver':    'push_server.py',
+    'com.rennmarkt.archive-capture': 'archive_capture.py',
 }
 
 
@@ -236,37 +236,42 @@ def _check_services(seen):
                 _mark_alerted(seen, key)
 
 
-def _check_proxy(seen):
-    """Check DataImpulse proxy health with a simple request."""
+def _check_decodo(seen):
+    """Check Decodo usage via local counter in data/decodo_usage.json.
+    
+    Decodo does not expose a usage API — we track calls locally.
+    autotrader.py increments the counter each time it calls Decodo.
+    Alert when monthly count approaches the plan limit (1000 req/month on \.50 plan).
+    """
     today = date.today().isoformat()
-    key = "proxy_down"
+    key = "decodo_limit"
     if seen.get(key) == today:
         return
 
     try:
-        proxy_cfg_path = DATA_DIR / "proxy_config.json"
-        if not proxy_cfg_path.exists():
-            return
-        with open(proxy_cfg_path) as f:
-            cfg = json.load(f)
-        if not cfg.get("enabled"):
-            return
-
-        proxy_url = "http://%s:%s@%s:%s" % (
-            cfg.get("username", ""), cfg.get("password", ""),
-            cfg.get("host", ""), cfg.get("port", ""))
-        proxies = {"http": proxy_url, "https": proxy_url}
-
-        resp = requests.get("https://api.ipify.org", proxies=proxies, timeout=15)
-        if resp.status_code == 200 and resp.text.strip():
-            log.info("health_monitor: proxy OK (exit IP: %s)", resp.text.strip())
-        else:
-            raise Exception("HTTP %d" % resp.status_code)
+        usage_path = DATA_DIR / "decodo_usage.json"
+        if not usage_path.exists():
+            return  # No usage tracked yet — autotrader hasn't run
+        
+        with open(usage_path) as f:
+            usage = json.load(f)
+        
+        # usage format: {"month": "2026-05", "count": 142}
+        this_month = date.today().strftime("%Y-%m")
+        if usage.get("month") != this_month:
+            return  # Stale data from previous month
+        
+        count = usage.get("count", 0)
+        limit = 1000  # \.50/mo plan: ~1000 standard requests
+        pct = int(100 * count / limit)
+        log.info("health_monitor: Decodo usage %d/%d req this month (%d%%)", count, limit, pct)
+        
+        if pct >= 80:
+            msg = "Decodo at %d%% (%d/%d req this month). AutoTrader scraping may stop." % (pct, count, limit)
+            if _send_push("⚠️ Decodo Limit", msg):
+                _mark_alerted(seen, key)
     except Exception as e:
-        log.warning("health_monitor: proxy check failed: %s", e)
-        msg = "DataImpulse proxy health check failed: %s" % str(e)[:100]
-        if _send_push("⚠️ Proxy Down", msg):
-            _mark_alerted(seen, key)
+        log.debug("health_monitor: Decodo check failed: %s", e)
 
 # ---------------------------------------------------------------------------
 # Public entry point
@@ -274,12 +279,12 @@ def _check_proxy(seen):
 
 def main():
     """Run all health checks. Called at end of each main.py scrape cycle."""
-    try:
-        from scraper import DEALERS as _DEALERS
-        active_sources = [d["name"] for d in _DEALERS]
-    except Exception as e:
-        log.warning("health_monitor: could not import DEALERS: %s", e)
-        active_sources = []
+    # Active sources across both apps
+    active_sources = [
+        'DuPont Registry', 'eBay Motors', 'cars.com', 'AutoTrader',
+        'PCA Mart', 'Rennlist', 'Built for Backroads',
+        'Bring a Trailer', 'Cars and Bids', 'pcarmarket',
+    ]
 
     log_path = _today_log_path()
     runs     = _parse_scrape_blocks(log_path)
@@ -292,7 +297,7 @@ def main():
     _check_zero_runs(runs, active_sources, seen)
     _check_stale_log(log_path, seen)
     _check_services(seen)
-    _check_proxy(seen)
+    _check_decodo(seen)
 
     _save_seen(seen)
 

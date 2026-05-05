@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 """
-Porsche Competitor Inventory Tracker — main entry point.
+DEPRECATED — This file is the pre-split monolith (archived 2026-05-02).
+Use rennmarkt/main.py or rennauktion/main.py instead.
+"""
+import sys
+if __name__ == "__main__":
+    print("ERROR: This file has been retired.")
+    print("Use: python3 rennmarkt/main.py  (retail listings)")
+    print("Use: python3 rennauktion/main.py  (auction dashboard)")
+    sys.exit(1)
+"""
+Porsche Competitor Inventory Tracker — main entry point (RETIRED).
 
 Usage:
   python main.py              # Run full scrape + snapshot + dashboard (fast mode)
@@ -182,6 +192,15 @@ def run_snapshot(dealer_results: dict, today: str):
                         image_url=car.get("image_url"),
                         location=car.get("location"),
                         transmission=car.get("transmission"),
+                        # Detail fields folded in from per-source first-pass scrapes
+                        # (eBay localizedAspects, AutoTrader __NEXT_DATA__, cars.com basics).
+                        # COALESCE(?, col) in upsert_listing means scraper writes win
+                        # for color/body_style/drivetrain/engine — drivetrain has trim
+                        # override applied at extraction time so trim signal wins.
+                        color=car.get("color"),
+                        body_style=car.get("body_style"),
+                        drivetrain=car.get("drivetrain"),
+                        engine=car.get("engine"),
                         date_first_seen=car.get("date_first_seen"),
                         auction_ends_at=car.get("auction_ends_at"),
                         image_url_cdn=car.get("image_url_cdn"),

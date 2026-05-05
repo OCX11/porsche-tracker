@@ -1389,7 +1389,18 @@ function drawDotGraph(svg, card) {{
 }}
 
 function _drawDotGraphInner(svg, dots, fmv, bid, low, high) {{
-  if (!dots.length && !fmv) return;
+  if (!dots.length && !fmv) {{
+    svg.setAttribute('viewBox','0 0 400 60');
+    svg.setAttribute('width','100%'); svg.setAttribute('height','60');
+    var t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x','50%'); t.setAttribute('y','50%');
+    t.setAttribute('text-anchor','middle'); t.setAttribute('dominant-baseline','middle');
+    t.setAttribute('fill','#444'); t.setAttribute('font-size','11');
+    t.setAttribute('font-family','DM Mono,monospace');
+    t.textContent = 'No comp data available';
+    svg.appendChild(t);
+    return;
+  }}
 
   var W = svg.parentElement.getBoundingClientRect().width || 700;
   var H = 160;

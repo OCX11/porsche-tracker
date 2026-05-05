@@ -176,7 +176,7 @@ def init_db():
         if need_recreate:
             # Normalize source aliases before dedup
             conn.execute("UPDATE sold_comps SET source='Bring a Trailer' WHERE source IN ('BaT','bat','bringatrailer')")
-            conn.execute("UPDATE sold_comps SET source='Cars & Bids' WHERE source IN ('carsandbids','cars and bids','Cars and Bids')")
+            conn.execute("UPDATE sold_comps SET source='Cars and Bids' WHERE source IN ('carsandbids','cars and bids','Cars & Bids')")
             conn.execute("UPDATE sold_comps SET source='pcarmarket' WHERE source IN ('PCarMarket','PCARMARKET')")
             # Deduplicate: keep highest id per listing_url
             conn.execute("""
@@ -433,7 +433,8 @@ def feed_type_for(dealer: str) -> str:
 def upsert_listing(conn, dealer, year, make, model, trim, mileage, price, vin, url, today,
                    image_url=None, color=None, transmission=None, location=None,
                    condition=None, body_style=None, seller_type=None, feed_type=None,
-                   date_first_seen=None, auction_ends_at=None, image_url_cdn=None):
+                   date_first_seen=None, auction_ends_at=None, image_url_cdn=None,
+                   drivetrain=None, engine=None):
     """Insert or update a listing. Returns (listing_id, is_new, price_changed)."""
     import vin_tracker as _vt
     # Auto-derive feed_type from dealer name if not explicitly supplied
@@ -500,12 +501,15 @@ def upsert_listing(conn, dealer, year, make, model, trim, mileage, price, vin, u
                    feed_type=COALESCE(feed_type,?),
                    auction_ends_at=COALESCE(?,auction_ends_at),
                    image_url_cdn=COALESCE(?,image_url_cdn),
+                   drivetrain=COALESCE(?,drivetrain),
+                   engine=COALESCE(?,engine),
                    date_first_seen=CASE WHEN ? IS NOT NULL AND ? > date_first_seen
                                    THEN ? ELSE date_first_seen END
                WHERE id=?""",
             (today, price, trim, mileage, url, image_url, source_category(dealer), tier,
              color, transmission, location, condition, body_style, seller_type,
              feed_type, auction_ends_at, image_url_cdn,
+             drivetrain, engine,
              date_first_seen, date_first_seen, date_first_seen,
              listing_id)
         )
@@ -539,12 +543,13 @@ def upsert_listing(conn, dealer, year, make, model, trim, mileage, price, vin, u
                                     listing_url, image_url, date_first_seen, date_last_seen,
                                     source_category, tier, color, transmission, location,
                                     condition, body_style, seller_type, feed_type,
-                                    auction_ends_at, image_url_cdn)
-               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                                    auction_ends_at, image_url_cdn, drivetrain, engine)
+               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (dealer, vin, year, make, model, trim, mileage, price, url, image_url,
              date_first_seen or today, today,
              source_category(dealer), tier, color, transmission, location,
-             condition, body_style, seller_type, feed_type, auction_ends_at, image_url_cdn)
+             condition, body_style, seller_type, feed_type, auction_ends_at, image_url_cdn,
+             drivetrain, engine)
         )
         listing_id = cur.lastrowid
         if price and price > 0 and price < 2_000_000:
@@ -671,7 +676,7 @@ def upsert_sold_comp(conn, source, year, make, model, trim, mileage, sold_price,
     _src_map = {
         'bat': 'Bring a Trailer', 'bringatrailer': 'Bring a Trailer',
         'bring a trailer': 'Bring a Trailer',
-        'carsandbids': 'Cars & Bids', 'cars and bids': 'Cars & Bids',
+        'carsandbids': 'Cars and Bids', 'cars and bids': 'Cars and Bids', 'cars & bids': 'Cars and Bids',
         'pcarmarket': 'pcarmarket',
     }
     source = _src_map.get((source or '').lower().strip(), source)

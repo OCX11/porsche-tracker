@@ -237,19 +237,16 @@ def _build_retail_comps_json():
                 r = fmv_cache[key]
                 dots = [
                     {
-                        "price": int(c.sold_price),
-                        "date":  getattr(c, "sold_date", None) or "",
-                        "img":   getattr(c, "image_url", None) or "",
-                        "url":   getattr(c, "listing_url", None) or "",
-                        "year":  getattr(c, "year", None) or "",
-                        "model": getattr(c, "model", None) or "",
-                        "trim":  getattr(c, "trim", None) or "",
-                        "mi":    getattr(c, "mileage", None) or "",
+                        "p":  int(c.sold_price),
+                        "d":  (getattr(c, "sold_date", None) or "")[:10],
+                        "t":  (getattr(c, "trim", None) or "")[:24],
+                        "mi": getattr(c, "mileage", None) or "",
+                        "yr": getattr(c, "year", None) or "",
                     }
                     for c in getattr(r, "comps", [])
                     if getattr(c, "sold_price", None) and int(c.sold_price) > 0
                        and getattr(c, "sold_date", None)
-                ][:80]
+                ][:60]
                 if dots:
                     comps_by_id[str(lid)] = dots
         out = PROJECT_ROOT / "docs" / "retail_comps.json"
