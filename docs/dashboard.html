@@ -1175,7 +1175,13 @@ function renderCard(d) {
     + '</div>'
     + endsHtml
     + metaHtml
-    + '</div></div>';
+    + '</div>'
+    + '<div class="card-expand" id="expand-" + d.id>'
+    + '<div class="expand-graph-label">Sold comps <span class="expand-cc">' + (d.fmv_cc||0) + ' sales</span></div>'
+    + '<svg class="expand-graph-svg" data-lid="' + d.id + '" data-fmv="' + (d.fmv||0) + '" data-bid="' + (d.pr||0) + '" data-low="' + (d.fmv_lo||0) + '" data-high="' + (d.fmv_hi||0) + '"></svg>'
+    + '<a class="expand-goto" href="' + d.url + '" target="_blank" onclick="event.stopPropagation()">&#x2197; View listing</a>'
+    + '</div>'
+    + '</div>';
 }
 
 // ── Personal FMV override ────────────────────────────────────────────────────
