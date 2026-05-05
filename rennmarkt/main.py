@@ -214,6 +214,51 @@ def run_snapshot(dealer_results: dict, today: str):
     return new_total, updated_total, sold_total, new_ids
 
 
+def _build_retail_comps_json():
+    """Build docs/retail_comps.json — comp dots keyed by listing ID.
+    Fetched lazily by JS on hover-expand of retail listing cards."""
+    import json as _json
+    from pathlib import Path
+    try:
+        from core.fmv import get_fmv, normalize_trim
+        comps_by_id = {}
+        with database.get_conn() as conn:
+            rows = conn.execute(
+                """SELECT id, year, model, trim FROM listings
+                   WHERE status='active' AND source_category='RETAIL'
+                   AND fmv_confidence IN ('HIGH','MEDIUM')
+                   ORDER BY id"""
+            ).fetchall()
+            fmv_cache = {}
+            for lid, year, model, trim in rows:
+                key = (model, year, normalize_trim(trim))
+                if key not in fmv_cache:
+                    fmv_cache[key] = get_fmv(conn, year=year, model=model, trim=trim)
+                r = fmv_cache[key]
+                dots = [
+                    {
+                        "price": int(c.sold_price),
+                        "date":  getattr(c, "sold_date", None) or "",
+                        "img":   getattr(c, "image_url", None) or "",
+                        "url":   getattr(c, "listing_url", None) or "",
+                        "year":  getattr(c, "year", None) or "",
+                        "model": getattr(c, "model", None) or "",
+                        "trim":  getattr(c, "trim", None) or "",
+                        "mi":    getattr(c, "mileage", None) or "",
+                    }
+                    for c in getattr(r, "comps", [])
+                    if getattr(c, "sold_price", None) and int(c.sold_price) > 0
+                       and getattr(c, "sold_date", None)
+                ][:80]
+                if dots:
+                    comps_by_id[str(lid)] = dots
+        out = PROJECT_ROOT / "docs" / "retail_comps.json"
+        out.write_text(_json.dumps(comps_by_id), encoding="utf-8")
+        log.info("retail_comps.json: %d listings with comp dots", len(comps_by_id))
+    except Exception as e:
+        log.warning("retail_comps.json build failed: %s", e)
+
+
 def main():
     parser = argparse.ArgumentParser(description="RennMarkt — retail listing tracker")
     parser.add_argument("--dashboard", action="store_true",
@@ -280,11 +325,12 @@ def main():
     except Exception as e:
         log.warning("Auction comp promotion failed: %s", e)
 
-    # FMV persist
+    # FMV persist + retail_comps.json for hover graph
     try:
         with database.get_conn() as conn:
             n_fmv = fmv_engine.score_and_persist(conn)
             log.info("FMV persist: scored %d listings", n_fmv)
+        _build_retail_comps_json()
     except Exception as e:
         log.warning("FMV persist failed: %s", e)
 
@@ -312,7 +358,8 @@ def main():
                        vin, listing_url, image_url, date_first_seen,
                        source_category, tier, color, transmission,
                        body_style, drive_type, generation,
-                       fmv_value, fmv_confidence, fmv_comp_count
+                       fmv_value, fmv_confidence, fmv_comp_count,
+                       fmv_low, fmv_high, fmv_pct
                 FROM listings
                 WHERE status='active'
                 ORDER BY created_at DESC
