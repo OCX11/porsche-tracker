@@ -39,6 +39,13 @@ NOTIFICATIONS_ENABLED = True
 
 # ── Dedup store ────────────────────────────────────────────────────────────────
 
+def _normalise_url(url: str) -> str:
+    """Strip eBay tracking params from listing URLs — keeps dedup stable across sessions."""
+    if url and "ebay.com/itm/" in url and "?" in url:
+        return url.split("?")[0]
+    return url
+
+
 def _load_seen() -> dict:
     if SEEN_FILE.exists():
         try:
@@ -46,7 +53,7 @@ def _load_seen() -> dict:
         except Exception:
             return {}
         cutoff = (datetime.now() - timedelta(days=30)).isoformat()
-        pruned = {k: v for k, v in data.items()
+        pruned = {_normalise_url(k): v for k, v in data.items()
                   if v.get("alerted_at", "") >= cutoff}
         if len(pruned) < len(data):
             log.info("seen_alerts_push: pruned %d entries older than 30 days",
@@ -191,7 +198,7 @@ def notify_new_listings(conn, new_listing_ids):
     for row in rows:
         s = dict(row)
         url      = s.get("listing_url") or ""
-        seen_key = f"new:{url}" if url else f"new:id:{s.get('id')}"
+        seen_key = f"new:{_normalise_url(url)}" if url else f"new:id:{s.get('id')}"
 
         if seen_key in seen:
             log.debug("Skip push (already sent): %s", seen_key[:80])
