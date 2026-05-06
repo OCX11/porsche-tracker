@@ -60,12 +60,13 @@ async function toggleSave(listingId, meta = {}) {
     _savedIds.delete(listingId);
   } else {
     await _sb.from(_TABLE).insert({
-      user_id:     _user.id,
-      listing_id:  listingId,
-      source:      meta.source || null,
-      title:       meta.title  || null,
-      listing_url: meta.url    || null,
-      image_url:   meta.img    || null,
+      user_id:       _user.id,
+      listing_id:    listingId,
+      source:        meta.source       || null,
+      title:         meta.title        || null,
+      listing_url:   meta.listing_url  || meta.url || null,
+      image_url:     meta.img          || null,
+      price_at_save: meta.price        || null,
     });
     _savedIds.add(listingId);
   }

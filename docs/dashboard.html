@@ -524,7 +524,7 @@ button { cursor:pointer; border:none; background:none; font:inherit; color:inher
 <div class="dropdown-overlay" id="dd-overlay">
   <div class="dd-backdrop" onclick="closeDropdown()"></div>
   <div class="dropdown">
-    <div class="dd-item"><span class="dd-icon">&#x2605;</span> My Cars</div>
+    <a class="dd-item" href="saved.html"><span class="dd-icon">&#x2605;</span> My Cars</a>
     <a class="dd-item" href="search.html"><span class="dd-icon">&#x1F50D;</span> Search</a>
     <div class="dd-divider"></div>
     <a class="dd-item" href="calculator.html"><span class="dd-icon">&#x1F4B0;</span> FMV Calculator</a>
@@ -1971,7 +1971,10 @@ function toggleStar(btn) {
   // Delegate to auth.js server-side save if available and user is logged in
   if (typeof toggleSave === 'function' && typeof _user !== 'undefined' && _user) {
     var isNowSaved = !btn.classList.contains('starred');
-    toggleSave(lid, { listing_url: url });
+    var card = btn.closest('.card');
+    var price = card ? parseInt(card.dataset.price||'0')||null : null;
+    var model = card ? (card.dataset.year+' Porsche '+card.dataset.model) : '';
+    toggleSave(lid, { listing_url: url, url: url, price: price, title: model });
     btn.textContent = isNowSaved ? '★' : '☆';
     btn.classList.toggle('starred', isNowSaved);
     if (filterStarredOnly) applyFilters();

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Saved — RennMarkt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:#0d0d0d;color:#e2ddd8;font-family:'DM Sans',sans-serif;min-height:100vh}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #1a1a1a;position:sticky;top:0;z-index:100;background:#0d0d0d}
+.logo{text-decoration:none;display:flex;align-items:center}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.topbar-btn{background:none;border:1px solid #2a2a2a;color:#e2ddd8;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:1px;padding:5px 10px;border-radius:6px;cursor:pointer;transition:border-color 0.15s}
+.topbar-btn:hover{border-color:#555}
+.auth-login-btn,.auth-logout-btn{cursor:pointer}
+
+.page-header{padding:32px 20px 16px;border-bottom:1px solid #1a1a1a;max-width:1200px;margin:0 auto}
+.page-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-0.5px}
+.page-title span{color:#D85A30}
+.page-sub{color:#555;font-size:12px;margin-top:6px;font-family:'DM Mono',monospace;letter-spacing:.5px}
+
+.content{max-width:1200px;margin:0 auto;padding:24px 20px}
+
+.gate{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center}
+.gate-icon{font-size:48px;margin-bottom:20px;opacity:.3}
+.gate-title{font-size:20px;font-weight:700;margin-bottom:8px}
+.gate-sub{color:#555;font-size:13px;margin-bottom:28px;line-height:1.6;max-width:300px}
+.gate-btn{background:#D85A30;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.gate-btn:hover{background:#c04e28}
+
+.empty{display:flex;flex-direction:column;align-items:center;padding:80px 20px;text-align:center}
+.empty-icon{font-size:48px;margin-bottom:16px;opacity:.15}
+.empty-title{font-size:16px;font-weight:600;margin-bottom:8px;color:#666}
+.empty-sub{color:#444;font-size:13px;line-height:1.6;max-width:280px}
+.empty-sub a{color:#D85A30;text-decoration:none}
+
+.sort-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.sort-label{font-size:11px;color:#555;font-family:'DM Mono',monospace;letter-spacing:.5px;margin-right:4px}
+.sort-btn{background:none;border:1px solid #222;color:#888;font-size:11px;font-family:'DM Mono',monospace;padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .15s}
+.sort-btn.active{border-color:#D85A30;color:#D85A30}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+
+.card{background:#111;border:1px solid #1e1e1e;border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color .15s}
+.card:hover{border-color:#333}
+.card.sold-card{opacity:.65}
+.card-img-wrap{position:relative;height:160px;overflow:hidden;background:#0a0a0a}
+.card-img{width:100%;height:160px;object-fit:cover;display:block;transition:transform .2s;opacity:.9}
+.card:hover .card-img{transform:scale(1.03)}
+.card-status-badge{position:absolute;top:8px;left:8px;font-size:10px;font-family:'DM Mono',monospace;font-weight:700;letter-spacing:.5px;padding:3px 7px;border-radius:4px;text-transform:uppercase}
+.badge-sold{background:#1a0a0a;color:#D6293E;border:1px solid #3d1520}
+.badge-active{background:#0a1a0a;color:#22C55E;border:1px solid #1a3d28}
+.price-change-badge{position:absolute;top:8px;right:8px;font-size:10px;font-family:'DM Mono',monospace;font-weight:700;padding:3px 7px;border-radius:4px}
+.badge-drop{background:#0a1a10;color:#22C55E;border:1px solid #1a3d20}
+.badge-rise{background:#1a0f0a;color:#F97316;border:1px solid #4a2e10}
+.unsave-btn{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.7);border:1px solid #333;color:#888;font-size:12px;padding:4px 8px;border-radius:5px;cursor:pointer;font-family:'DM Mono',monospace;transition:color .15s}
+.unsave-btn:hover{color:#D6293E;border-color:#D6293E}
+
+.card-body{padding:12px}
+.card-title{font-size:13px;font-weight:500;color:#f0f0f0;margin-bottom:6px;line-height:1.3}
+.card-price-row{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.price-current{font-size:18px;font-weight:700;font-family:'DM Mono',monospace;color:#f0f0f0}
+.price-saved{font-size:11px;color:#555;font-family:'DM Mono',monospace}
+.price-arrow{font-size:11px;font-family:'DM Mono',monospace}
+.price-arrow.down{color:#22C55E}
+.price-arrow.up{color:#F97316}
+.card-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.meta-chip{font-size:10px;font-family:'DM Mono',monospace;color:#555;background:#161616;border:1px solid #1e1e1e;padding:2px 7px;border-radius:3px}
+.card-saved-date{font-size:10px;color:#333;font-family:'DM Mono',monospace;margin-top:6px}
+
+.loading{text-align:center;padding:60px 20px;color:#444;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.5px}
+
+@media(max-width:480px){.cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="logo" href="index.html">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" height="36">
+      <g transform="translate(6,4)">
+        <circle cx="20" cy="20" r="16" fill="none" stroke="#242424" stroke-width="2"/>
+        <path d="M4,29 A16,16 0 0,1 33,6" fill="none" stroke="#D85A30" stroke-width="2" stroke-linecap="round"/>
+        <line x1="20" y1="20" x2="33" y2="6" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="20" cy="20" r="3" fill="#D85A30"/>
+        <text x="46" y="26" font-family="'Helvetica Neue',Arial,sans-serif" font-size="24" letter-spacing="-0.5">
+          <tspan font-weight="800" fill="white">Renn</tspan><tspan font-weight="300" fill="#D85A30">Markt</tspan>
+        </text>
+      </g>
+    </svg>
+  </a>
+  <div class="topbar-right">
+    <button class="topbar-btn auth-login-btn" onclick="openLoginModal()">Sign In</button>
+    <button class="topbar-btn auth-logout-btn" style="display:none" onclick="signOut()">Sign Out</button>
+    <span class="auth-user-label" style="font-size:11px;color:#555;font-family:'DM Mono',monospace"></span>
+    <a href="index.html" class="topbar-btn" style="text-decoration:none">← Market</a>
+  </div>
+</header>
+
+<div class="page-header">
+  <div class="page-title">My <span>Saved</span></div>
+  <div class="page-sub">Retail listings you've starred — tracked for price changes</div>
+</div>
+
+<div class="content" id="main-content">
+  <div class="loading" id="loading-state">Loading...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth.js"></script>
+<script>
+const PLACEHOLDER = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 220"%3E%3Crect width="400" height="220" fill="%23111"%2F%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23333" font-family="monospace" font-size="14"%3ENo photo%3C%2Ftext%3E%3C%2Fsvg%3E';
+
+var _allSaved = [];
+var _sortMode = 'saved_date'; // saved_date | price_drop | price | model
+
+function fmtPrice(v) {
+  if (!v) return '—';
+  return '$' + Number(v).toLocaleString();
+}
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+}
+
+async function loadSavedListings() {
+  const content = document.getElementById('main-content');
+
+  // Gate: not logged in
+  if (!_user) {
+    content.innerHTML = `
+      <div class="gate">
+        <div class="gate-icon">♡</div>
+        <div class="gate-title">Sign in to see your saved cars</div>
+        <div class="gate-sub">Star any listing on RennMarkt to save it here. Track price changes and availability over time.</div>
+        <button class="gate-btn" onclick="openLoginModal()">Sign In</button>
+      </div>`;
+    return;
+  }
+
+  content.innerHTML = '<div class="loading">Loading saved listings...</div>';
+
+  try {
+    // Fetch saved listing IDs + metadata from Supabase
+    const { data: saved, error } = await _sb.from('saved_listings')
+      .select('listing_id, price_at_save, saved_at, listing_url')
+      .eq('user_id', _user.id)
+      .order('saved_at', { ascending: false });
+
+    if (error) throw error;
+
+    if (!saved || saved.length === 0) {
+      content.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">☆</div>
+          <div class="empty-title">No saved listings yet</div>
+          <div class="empty-sub">Tap the ☆ on any car on the <a href="index.html">market</a> to save it here.</div>
+        </div>`;
+      return;
+    }
+
+    // Fetch current listing data from listings.json (already cached by browser)
+    const listingsResp = await fetch('listings.json');
+    const allListings = await listingsResp.json();
+    const listingsById = {};
+    allListings.forEach(function(l) { listingsById[l.id] = l; });
+
+    // Merge saved metadata with current listing data
+    _allSaved = saved.map(function(s) {
+      var current = listingsById[s.listing_id] || null;
+      var currentPrice = current ? current.pr : null;
+      var priceDiff = (currentPrice && s.price_at_save) ? currentPrice - s.price_at_save : null;
+      var pricePct = (priceDiff !== null && s.price_at_save) ? Math.round(100 * priceDiff / s.price_at_save) : null;
+      return {
+        id: s.listing_id,
+        url: s.listing_url || (current ? current.url : '#'),
+        saved_at: s.saved_at,
+        price_at_save: s.price_at_save,
+        current: current,
+        currentPrice: currentPrice,
+        priceDiff: priceDiff,
+        pricePct: pricePct,
+        isActive: current !== null,
+      };
+    });
+
+    renderSaved();
+
+  } catch(err) {
+    content.innerHTML = '<div class="loading" style="color:#c0392b">Failed to load saved listings: ' + err.message + '</div>';
+  }
+}
+
+function renderSaved() {
+  var items = _allSaved.slice();
+
+  // Sort
+  if (_sortMode === 'price_drop') {
+    items.sort(function(a,b) { return (a.pricePct||0) - (b.pricePct||0); });
+  } else if (_sortMode === 'price') {
+    items.sort(function(a,b) { return (a.currentPrice||0) - (b.currentPrice||0); });
+  } else if (_sortMode === 'model') {
+    items.sort(function(a,b) {
+      var am = a.current ? (a.current.yr + ' ' + a.current.model) : '';
+      var bm = b.current ? (b.current.yr + ' ' + b.current.model) : '';
+      return am.localeCompare(bm);
+    });
+  }
+  // default: saved_date (already sorted by Supabase DESC)
+
+  var html = '';
+
+  // Sort bar
+  html += '<div class="sort-bar">';
+  html += '<span class="sort-label">Sort:</span>';
+  html += '<button class="sort-btn' + (_sortMode==='saved_date'?' active':'') + '" onclick="setSort(\'saved_date\')">Recently Saved</button>';
+  html += '<button class="sort-btn' + (_sortMode==='price_drop'?' active':'') + '" onclick="setSort(\'price_drop\')">Price Drop</button>';
+  html += '<button class="sort-btn' + (_sortMode==='price'?' active':'') + '" onclick="setSort(\'price\')">Price ↑</button>';
+  html += '<button class="sort-btn' + (_sortMode==='model'?' active':'') + '" onclick="setSort(\'model\')">Model A–Z</button>';
+  html += '</div>';
+
+  html += '<div class="cards">';
+
+  items.forEach(function(item) {
+    var c = item.current;
+    var title = c ? (item.current.yr + ' Porsche ' + item.current.model + (item.current.trim ? ' ' + item.current.trim : '')) : 'Listing #' + item.id;
+    var img = c ? (c.img || PLACEHOLDER) : PLACEHOLDER;
+    var isActive = item.isActive;
+    var priceDiff = item.priceDiff;
+    var pricePct = item.pricePct;
+
+    var statusBadge = isActive
+      ? '<span class="card-status-badge badge-active">Active</span>'
+      : '<span class="card-status-badge badge-sold">Sold / Removed</span>';
+
+    var changeBadge = '';
+    if (priceDiff !== null && priceDiff !== 0) {
+      var sign = priceDiff < 0 ? '↓' : '↑';
+      var cls = priceDiff < 0 ? 'badge-drop' : 'badge-rise';
+      changeBadge = '<span class="price-change-badge ' + cls + '">' + sign + Math.abs(pricePct) + '%</span>';
+    }
+
+    var priceRow = '<div class="card-price-row">';
+    priceRow += '<span class="price-current">' + fmtPrice(item.currentPrice || item.price_at_save) + '</span>';
+    if (priceDiff !== null && priceDiff !== 0) {
+      var arrow = priceDiff < 0 ? 'down' : 'up';
+      var sign2 = priceDiff < 0 ? '↓' : '↑';
+      priceRow += '<span class="price-arrow ' + arrow + '">' + sign2 + ' ' + fmtPrice(Math.abs(priceDiff)) + '</span>';
+      priceRow += '<span class="price-saved">saved at ' + fmtPrice(item.price_at_save) + '</span>';
+    } else if (item.price_at_save && !item.currentPrice) {
+      priceRow += '<span class="price-saved">saved at ' + fmtPrice(item.price_at_save) + '</span>';
+    }
+    priceRow += '</div>';
+
+    var chips = '';
+    if (c) {
+      if (c.gen) chips += '<span class="meta-chip">' + c.gen + '</span>';
+      if (c.mi) chips += '<span class="meta-chip">' + Number(c.mi).toLocaleString() + ' mi</span>';
+      if (c.trans) chips += '<span class="meta-chip">' + c.trans + '</span>';
+      if (c.src) chips += '<span class="meta-chip">' + c.src + '</span>';
+    }
+
+    html += '<div class="card' + (!isActive?' sold-card':'') + '" onclick="window.open(\'' + (item.url||'#').replace(/'/g,'%27') + '\',\'_blank\')">';
+    html += '<div class="card-img-wrap">';
+    html += '<img class="card-img" src="' + img + '" loading="lazy" onerror="this.src=PLACEHOLDER" alt="' + title + '">';
+    html += statusBadge + changeBadge;
+    html += '<button class="unsave-btn" onclick="event.stopPropagation();unsaveListing(' + item.id + ',this)">✕ Unsave</button>';
+    html += '</div>';
+    html += '<div class="card-body">';
+    html += '<div class="card-title">' + title + '</div>';
+    html += priceRow;
+    if (chips) html += '<div class="card-meta">' + chips + '</div>';
+    html += '<div class="card-saved-date">Saved ' + fmtDate(item.saved_at) + '</div>';
+    html += '</div></div>';
+  });
+
+  html += '</div>';
+
+  document.getElementById('main-content').innerHTML = html;
+}
+
+function setSort(mode) {
+  _sortMode = mode;
+  renderSaved();
+}
+
+async function unsaveListing(listingId, btn) {
+  btn.textContent = '...';
+  await toggleSave(listingId, {});
+  // Remove from local array and re-render
+  _allSaved = _allSaved.filter(function(s) { return s.id !== listingId; });
+  renderSaved();
+}
+
+// ── Auth state change → reload saved listings ────────────────────────────────
+var _authReady = false;
+var _origOnAuthChange = null;
+
+async function init() {
+  await initAuth();
+  await loadSavedListings();
+
+  // Re-load when user signs in/out
+  _sb.auth.onAuthStateChange(async function(event) {
+    if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+      await loadSavedListings();
+    }
+  });
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
