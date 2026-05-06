@@ -18,7 +18,11 @@ from openpyxl.utils import get_column_letter
 DB_PATH   = Path("/Users/claw/porsche-tracker/data/inventory.db")
 OUTPUT    = Path("/Users/claw/Desktop/bat_flip_tracker.xlsx")
 LOG_PATH  = Path("/Users/claw/porsche-tracker/data/bat_flip_results.json")
-BRAVE_KEY = "***REDACTED***"
+# Key stored in data/brave_config.json (not committed)
+import json as _json, pathlib as _pl
+_brave_cfg = _pl.Path(__file__).parent / "data" / "brave_config.json"
+BRAVE_KEY = (_json.loads(_brave_cfg.read_text()).get("brave_search_api_key","")
+             if _brave_cfg.exists() else os.environ.get("BRAVE_SEARCH_API_KEY",""))
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36",
