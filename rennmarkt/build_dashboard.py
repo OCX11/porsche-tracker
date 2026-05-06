@@ -381,8 +381,8 @@ def _card(car: dict, fmv_score: dict) -> str:
         f'data-dealer="{_h(dealer)}" data-year="{year}" data-model="{_h(model)}" '
         f'data-gen="{_h(gen_str)}" data-tier="{_h(tier)}" data-price="{price or 0}" '
         f'data-src-label="{_h(src_label)}" '
-        f'data-source-type="{"auction" if is_auc else "retail"}" '
-        f'onclick="openListing(\'{_h(url)}\')">\n'
+        f'data-source-type="{"auction" if is_auc else "retail"}">\
+'
         f'  {img_html}\n'
         f'  <div class="card-body">\n'
         f'    <div class="card-top-row">'
@@ -1763,7 +1763,7 @@ function renderCard(d) {{
     + endsHtml
     + metaHtml
     + '</div>'
-    + '<div class="card-expand" id="expand-" + d.id>'
+    + '<div class="card-expand" id="' + "expand-" + d.id + '">'
     + '<div class="expand-graph-label">Sold comps <span class="expand-cc">' + (d.fmv_cc||0) + ' sales</span></div>'
     + '<svg class="expand-graph-svg" data-lid="' + d.id + '" data-fmv="' + (d.fmv||0) + '" data-bid="' + (d.pr||0) + '" data-low="' + (d.fmv_lo||0) + '" data-high="' + (d.fmv_hi||0) + '"></svg>'
     + '<a class="expand-goto" href="' + d.url + '" target="_blank" onclick="event.stopPropagation()">&#x2197; View listing</a>'

@@ -499,23 +499,23 @@ button { cursor:pointer; border:none; background:none; font:inherit; color:inher
 </header>
 <div class="stats-bar">
   <div class="stat-cell active" onclick="switchView('listings',this);resetFilters()">
-    <div class="stat-number">2,604</div>
+    <div class="stat-number">2,694</div>
     <div class="stat-label">Active</div>
   </div>
   <div class="stat-cell" onclick="switchView('listings',this);filterToday()">
-    <div class="stat-number">151</div>
+    <div class="stat-number">307</div>
     <div class="stat-label">New Today</div>
   </div>
   <a class="stat-cell" href="auctions.html" style="text-decoration:none;color:inherit">
-    <div class="stat-number red">61</div>
+    <div class="stat-number red">69</div>
     <div class="stat-label">Auctions</div>
   </a>
   <div class="stat-cell" onclick="switchView('comps',this)">
-    <div class="stat-number">5,190</div>
+    <div class="stat-number">5,199</div>
     <div class="stat-label">Comps</div>
   </div>
   <div class="stat-cell" onclick="switchView('listings',this);filterDeals()">
-    <div class="stat-number green">356</div>
+    <div class="stat-number green">376</div>
     <div class="stat-label">Deals</div>
   </div>
 </div>
@@ -677,7 +677,7 @@ button { cursor:pointer; border:none; background:none; font:inherit; color:inher
       <div class="section-header">
         <div>
           <div class="section-title">Sold Comps</div>
-          <div class="section-sub">24-month rolling &middot; BaT, pcarmarket, C&amp;B &middot; 5,190 records</div>
+          <div class="section-sub">24-month rolling &middot; BaT, pcarmarket, C&amp;B &middot; 5,199 records</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <input type="text" id="comp-search" placeholder="Filter comps&hellip;"
@@ -1183,7 +1183,7 @@ function renderCard(d) {
     + endsHtml
     + metaHtml
     + '</div>'
-    + '<div class="card-expand" id="expand-" + d.id>'
+    + '<div class="card-expand" id="' + "expand-" + d.id + '">'
     + '<div class="expand-graph-label">Sold comps <span class="expand-cc">' + (d.fmv_cc||0) + ' sales</span></div>'
     + '<svg class="expand-graph-svg" data-lid="' + d.id + '" data-fmv="' + (d.fmv||0) + '" data-bid="' + (d.pr||0) + '" data-low="' + (d.fmv_lo||0) + '" data-high="' + (d.fmv_hi||0) + '"></svg>'
     + '<a class="expand-goto" href="' + d.url + '" target="_blank" onclick="event.stopPropagation()">&#x2197; View listing</a>'
