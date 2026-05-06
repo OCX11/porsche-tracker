@@ -692,7 +692,8 @@ def _push_rennauktion(html: str) -> None:
             .replace('<a class="dd-item" href="index.html">\U0001f3ce\ufe0f Market</a>',
                      '<a class="dd-item" href="https://www.rennmarkt.net">\U0001f3ce\ufe0f RennMarkt</a>')\
             .replace('<a class="logo" href="index.html">', '<a class="logo" href="/">')\
-            .replace('href="index.html"', 'href="/"')
+            .replace('href="index.html"', 'href="/"')\
+            .replace('href="index.html#comps"', 'href="/#comps"')
 
         # Fix nav links (point to rennmarkt.net equivalents) + add My Saved
         branded = branded \

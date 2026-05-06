@@ -1125,6 +1125,8 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
   .fmv-comps-txt {{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }}
 }}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth.js"></script>
 </head>
 <body>
 <div class="app">
@@ -1165,6 +1167,10 @@ button {{ cursor:pointer; border:none; background:none; font:inherit; color:inhe
     <a class="dd-item" href="calculator.html"><span class="dd-icon">&#x1F4B0;</span> FMV Calculator</a>
     <a class="dd-item" href="market_report.html"><span class="dd-icon">&#x1F4CA;</span> Market Reports</a>
     <a class="dd-item" href="notify.html"><span class="dd-icon">&#x1F514;</span> Notifications</a>
+    <div class="dd-divider"></div>
+    <div class="dd-item auth-login-btn" onclick="closeDropdown();openLoginModal()"><span class="dd-icon">&#x1F464;</span> Sign In</div>
+    <div class="dd-item" style="display:none"><span class="dd-icon">&#x1F464;</span> <span class="auth-user-label"></span></div>
+    <div class="dd-item auth-logout-btn" onclick="closeDropdown();if(typeof signOut==='function')signOut()" style="display:none"><span class="dd-icon">&#x2190;</span> Sign Out</div>
     <div class="dd-divider"></div>
     <div class="dd-theme-row">
       <span class="dd-theme-label">Theme</span>
@@ -1749,7 +1755,7 @@ function renderCard(d) {{
     + imgHtml
     + '<div class="card-body">'
     + '<div class="card-top-row">' + badgeHtml + ageHtml
-  + '<button class="star-btn" data-url="' + d.url + '" onclick="event.stopPropagation();toggleStar(this)" title="Save car">&#x2606;</button>'
+  + '<button class="star-btn" data-save-id="' + d.id + '" data-id="' + d.id + '" data-url="' + d.url + '" onclick="event.stopPropagation();toggleStar(this)" title="Save car">&#x2606;</button>'
   + '</div>'
     + titleHtml
     + tierHtml
@@ -2539,7 +2545,20 @@ function loadStarred() {{
 
 function toggleStar(btn) {{
   var url = btn.dataset.url || '';
+  var lid = parseInt(btn.dataset.id || '0');
   if (!url) return;
+
+  // Delegate to auth.js server-side save if available and user is logged in
+  if (typeof toggleSave === 'function' && typeof _user !== 'undefined' && _user) {{
+    var isNowSaved = !btn.classList.contains('starred');
+    toggleSave(lid, {{ listing_url: url }});
+    btn.textContent = isNowSaved ? '\u2605' : '\u2606';
+    btn.classList.toggle('starred', isNowSaved);
+    if (filterStarredOnly) applyFilters();
+    return;
+  }}
+
+  // Fallback: localStorage-only (not logged in)
   if (_starred[url]) {{
     delete _starred[url];
     btn.textContent = '\u2606';
@@ -2550,7 +2569,6 @@ function toggleStar(btn) {{
     btn.classList.add('starred');
   }}
   try {{ localStorage.setItem('ptox_starred', JSON.stringify(_starred)); }} catch(e) {{}}
-  // If starred-only filter is active, re-apply so card hides/shows immediately
   if (filterStarredOnly) applyFilters();
 }}
 
@@ -2565,6 +2583,21 @@ function filterStarred() {{
 // ── Init ──────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', function() {{
   loadStarred();
+  // Init Supabase auth — syncs server-side saved state into star buttons
+  if (typeof initAuth === 'function') {{
+    initAuth().then(function() {{
+      // Sync server-side saved state → .starred class on star buttons
+      if (typeof _savedIds !== 'undefined') {{
+        document.querySelectorAll('.star-btn[data-save-id]').forEach(function(btn) {{
+          var lid = parseInt(btn.dataset.saveId || '0');
+          var saved = _savedIds.has(lid);
+          btn.classList.toggle('starred', saved);
+          btn.classList.toggle('active', saved);
+          btn.textContent = saved ? '\u2605' : '\u2606';
+        }});
+      }}
+    }});
+  }}
   startCountdowns();
   updateTimestamps();
   setInterval(updateTimestamps, 60000);
